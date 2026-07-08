@@ -40,7 +40,7 @@ Build a long-term maintainable global Emoji dictionary, copy, meaning, search, t
 - Phase 2: Database and Prisma
 - Phase 3A: Public Read-only API
 - Phase 3B: Frontend basic pages
-- Phase 3C: Emoji detail and SEO
+- Phase 3C: Emoji detail and SEO (post-acceptance fix: server-side `<html lang>` per locale; `pnpm typecheck` works on clean checkout)
 
 ## Next Phase
 

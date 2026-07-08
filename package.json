@@ -10,7 +10,7 @@
     "dev:api": "pnpm --filter @emoji-platform/api start:dev",
     "build": "pnpm --filter @emoji-platform/types build && pnpm --filter @emoji-platform/shared build && pnpm --filter @emoji-platform/api build && pnpm --filter @emoji-platform/web build && pnpm --filter @emoji-platform/admin build",
     "lint": "pnpm -r lint",
-    "typecheck": "pnpm -r typecheck",
+    "typecheck": "pnpm --filter @emoji-platform/types build && pnpm --filter @emoji-platform/shared build && pnpm -r typecheck",
     "db:generate": "pnpm --filter @emoji-platform/api prisma:generate",
     "db:migrate": "pnpm --filter @emoji-platform/api prisma:migrate",
     "db:seed": "pnpm --filter @emoji-platform/api prisma:seed",

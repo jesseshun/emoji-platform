@@ -109,3 +109,13 @@
 - Updated `.env.example` with `NEXT_PUBLIC_SITE_URL`.
 - Updated README with Phase 3C documentation.
 - Updated PROJECT_HANDOFF.md and CHANGELOG.md for Phase 3C completion.
+
+## Phase 3C Fix (post-acceptance)
+
+- Fixed `<html lang>` not being set server-side: the root layout now derives `lang` from the
+  request locale path (via an `x-locale-path` request header set in `middleware.ts`), so `/zh/*`
+  pages render `<html lang="zh">` and `/en/*` pages render `<html lang="en">` in the initial HTML.
+  Previously the attribute was hardcoded to `en` and only corrected client-side by `HtmlLang`.
+- Fixed `pnpm typecheck` failing on a clean checkout: the root `typecheck` script now builds
+  `@emoji-platform/types` and `@emoji-platform/shared` before running `pnpm -r typecheck`, since
+  those packages resolve their `types` entry from built `dist` output.
