@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+
+export const dynamic = 'force-dynamic';
 import { SearchBox } from '@/components/SearchBox';
 import { EmojiGrid } from '@/components/EmojiGrid';
 import { CategoryCard } from '@/components/CategoryCard';
