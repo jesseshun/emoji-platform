@@ -12,3 +12,4 @@ coverage
 .prisma
 tmp
 .cache
+.github_token
