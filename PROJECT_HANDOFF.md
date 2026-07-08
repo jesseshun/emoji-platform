@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Phase 1 completed.
+Phase 2 completed.
 
 ## Project Goal
 
@@ -37,7 +37,8 @@ Build a long-term maintainable global Emoji dictionary, copy, meaning, search, t
 
 - Phase 0: Project governance and repository initialization
 - Phase 1: Monorepo base architecture
+- Phase 2: Database and Prisma
 
 ## Next Phase
 
-Phase 2 - Database and Prisma
+Phase 3A - Public Read-only API

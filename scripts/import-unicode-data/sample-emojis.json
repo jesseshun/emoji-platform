@@ -1,0 +1,252 @@
+[
+  {
+    "emoji": "😀",
+    "name": "grinning face",
+    "unicode": "U+1F600",
+    "category": "Smileys & Emotion",
+    "subcategory": "face-smiling",
+    "emojiVersion": "1.0",
+    "unicodeVersion": "6.1",
+    "shortcode": ":grinning:"
+  },
+  {
+    "emoji": "😃",
+    "name": "grinning face with big eyes",
+    "unicode": "U+1F603",
+    "category": "Smileys & Emotion",
+    "subcategory": "face-smiling",
+    "emojiVersion": "1.0",
+    "unicodeVersion": "6.1",
+    "shortcode": ":smiley:"
+  },
+  {
+    "emoji": "😄",
+    "name": "grinning face with smiling eyes",
+    "unicode": "U+1F604",
+    "category": "Smileys & Emotion",
+    "subcategory": "face-smiling",
+    "emojiVersion": "1.0",
+    "unicodeVersion": "6.1",
+    "shortcode": ":smile:"
+  },
+  {
+    "emoji": "😁",
+    "name": "beaming face with smiling eyes",
+    "unicode": "U+1F601",
+    "category": "Smileys & Emotion",
+    "subcategory": "face-smiling",
+    "emojiVersion": "1.0",
+    "unicodeVersion": "6.1",
+    "shortcode": ":grin:"
+  },
+  {
+    "emoji": "😆",
+    "name": "grinning squinting face",
+    "unicode": "U+1F606",
+    "category": "Smileys & Emotion",
+    "subcategory": "face-smiling",
+    "emojiVersion": "1.0",
+    "unicodeVersion": "6.1",
+    "shortcode": ":laughing:"
+  },
+  {
+    "emoji": "😂",
+    "name": "face with tears of joy",
+    "unicode": "U+1F602",
+    "category": "Smileys & Emotion",
+    "subcategory": "face-smiling",
+    "emojiVersion": "1.0",
+    "unicodeVersion": "6.1",
+    "shortcode": ":joy:"
+  },
+  {
+    "emoji": "🤣",
+    "name": "rolling on the floor laughing",
+    "unicode": "U+1F923",
+    "category": "Smileys & Emotion",
+    "subcategory": "face-smiling",
+    "emojiVersion": "3.0",
+    "unicodeVersion": "9.0",
+    "shortcode": ":rofl:"
+  },
+  {
+    "emoji": "😊",
+    "name": "smiling face with smiling eyes",
+    "unicode": "U+1F60A",
+    "category": "Smileys & Emotion",
+    "subcategory": "face-smiling",
+    "emojiVersion": "1.0",
+    "unicodeVersion": "6.1",
+    "shortcode": ":blush:"
+  },
+  {
+    "emoji": "😍",
+    "name": "smiling face with heart eyes",
+    "unicode": "U+1F60D",
+    "category": "Smileys & Emotion",
+    "subcategory": "face-affection",
+    "emojiVersion": "1.0",
+    "unicodeVersion": "6.1",
+    "shortcode": ":heart_eyes:"
+  },
+  {
+    "emoji": "🥰",
+    "name": "smiling face with hearts",
+    "unicode": "U+1F970",
+    "category": "Smileys & Emotion",
+    "subcategory": "face-affection",
+    "emojiVersion": "11.0",
+    "unicodeVersion": "11.0",
+    "shortcode": ":smiling_face_with_3_hearts:"
+  },
+  {
+    "emoji": "😘",
+    "name": "face blowing a kiss",
+    "unicode": "U+1F618",
+    "category": "Smileys & Emotion",
+    "subcategory": "face-affection",
+    "emojiVersion": "1.0",
+    "unicodeVersion": "6.1",
+    "shortcode": ":kissing_heart:"
+  },
+  {
+    "emoji": "🤩",
+    "name": "star-struck",
+    "unicode": "U+1F929",
+    "category": "Smileys & Emotion",
+    "subcategory": "face-smiling",
+    "emojiVersion": "5.0",
+    "unicodeVersion": "10.0",
+    "shortcode": ":star_struck:"
+  },
+  {
+    "emoji": "😎",
+    "name": "smiling face with sunglasses",
+    "unicode": "U+1F60E",
+    "category": "Smileys & Emotion",
+    "subcategory": "face-smiling",
+    "emojiVersion": "1.0",
+    "unicodeVersion": "6.1",
+    "shortcode": ":sunglasses:"
+  },
+  {
+    "emoji": "🤗",
+    "name": "hugging face",
+    "unicode": "U+1F917",
+    "category": "Smileys & Emotion",
+    "subcategory": "face-smiling",
+    "emojiVersion": "1.0",
+    "unicodeVersion": "8.0",
+    "shortcode": ":hugging:"
+  },
+  {
+    "emoji": "🤔",
+    "name": "thinking face",
+    "unicode": "U+1F914",
+    "category": "Smileys & Emotion",
+    "subcategory": "face-smiling",
+    "emojiVersion": "1.0",
+    "unicodeVersion": "8.0",
+    "shortcode": ":thinking:"
+  },
+  {
+    "emoji": "❤️",
+    "name": "red heart",
+    "unicode": "U+2764 U+FE0F",
+    "category": "Symbols",
+    "subcategory": "heart",
+    "emojiVersion": "1.0",
+    "unicodeVersion": "1.1",
+    "shortcode": ":heart:"
+  },
+  {
+    "emoji": "🧡",
+    "name": "orange heart",
+    "unicode": "U+1F9E1",
+    "category": "Symbols",
+    "subcategory": "heart",
+    "emojiVersion": "5.0",
+    "unicodeVersion": "10.0",
+    "shortcode": ":orange_heart:"
+  },
+  {
+    "emoji": "💛",
+    "name": "yellow heart",
+    "unicode": "U+1F49B",
+    "category": "Symbols",
+    "subcategory": "heart",
+    "emojiVersion": "1.0",
+    "unicodeVersion": "6.1",
+    "shortcode": ":yellow_heart:"
+  },
+  {
+    "emoji": "💚",
+    "name": "green heart",
+    "unicode": "U+1F49A",
+    "category": "Symbols",
+    "subcategory": "heart",
+    "emojiVersion": "1.0",
+    "unicodeVersion": "6.1",
+    "shortcode": ":green_heart:"
+  },
+  {
+    "emoji": "💙",
+    "name": "blue heart",
+    "unicode": "U+1F499",
+    "category": "Symbols",
+    "subcategory": "heart",
+    "emojiVersion": "1.0",
+    "unicodeVersion": "6.1",
+    "shortcode": ":blue_heart:"
+  },
+  {
+    "emoji": "💜",
+    "name": "purple heart",
+    "unicode": "U+1F49C",
+    "category": "Symbols",
+    "subcategory": "heart",
+    "emojiVersion": "1.0",
+    "unicodeVersion": "6.1",
+    "shortcode": ":purple_heart:"
+  },
+  {
+    "emoji": "👍",
+    "name": "thumbs up",
+    "unicode": "U+1F44D",
+    "category": "People & Body",
+    "subcategory": "hand-fingers",
+    "emojiVersion": "1.0",
+    "unicodeVersion": "6.1",
+    "shortcode": ":thumbsup:"
+  },
+  {
+    "emoji": "👎",
+    "name": "thumbs down",
+    "unicode": "U+1F44E",
+    "category": "People & Body",
+    "subcategory": "hand-fingers",
+    "emojiVersion": "1.0",
+    "unicodeVersion": "6.1",
+    "shortcode": ":thumbsdown:"
+  },
+  {
+    "emoji": "👏",
+    "name": "clapping hands",
+    "unicode": "U+1F44F",
+    "category": "People & Body",
+    "subcategory": "hand-fingers",
+    "emojiVersion": "1.0",
+    "unicodeVersion": "6.1",
+    "shortcode": ":clap:"
+  },
+  {
+    "emoji": "🍎",
+    "name": "red apple",
+    "unicode": "U+1F34E",
+    "category": "Food & Drink",
+    "subcategory": "food-fruit",
+    "emojiVersion": "1.0",
+    "unicodeVersion": "6.1",
+    "shortcode": ":apple:"
+  }
+]

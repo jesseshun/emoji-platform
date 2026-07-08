@@ -10,7 +10,12 @@
     "dev:api": "pnpm --filter @emoji-platform/api start:dev",
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm -r typecheck",
+    "db:generate": "pnpm --filter @emoji-platform/api prisma:generate",
+    "db:migrate": "pnpm --filter @emoji-platform/api prisma:migrate",
+    "db:seed": "pnpm --filter @emoji-platform/api prisma:seed",
+    "db:studio": "pnpm --filter @emoji-platform/api prisma:studio",
+    "import:emoji": "tsx scripts/import-unicode-data/import-emojis.ts"
   },
   "engines": {
     "node": ">=18.0.0",
@@ -18,7 +23,18 @@
   },
   "pnpm": {
     "onlyBuiltDependencies": [
-      "@nestjs/core"
+      "@nestjs/core",
+      "@prisma/engines",
+      "prisma",
+      "bcrypt",
+      "esbuild",
+      "@prisma/client"
+    ],
+    "ignoredBuiltDependencies": [
+      "unrs-resolver"
     ]
+  },
+  "dependencies": {
+    "tsx": "^4.23.0"
   }
 }

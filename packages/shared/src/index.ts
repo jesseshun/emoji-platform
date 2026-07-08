@@ -7,3 +7,5 @@ export const DEFAULT_LOCALE = 'zh' as const;
 export function isLocale(value: string): value is 'zh' | 'en' {
   return SUPPORTED_LOCALES.includes(value as 'zh' | 'en');
 }
+
+export { generateSlug, uniqueSlug } from './slug';

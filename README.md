@@ -17,7 +17,7 @@
 
 ## 当前阶段
 
-**Phase 1** - Monorepo 基础架构搭建完成。
+**Phase 2** - Database and Prisma 已完成。
 
 ## 技术栈
 
@@ -25,7 +25,7 @@
 - **前台 (Web)**: Next.js + TypeScript + Tailwind CSS
 - **后台 (Admin)**: Next.js + TypeScript + Tailwind CSS
 - **API**: NestJS + TypeScript
-- **数据库**: PostgreSQL + Prisma（Phase 2 接入）
+- **数据库**: PostgreSQL + Prisma
 - **缓存**: Redis
 - **搜索**: Meilisearch
 - **容器化**: Docker Compose
@@ -35,17 +35,21 @@
 ```
 emoji-platform/
 ├── apps/
-│   ├── web/          # 前台应用 (端口 3000)
+��   ├── web/          # 前台应用 (端口 3000)
 │   ├── admin/        # 后台管理 (端口 3001)
 │   └── api/          # API 服务 (端口 4000)
+│       └── prisma/
+│           ├── schema.prisma  # Prisma 数据模型
+│           └── seed.ts        # 种子数据脚本
 ├── packages/
-│   ├── shared/       # 共享工具函数
+│   ├── shared/       # 共享工具函数（含 slug 工具）
 │   ├── types/        # 共享类型定义
 │   └── ui/           # 共享 UI 组件
 ├── database/
-│   ├── migrations/   # 数据库迁移（Phase 2）
-│   └── seeders/      # 种子数据（Phase 2）
-├── scripts/          # 工具脚本
+│   ├── migrations/   # 数据库迁移文件
+│   └── seeders/      # 种子数据
+├── scripts/
+│   └── import-unicode-data/  # Emoji 导入脚本
 ├── docker-compose.yml
 ├── .env.example
 ├── pnpm-workspace.yaml
@@ -78,6 +82,49 @@ cp .env.example .env
 # 确保已安装 pnpm（>= 8.0.0）和 Node.js（>= 18.0.0）
 pnpm install
 ```
+
+## 数据库初始化
+
+Phase 2 引入了 PostgreSQL + Prisma。在首次使用前需要完成数据库初始化：
+
+### 1. 启动 PostgreSQL
+
+```bash
+# 使用 Docker 启动 PostgreSQL
+docker compose up -d postgres
+```
+
+### 2. 生成 Prisma Client
+
+```bash
+pnpm db:generate
+```
+
+### 3. 执行数据库迁移
+
+```bash
+pnpm db:migrate
+```
+
+### 4. 填充种子数据
+
+```bash
+pnpm db:seed
+```
+
+### 5. 导入 Emoji 数据
+
+```bash
+pnpm import:emoji
+```
+
+### Prisma Studio（数据库可视化）
+
+```bash
+pnpm db:studio
+```
+
+浏览器访问 `http://localhost:5555` 查看和编辑数据库。
 
 ## 本地启动
 
@@ -144,9 +191,54 @@ docker compose up postgres redis meilisearch
 | 健康检查 | http://localhost:4000/api/v1/health |
 | 状态查询 | http://localhost:4000/api/v1/status |
 
-## 当前阶段完成范围
+> `GET /api/v1/status` 现在返回 `database: "connected"` 字段，用于验证数据库连接状态。
 
-Phase 1 - Monorepo Base Architecture:
+## Emoji 导入脚本
+
+使用 `scripts/import-unicode-data/import-emojis.ts` 导入 Emoji 数据：
+
+```bash
+# 使用默认文件 (scripts/import-unicode-data/sample-emojis.json)
+pnpm import:emoji
+
+# 指定自定义 JSON 文件
+pnpm import:emoji /path/to/custom-emojis.json
+```
+
+导入脚本功能：
+- 读取本地 JSON 文件
+- 校验基础字段（emoji, name, unicode 必填）
+- 自动生成 slug
+- 自动创建分类和子分类
+- 自动创建中英文分类翻译
+- 自动创建中英文 Emoji 翻译
+- 重复运行不会重复插入（基于 slug 去重）
+- 输出详细导入报告
+
+JSON 格式示例：
+
+```json
+{
+  "emoji": "😀",
+  "name": "grinning face",
+  "unicode": "U+1F600",
+  "category": "Smileys & Emotion",
+  "subcategory": "face-smiling",
+  "emojiVersion": "1.0",
+  "unicodeVersion": "6.1",
+  "shortcode": ":grinning:"
+}
+```
+
+## 已完成阶段
+
+### Phase 0 - Project Governance and Repository Initialization
+
+- [x] 初始化 git 仓库
+- [x] 连接远程仓库
+- [x] 创建项目治理文档
+
+### Phase 1 - Monorepo Base Architecture
 
 - [x] pnpm workspace 配置
 - [x] apps/web (Next.js + TypeScript + Tailwind CSS)
@@ -160,16 +252,28 @@ Phase 1 - Monorepo Base Architecture:
 - [x] API 健康检查与状态接口
 - [x] 代码规范配置
 
+### Phase 2 - Database and Prisma
+
+- [x] PostgreSQL 数据库接入
+- [x] Prisma ORM 接入
+- [x] 15 个核心数据模型
+- [x] 6 个枚举类型
+- [x] 数据库迁移
+- [x] 种子数据（10 分类 + 30 Emoji + 5 专题 + 管理员 + 日志）
+- [x] Emoji 导入脚本
+- [x] 数据库健康检查（/api/v1/status → database: "connected"）
+- [x] Slug 工具函数
+
 ## 下一阶段
 
-**Phase 2** - Database and Prisma:
+**Phase 3A** - Public Read-only API:
 
-- PostgreSQL 数据库
-- Prisma ORM 接入
-- 核心数据模型设计
-- 种子数据
-- Emoji 导入脚本
-- 数据库健康检查
+- Emoji 列表 API
+- Emoji 详情 API
+- 分类 API
+- 专题 API
+- 基础搜索 API
+- 复制事件 API
 
 ## 开发规范
 

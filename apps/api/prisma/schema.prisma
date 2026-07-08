@@ -1,0 +1,332 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────
+
+enum Locale {
+  zh
+  en
+}
+
+enum PublishStatus {
+  draft
+  published
+  archived
+}
+
+enum ReviewStatus {
+  pending
+  approved
+  rejected
+  needs_edit
+}
+
+enum AdminRole {
+  super_admin
+  editor
+  seo_manager
+  translator
+  reviewer
+  analyst
+}
+
+enum SubmissionType {
+  new_usage
+  example
+  correction
+  culture_note
+  translation_suggestion
+}
+
+enum SubmissionStatus {
+  pending
+  approved
+  rejected
+  spam
+}
+
+// ─── Models ──────────────────────────────────────────────
+
+model Emoji {
+  id               String       @id @default(uuid())
+  emojiChar        String
+  slug             String       @unique
+  unicodeCodepoint String?
+  htmlDecimal      String?
+  htmlHex          String?
+  shortcode        String?
+  emojiVersion     String?
+  unicodeVersion   String?
+  categoryId        String?
+  subcategoryId    String?
+  sortOrder        Int          @default(0)
+  status           PublishStatus @default(draft)
+  manualWeight     Int          @default(0)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  category      Category?          @relation("EmojiCategory", fields: [categoryId], references: [id])
+  subcategory   Category?          @relation("EmojiSubcategory", fields: [subcategoryId], references: [id])
+  translations  EmojiTranslation[]
+  assets        EmojiAsset[]
+  copyEvents    CopyEvent[]
+  topicEmojis   TopicEmoji[]
+  submissions   UserSubmission[]
+
+  @@map("emojis")
+}
+
+model EmojiTranslation {
+  id                  String       @id @default(uuid())
+  emojiId             String
+  locale              Locale
+  name                String?
+  shortName           String?
+  oneLineMeaning      String?
+  meaning             String?
+  usageNotes          String?
+  formalUsageNotes    String?
+  informalUsageNotes  String?
+  socialUsageNotes    String?
+  examples            Json         @default("[]")
+  keywords            Json         @default("[]")
+  faqJson             Json         @default("[]")
+  seoTitle            String?
+  seoDescription      String?
+  status              PublishStatus @default(draft)
+  reviewStatus        ReviewStatus  @default(pending)
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  emoji Emoji @relation(fields: [emojiId], references: [id], onDelete: Cascade)
+
+  @@unique([emojiId, locale])
+  @@map("emoji_translations")
+}
+
+model Category {
+  id        String       @id @default(uuid())
+  parentId  String?
+  slug      String       @unique
+  iconEmoji String?
+  sortOrder Int          @default(0)
+  status    PublishStatus @default(published)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  parent       Category?           @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children     Category[]          @relation("CategoryHierarchy")
+  translations CategoryTranslation[]
+  emojis       Emoji[]             @relation("EmojiCategory")
+  subEmojis    Emoji[]             @relation("EmojiSubcategory")
+
+  @@map("categories")
+}
+
+model CategoryTranslation {
+  id             String  @id @default(uuid())
+  categoryId     String
+  locale         Locale
+  name           String?
+  description    String?
+  seoTitle       String?
+  seoDescription String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, locale])
+  @@map("category_translations")
+}
+
+model Topic {
+  id          String       @id @default(uuid())
+  slug        String       @unique
+  coverImage  String?
+  topicType   String?
+  status      PublishStatus @default(draft)
+  sortOrder   Int          @default(0)
+  publishedAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  translations TopicTranslation[]
+  topicEmojis  TopicEmoji[]
+
+  @@map("topics")
+}
+
+model TopicTranslation {
+  id             String  @id @default(uuid())
+  topicId        String
+  locale         Locale
+  title          String?
+  summary        String?
+  content        String?
+  seoTitle       String?
+  seoDescription String?
+  faqJson        Json    @default("[]")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@unique([topicId, locale])
+  @@map("topic_translations")
+}
+
+model TopicEmoji {
+  id        String   @id @default(uuid())
+  topicId   String
+  emojiId   String
+  sortOrder Int      @default(0)
+  note      String?
+  createdAt DateTime @default(now())
+
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  emoji Emoji @relation(fields: [emojiId], references: [id], onDelete: Cascade)
+
+  @@unique([topicId, emojiId])
+  @@map("topic_emojis")
+}
+
+model Article {
+  id          String       @id @default(uuid())
+  slug        String       @unique
+  coverImage  String?
+  authorId    String?
+  status      PublishStatus @default(draft)
+  publishedAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  translations ArticleTranslation[]
+
+  @@map("articles")
+}
+
+model ArticleTranslation {
+  id             String  @id @default(uuid())
+  articleId      String
+  locale         Locale
+  title          String?
+  summary        String?
+  content        String?
+  seoTitle       String?
+  seoDescription String?
+  keywords       Json    @default("[]")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, locale])
+  @@map("article_translations")
+}
+
+model EmojiAsset {
+  id             String       @id @default(uuid())
+  emojiId        String
+  provider       String?
+  fileType       String?
+  fileUrl        String?
+  localPath      String?
+  width          Int?
+  height         Int?
+  licenseName    String?
+  licenseUrl     String?
+  attribution    String?
+  isDownloadable Boolean      @default(false)
+  status         PublishStatus @default(draft)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  emoji Emoji @relation(fields: [emojiId], references: [id], onDelete: Cascade)
+
+  @@map("emoji_assets")
+}
+
+model SearchLog {
+  id             String   @id @default(uuid())
+  query          String?
+  locale         Locale?
+  country        String?
+  resultCount    Int?
+  clickedEmojiId String?
+  ipHash         String?
+  userAgent      String?
+  createdAt      DateTime @default(now())
+
+  @@map("search_logs")
+}
+
+model CopyEvent {
+  id        String   @id @default(uuid())
+  emojiId   String?
+  locale    Locale?
+  pageUrl   String?
+  country   String?
+  ipHash    String?
+  createdAt DateTime @default(now())
+
+  emoji Emoji? @relation(fields: [emojiId], references: [id], onDelete: SetNull)
+
+  @@map("copy_events")
+}
+
+model UserSubmission {
+  id        String           @id @default(uuid())
+  emojiId   String?
+  type      SubmissionType
+  locale    Locale
+  content   String?
+  userName  String?
+  userEmail String?
+  status    SubmissionStatus  @default(pending)
+  adminNote String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  emoji Emoji? @relation(fields: [emojiId], references: [id], onDelete: SetNull)
+
+  @@map("user_submissions")
+}
+
+model AdminUser {
+  id           String    @id @default(uuid())
+  name         String?
+  email        String    @unique
+  passwordHash String
+  role         AdminRole  @default(editor)
+  status       String    @default("active")
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  auditLogs AuditLog[]
+
+  @@map("admin_users")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  adminUserId String?
+  action      String?
+  entityType  String?
+  entityId    String?
+  oldData     Json?
+  newData     Json?
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+
+  adminUser AdminUser? @relation(fields: [adminUserId], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
+}

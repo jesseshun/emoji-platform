@@ -13,4 +13,5 @@ export interface HealthStatus {
 
 export interface StatusInfo extends HealthStatus {
   phase: string;
+  database?: string;
 }
