@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Phase 3A completed.
+Phase 3B completed.
 
 ## Project Goal
 
@@ -39,7 +39,8 @@ Build a long-term maintainable global Emoji dictionary, copy, meaning, search, t
 - Phase 1: Monorepo base architecture
 - Phase 2: Database and Prisma
 - Phase 3A: Public Read-only API
+- Phase 3B: Frontend basic pages
 
 ## Next Phase
 
-Phase 3B - Frontend Basic Pages
+Phase 3C - Emoji Detail and SEO

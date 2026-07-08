@@ -17,7 +17,7 @@
 
 ## 当前阶段
 
-**Phase 3A** - Public Read-only API 已完成。
+**Phase 3B** - Frontend Basic Pages 已完成。
 
 ## 技术栈
 
@@ -386,17 +386,35 @@ JSON 格式示例：
 - [x] Locale 解析和校验
 - [x] 分页工具
 
+### Phase 3B - Frontend Basic Pages
+
+- [x] 中文首页 /zh/ 和英文首页 /en/（Hero 搜索区、推荐 Emoji、分类入口、专题入口、工具入口、介绍）
+- [x] Emoji 总列表页 /zh/emojis/ 和 /en/emojis/（SSR 分页、EmojiCard 网格、搜索框）
+- [x] 分类总览页 /zh/categories/ 和 /en/categories/（CategoryCard 网格）
+- [x] 专题总览页 /zh/topics/ 和 /en/topics/（TopicCard 网格、分页）
+- [x] 搜索页 /zh/search/ 和 /en/search/（关键词搜索、结果展示、空状态）
+- [x] 工具入口页 /zh/tools/ 和 /en/tools/（4 个工具卡片占位）
+- [x] 授权说明页 /zh/license/ 和 /en/license/（原创 Unicode 授权内容）
+- [x] 关于页面 /zh/about/ 和 /en/about/（原创平台介绍内容）
+- [x] 共享组件：Header、Footer、LanguageSwitcher、SearchBox、EmojiCard、EmojiGrid、CopyButton、CategoryCard、TopicCard、ToolCard、Pagination、EmptyState、LoadingState、ErrorState、Toast
+- [x] API 客户端层（lib/api.ts）：fetch 封装 + 所有 Phase 3A 端点函数
+- [x] 前端类型定义（lib/types.ts）：EmojiListItem、CategoryItem、TopicItem、SearchResultItem
+- [x] CopyButton 集成 copy event API（fire-and-forget 模式）
+- [x] SSR 数据获取（服务端组件直接从 Phase 3A API 获取数据）
+- [x] SEO 基础元数据（title、description、Open Graph）
+- [x] 移动端响应式设计
+- [x] 语言感知导航（Header、Footer、LanguageSwitcher）
+
 ## 下一阶段
 
-**Phase 3B** - Frontend Basic Pages:
+**Phase 3C** - Emoji Detail and SEO:
 
-- Home pages
-- Emoji list pages
-- Category pages
-- Topic pages
-- Search page
-- Tools placeholder page
-- About and license pages
+- Emoji detail page
+- Metadata
+- Canonical
+- Hreflang
+- Breadcrumb schema
+- FAQ schema
 
 ## 开发规范
 

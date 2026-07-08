@@ -66,3 +66,25 @@
 - Updated build script to ensure packages are built before apps/api.
 - Updated README with Phase 3A API documentation, endpoints, query parameters, and examples.
 - Updated PROJECT_HANDOFF.md and CHANGELOG.md for Phase 3A completion.
+
+## Phase 3B
+
+- Added frontend home pages (zh/en) with Hero search, recommended emojis, category/topic/tool entry cards, and intro section.
+- Added Emoji list pages (zh/en) with SSR pagination, search box, EmojiCard grid, and pagination component.
+- Added category index pages (zh/en) with CategoryCard grid.
+- Added topic index pages (zh/en) with TopicCard grid and pagination.
+- Added search pages (zh/en) with query-based search, result display, and empty state.
+- Added tools placeholder pages (zh/en) with 4 tool cards showing "即将上线"/"Coming soon".
+- Added license pages (zh/en) with original Unicode licensing content.
+- Added about pages (zh/en) with original platform introduction content.
+- Added frontend shared components: Header (locale-aware), Footer (with link sections), LanguageSwitcher, SearchBox, EmojiCard, EmojiGrid, CopyButton, CategoryCard, TopicCard, ToolCard, Pagination, EmptyState, LoadingState, ErrorState, Toast.
+- Added API client layer (lib/api.ts) with fetch wrapper and all Phase 3A endpoint functions.
+- Added frontend type definitions (lib/types.ts) for EmojiListItem, CategoryItem, TopicItem, SearchResultItem.
+- Added CopyButton integration with copy event API (fire-and-forget pattern).
+- Added SSR data fetching for all list pages (server components fetch from Phase 3A API).
+- Added SEO metadata (title, description, Open Graph) for all pages.
+- Added mobile responsive design for all pages and components.
+- Added locale-aware navigation (Header, Footer, LanguageSwitcher).
+- Moved Header/Footer from root layout to locale layouts for proper locale prop passing.
+- Updated README with Phase 3B documentation.
+- Updated PROJECT_HANDOFF.md and CHANGELOG.md for Phase 3B completion.
