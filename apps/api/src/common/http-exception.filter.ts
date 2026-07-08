@@ -8,6 +8,20 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 
+interface ErrorBody {
+  success: false;
+  error: {
+    code: string;
+    message: string;
+  };
+}
+
+const STATUS_TO_CODE: Record<number, string> = {
+  400: 'BAD_REQUEST',
+  404: 'NOT_FOUND',
+  500: 'INTERNAL_ERROR',
+};
+
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(HttpExceptionFilter.name);
@@ -27,12 +41,22 @@ export class HttpExceptionFilter implements ExceptionFilter {
         ? exception.message
         : 'Internal server error';
 
-    this.logger.error(`[${request.method}] ${request.url} → ${status}: ${message}`);
+    const code = STATUS_TO_CODE[status] ?? 'INTERNAL_ERROR';
 
-    response.status(status).json({
+    if (exception instanceof Error) {
+      this.logger.error(`[${request.method}] ${request.url} → ${status}: ${exception.message}`, exception.stack);
+    } else {
+      this.logger.error(`[${request.method}] ${request.url} → ${status}: ${message}`);
+    }
+
+    const body: ErrorBody = {
       success: false,
-      data: null,
-      message,
-    });
+      error: {
+        code,
+        message,
+      },
+    };
+
+    response.status(status).json(body);
   }
 }

@@ -10,6 +10,7 @@ import { map } from 'rxjs/operators';
 export interface WrappedResponse<T> {
   success: boolean;
   data: T;
+  meta?: Record<string, unknown>;
 }
 
 @Injectable()

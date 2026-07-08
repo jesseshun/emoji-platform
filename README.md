@@ -17,7 +17,7 @@
 
 ## 当前阶段
 
-**Phase 2** - Database and Prisma 已完成。
+**Phase 3A** - Public Read-only API 已完成。
 
 ## 技术栈
 
@@ -35,12 +35,19 @@
 ```
 emoji-platform/
 ├── apps/
-��   ├── web/          # 前台应用 (端口 3000)
+│   ├── web/          # 前台应用 (端口 3000)
 │   ├── admin/        # 后台管理 (端口 3001)
 │   └── api/          # API 服务 (端口 4000)
-│       └── prisma/
-│           ├── schema.prisma  # Prisma 数据模型
-│           └── seed.ts        # 种子数据脚本
+│       ├── prisma/
+│       │   ├── schema.prisma  # Prisma 数据模型
+│       │   └── seed.ts        # 种子数据脚本
+│       └── src/
+│           └── modules/
+│               ├── emojis/     # Emoji 模块
+│               ├── categories/ # 分类模块
+│               ├── topics/     # 专题模块
+│               ├── search/     # 搜索模块
+│               └── events/     # 事件模块 (copy event)
 ├── packages/
 │   ├── shared/       # 共享工具函数（含 slug 工具）
 │   ├── types/        # 共享类型定义
@@ -62,6 +69,7 @@ emoji-platform/
 
 ```bash
 cp .env.example .env
+cp .env apps/api/.env
 ```
 
 关键环境变量说明：
@@ -140,6 +148,10 @@ pnpm dev:admin
 
 # 仅启动 API
 pnpm dev:api
+
+# 或使用编译后的 JS 运行 API
+pnpm build
+cd apps/api && node dist/main.js
 ```
 
 ## Docker 启动
@@ -184,14 +196,110 @@ docker compose up postgres redis meilisearch
 | 统计分析 | http://localhost:3001/admin/analytics |
 | 系统设置 | http://localhost:3001/admin/settings |
 
-### API
+## API 文档
 
-| 接口 | 地址 |
-|------|------|
-| 健康检查 | http://localhost:4000/api/v1/health |
-| 状态查询 | http://localhost:4000/api/v1/status |
+### 基础信息
 
-> `GET /api/v1/status` 现在返回 `database: "connected"` 字段，用于验证数据库连接状态。
+- **Base URL**: `http://localhost:4000/api/v1`
+- **响应格式**: 统一 JSON 格式
+  - 成功: `{ "success": true, "data": ..., "meta": ... }`
+  - 失败: `{ "success": false, "error": { "code": "ERROR_CODE", "message": "..." } }`
+- **Locale**: 所有接口支持 `locale=zh` 或 `locale=en`，默认 `en`
+- **分页**: 列表接口支持 `page`（默认 1）和 `limit`（默认 30，最大 100）
+
+### API 列表
+
+| 方法 | 接口 | 说明 |
+|------|------|------|
+| GET | `/api/v1/health` | 健康检查 |
+| GET | `/api/v1/status` | 状态查询（含数据库连接状态） |
+| GET | `/api/v1/emojis` | Emoji 列表 |
+| GET | `/api/v1/emojis/:slug` | Emoji 详情 |
+| GET | `/api/v1/categories` | 分类列表 |
+| GET | `/api/v1/categories/:slug` | 分类详情 |
+| GET | `/api/v1/topics` | 专题列表 |
+| GET | `/api/v1/topics/:slug` | 专题详情 |
+| GET | `/api/v1/search` | 基础搜索 |
+| POST | `/api/v1/events/copy` | 记录复制事件 |
+
+### 示例请求
+
+#### Emoji 列表
+
+```bash
+# 中文，第 1 页，每页 10 条
+curl 'http://localhost:4000/api/v1/emojis?locale=zh&page=1&limit=10'
+
+# 英文，按分类过滤
+curl 'http://localhost:4000/api/v1/emojis?locale=en&category=smileys-emotion'
+
+# 搜索
+curl 'http://localhost:4000/api/v1/emojis?locale=zh&q=开心'
+```
+
+#### Emoji 详情
+
+```bash
+curl 'http://localhost:4000/api/v1/emojis/grinning-face?locale=zh'
+curl 'http://localhost:4000/api/v1/emojis/grinning-face?locale=en'
+```
+
+#### 分类列表
+
+```bash
+curl 'http://localhost:4000/api/v1/categories?locale=zh'
+```
+
+#### 分类详情
+
+```bash
+curl 'http://localhost:4000/api/v1/categories/smileys-emotion?locale=zh&limit=10'
+```
+
+#### 专题列表
+
+```bash
+curl 'http://localhost:4000/api/v1/topics?locale=zh'
+```
+
+#### 专题详情
+
+```bash
+curl 'http://localhost:4000/api/v1/topics/heart-colors?locale=zh'
+```
+
+#### 搜索
+
+```bash
+curl --get 'http://localhost:4000/api/v1/search' --data-urlencode 'locale=zh' --data-urlencode 'q=开心'
+curl --get 'http://localhost:4000/api/v1/search' --data-urlencode 'locale=en' --data-urlencode 'q=heart'
+```
+
+#### 复制事件
+
+```bash
+curl -X POST 'http://localhost:4000/api/v1/events/copy' \
+  -H 'Content-Type: application/json' \
+  -d '{"emojiId":"<real-emoji-id>","locale":"zh","pageUrl":"/zh/emoji/grinning-face/"}'
+```
+
+### 本地测试
+
+```bash
+# 1. 确保 PostgreSQL 运行
+docker compose up -d postgres
+
+# 2. 构建并启动 API
+pnpm build
+cd apps/api && node dist/main.js &
+
+# 3. 测试接口
+curl 'http://localhost:4000/api/v1/emojis?locale=zh&page=1&limit=5'
+curl 'http://localhost:4000/api/v1/emojis/grinning-face?locale=zh'
+curl 'http://localhost:4000/api/v1/categories?locale=zh'
+curl 'http://localhost:4000/api/v1/topics?locale=zh'
+curl --get 'http://localhost:4000/api/v1/search' --data-urlencode 'locale=zh' --data-urlencode 'q=开心'
+```
 
 ## Emoji 导入脚本
 
@@ -264,16 +372,31 @@ JSON 格式示例：
 - [x] 数据库健康检查（/api/v1/status → database: "connected"）
 - [x] Slug 工具函数
 
+### Phase 3A - Public Read-only API
+
+- [x] Emoji 列表 API（分页、locale、分类过滤、搜索）
+- [x] Emoji 详情 API（slug、翻译、关联数据）
+- [x] 分类列表 API（emoji 计数）
+- [x] 分类详情 API（分页 emoji、关联专题）
+- [x] 专题列表 API（分页）
+- [x] 专题详情 API（绑定 emoji、关联专题）
+- [x] 基础搜索 API（PostgreSQL/Prisma 搜索 + search_logs 记录）
+- [x] 复制事件 API（POST /events/copy）
+- [x] 统一响应格式和错误处理
+- [x] Locale 解析和校验
+- [x] 分页工具
+
 ## 下一阶段
 
-**Phase 3A** - Public Read-only API:
+**Phase 3B** - Frontend Basic Pages:
 
-- Emoji 列表 API
-- Emoji 详情 API
-- 分类 API
-- 专题 API
-- 基础搜索 API
-- 复制事件 API
+- Home pages
+- Emoji list pages
+- Category pages
+- Topic pages
+- Search page
+- Tools placeholder page
+- About and license pages
 
 ## 开发规范
 

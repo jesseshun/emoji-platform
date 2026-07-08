@@ -1,11 +1,11 @@
-export const APP_NAME = 'Emoji Platform';
+export { generateSlug, uniqueSlug } from './slug';
 
 export const SUPPORTED_LOCALES = ['zh', 'en'] as const;
 
-export const DEFAULT_LOCALE = 'zh' as const;
+export const DEFAULT_LOCALE = 'en' as const;
 
-export function isLocale(value: string): value is 'zh' | 'en' {
-  return SUPPORTED_LOCALES.includes(value as 'zh' | 'en');
+export type Locale = 'zh' | 'en';
+
+export function isLocale(value: string): value is Locale {
+  return (SUPPORTED_LOCALES as readonly string[]).includes(value);
 }
-
-export { generateSlug, uniqueSlug } from './slug';

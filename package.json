@@ -8,7 +8,7 @@
     "dev:web": "pnpm --filter @emoji-platform/web dev",
     "dev:admin": "pnpm --filter @emoji-platform/admin dev",
     "dev:api": "pnpm --filter @emoji-platform/api start:dev",
-    "build": "pnpm -r build",
+    "build": "pnpm --filter @emoji-platform/types build && pnpm --filter @emoji-platform/shared build && pnpm --filter @emoji-platform/api build && pnpm --filter @emoji-platform/web build && pnpm --filter @emoji-platform/admin build",
     "lint": "pnpm -r lint",
     "typecheck": "pnpm -r typecheck",
     "db:generate": "pnpm --filter @emoji-platform/api prisma:generate",

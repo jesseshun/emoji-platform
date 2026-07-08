@@ -2,6 +2,11 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { HealthModule } from './health/health.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { EmojisModule } from './modules/emojis/emojis.module';
+import { CategoriesModule } from './modules/categories/categories.module';
+import { TopicsModule } from './modules/topics/topics.module';
+import { SearchModule } from './modules/search/search.module';
+import { EventsModule } from './modules/events/events.module';
 
 @Module({
   imports: [
@@ -11,6 +16,11 @@ import { PrismaModule } from './prisma/prisma.module';
     }),
     PrismaModule,
     HealthModule,
+    EmojisModule,
+    CategoriesModule,
+    TopicsModule,
+    SearchModule,
+    EventsModule,
   ],
 })
 export class AppModule {}
