@@ -13,3 +13,5 @@ coverage
 tmp
 .cache
 .github_token
+*.tsbuildinfo
+.pnpmrc.cjs
