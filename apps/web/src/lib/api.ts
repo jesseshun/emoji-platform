@@ -1,5 +1,5 @@
 import type { ApiResponse, PaginatedResponse } from '@emoji-platform/types';
-import type { EmojiListItem, CategoryItem, TopicItem, SearchResultItem, Locale } from './types';
+import type { EmojiListItem, CategoryItem, TopicItem, SearchResultItem, Locale, EmojiDetail, CategoryDetailData, TopicDetailData } from './types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
@@ -66,12 +66,29 @@ export async function getEmojis(
   return fetchApi<PaginatedResponse<EmojiListItem>>(`/emojis?${params}`);
 }
 
+export async function getEmojiDetail(
+  slug: string,
+  locale: Locale,
+): Promise<ApiResponse<EmojiDetail>> {
+  return fetchApi<ApiResponse<EmojiDetail>>(`/emojis/${encodeURIComponent(slug)}?locale=${locale}`);
+}
+
 // ─── Category Endpoints ────────────────────────────────
 
 export async function getCategories(
   locale: Locale,
 ): Promise<ApiResponse<CategoryItem[]>> {
   return fetchApi<ApiResponse<CategoryItem[]>>(`/categories?locale=${locale}`);
+}
+
+export async function getCategoryDetail(
+  slug: string,
+  locale: Locale,
+  page = 1,
+  limit = 30,
+): Promise<ApiResponse<CategoryDetailData> & { meta: PaginatedResponse<unknown>['meta'] }> {
+  const params = new URLSearchParams({ locale, page: String(page), limit: String(limit) });
+  return fetchApi<ApiResponse<CategoryDetailData> & { meta: PaginatedResponse<unknown>['meta'] }>(`/categories/${encodeURIComponent(slug)}?${params}`);
 }
 
 // ─── Topic Endpoints ───────────────────────────────────
@@ -83,6 +100,13 @@ export async function getTopics(
 ): Promise<PaginatedResponse<TopicItem>> {
   const params = new URLSearchParams({ locale, page: String(page), limit: String(limit) });
   return fetchApi<PaginatedResponse<TopicItem>>(`/topics?${params}`);
+}
+
+export async function getTopicDetail(
+  slug: string,
+  locale: Locale,
+): Promise<ApiResponse<TopicDetailData>> {
+  return fetchApi<ApiResponse<TopicDetailData>>(`/topics/${encodeURIComponent(slug)}?locale=${locale}`);
 }
 
 // ─── Search Endpoint ───────────────────────────────────

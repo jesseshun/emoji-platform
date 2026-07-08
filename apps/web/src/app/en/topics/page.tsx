@@ -5,9 +5,19 @@ import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { getTopics, getErrorMessage } from '@/lib/api';
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
 export const metadata: Metadata = {
   title: 'Topics',
   description: 'Emoji-related topic articles and content. Explore stories behind emojis.',
+  alternates: {
+    canonical: `${siteUrl}/en/topics`,
+    languages: {
+      zh: `${siteUrl}/zh/topics`,
+      en: `${siteUrl}/en/topics`,
+      'x-default': `${siteUrl}/en/topics`,
+    },
+  },
 };
 
 interface Props {

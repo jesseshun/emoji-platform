@@ -88,3 +88,24 @@
 - Moved Header/Footer from root layout to locale layouts for proper locale prop passing.
 - Updated README with Phase 3B documentation.
 - Updated PROJECT_HANDOFF.md and CHANGELOG.md for Phase 3B completion.
+
+## Phase 3C
+
+- Added Emoji detail pages (`/zh/emoji/[slug]/` and `/en/emoji/[slug]/`) with full modules: Hero, Copy Area, Meaning, Examples, Tech Info, Keywords, FAQ, Assets, Related Emojis, Related Topics.
+- Added Category detail pages (`/zh/categories/[slug]/` and `/en/categories/[slug]/`) with emoji list, pagination, related topics, and Breadcrumb.
+- Added Topic detail pages (`/zh/topics/[slug]/` and `/en/topics/[slug]/`) with bound emojis, content, FAQ, related topics, and Breadcrumb.
+- Added SEO metadata enhancement for all detail pages: title, description, canonical, hreflang, Open Graph, Twitter Card.
+- Fixed `html lang` attribute: dynamically set to `zh` or `en` based on current locale route.
+- Added canonical URLs to all existing list pages (emojis, categories, topics, search).
+- Added hreflang support (zh/en/x-default) for all detail pages and locale layouts.
+- Added `NEXT_PUBLIC_SITE_URL` environment variable (default: `http://localhost:3000`).
+- Added Breadcrumb component with BreadcrumbList JSON-LD structured data.
+- Added FAQ component with FAQPage JSON-LD structured data.
+- Added JsonLd component for rendering JSON-LD script tags.
+- Added new components: DetailHero, CopyArea, CopyValueButton, EmojiMeaningSection, EmojiExamples, EmojiTechInfo, EmojiKeywords, EmojiAssets, RelatedEmojis, RelatedTopics, HtmlLang.
+- Added SEO utility library (`lib/seo.ts`): canonical builder, hreflang builder, detail metadata builder, BreadcrumbList/FAQPage JSON-LD builders.
+- Added detail page API client functions: `getEmojiDetail`, `getCategoryDetail`, `getTopicDetail`.
+- Added detail page TypeScript types: `EmojiDetail`, `CategoryDetailData`, `TopicDetailData`, `RelatedEmoji`, `RelatedTopic`, `EmojiAsset`, `CategoryEmoji`, `TopicBoundEmoji`.
+- Updated `.env.example` with `NEXT_PUBLIC_SITE_URL`.
+- Updated README with Phase 3C documentation.
+- Updated PROJECT_HANDOFF.md and CHANGELOG.md for Phase 3C completion.

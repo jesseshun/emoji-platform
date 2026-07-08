@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Phase 3B completed.
+Phase 3C completed.
 
 ## Project Goal
 
@@ -40,7 +40,8 @@ Build a long-term maintainable global Emoji dictionary, copy, meaning, search, t
 - Phase 2: Database and Prisma
 - Phase 3A: Public Read-only API
 - Phase 3B: Frontend basic pages
+- Phase 3C: Emoji detail and SEO
 
 ## Next Phase
 
-Phase 3C - Emoji Detail and SEO
+Phase 3D - Search and Copy Experience

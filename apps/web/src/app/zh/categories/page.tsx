@@ -6,9 +6,19 @@ import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { getCategories, getErrorMessage } from '@/lib/api';
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
 export const metadata: Metadata = {
   title: '表情分类',
   description: '按分类浏览 Emoji 表情符号，快速找到你需要的表情。',
+  alternates: {
+    canonical: `${siteUrl}/zh/categories`,
+    languages: {
+      zh: `${siteUrl}/zh/categories`,
+      en: `${siteUrl}/en/categories`,
+      'x-default': `${siteUrl}/en/categories`,
+    },
+  },
 };
 
 export default async function ZhCategoriesPage() {

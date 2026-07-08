@@ -17,7 +17,7 @@
 
 ## 当前阶段
 
-**Phase 3B** - Frontend Basic Pages 已完成。
+**Phase 3C** - Emoji Detail and SEO 已完成。
 
 ## 技术栈
 
@@ -83,6 +83,8 @@ cp .env apps/api/.env
 | `REDIS_URL` | Redis 连接 | `redis://localhost:6379` |
 | `MEILISEARCH_HOST` | Meilisearch 地址 | `http://localhost:7700` |
 | `JWT_SECRET` | JWT 密钥 | `change_me` |
+| `NEXT_PUBLIC_API_URL` | 前端 API 地址 | `http://localhost:4000` |
+| `NEXT_PUBLIC_SITE_URL` | 站点 URL（用于 canonical/hreflang） | `http://localhost:3000` |
 
 ## 本地安装
 
@@ -176,8 +178,12 @@ docker compose up postgres redis meilisearch
 | 中文首页 | http://localhost:3000/zh/ |
 | 英文首页 | http://localhost:3000/en/ |
 | 表情列表 | http://localhost:3000/zh/emojis/ |
+| 表情详情 | http://localhost:3000/zh/emoji/grinning-face/ |
 | 分类浏览 | http://localhost:3000/zh/categories/ |
+| 分类详情 | http://localhost:3000/zh/categories/smileys-emotion/ |
 | 专题内容 | http://localhost:3000/zh/topics/ |
+| 专题详情 | http://localhost:3000/zh/topics/heart-colors/ |
+| 搜索 | http://localhost:3000/zh/search/ |
 | 实用工具 | http://localhost:3000/zh/tools/ |
 
 ### 后台 (Admin)
@@ -405,9 +411,24 @@ JSON 格式示例：
 - [x] 移动端响应式设计
 - [x] 语言感知导航（Header、Footer、LanguageSwitcher）
 
+### Phase 3C - Emoji Detail and SEO
+
+- [x] Emoji 详情页 `/zh/emoji/[slug]/` 和 `/en/emoji/[slug]/`（Hero、复制区、含义解释、使用示例、技术信息、关键词、FAQ、图片资源、相关 Emoji、相关专题）
+- [x] 分类详情页 `/zh/categories/[slug]/` 和 `/en/categories/[slug]/`（分类信息、Emoji 列表、分页、相关专题、Breadcrumb）
+- [x] 专题详情页 `/zh/topics/[slug]/` 和 `/en/topics/[slug]/`（专题信息、内容、绑定 Emoji、FAQ、相关专题、Breadcrumb）
+- [x] SEO metadata 增强（title、description、Open Graph、Twitter Card）
+- [x] `html lang` 动态修正（zh/en 根据路由自动切换）
+- [x] canonical URL（每个语言页面指向自身）
+- [x] hreflang 支持（zh / en / x-default）
+- [x] BreadcrumbList JSON-LD 结构化数据
+- [x] FAQPage JSON-LD 结构化数据
+- [x] `NEXT_PUBLIC_SITE_URL` 环境变量
+- [x] 新增组件：DetailHero、CopyArea、CopyValueButton、EmojiMeaningSection、EmojiExamples、EmojiTechInfo、EmojiKeywords、EmojiAssets、RelatedEmojis、RelatedTopics、Breadcrumb、FaqBlock、JsonLd、HtmlLang
+- [x] SEO 工具库（lib/seo.ts）
+
 ## 下一阶段
 
-**Phase 3C** - Emoji Detail and SEO:
+**Phase 3D** - Search and Copy Experience:
 
 - Emoji detail page
 - Metadata

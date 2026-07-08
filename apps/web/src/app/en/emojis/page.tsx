@@ -6,9 +6,19 @@ import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { getEmojis, getErrorMessage } from '@/lib/api';
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
 export const metadata: Metadata = {
   title: 'Emoji List',
   description: 'Browse all Emoji characters, filter by category, and copy with one click.',
+  alternates: {
+    canonical: `${siteUrl}/en/emojis`,
+    languages: {
+      zh: `${siteUrl}/zh/emojis`,
+      en: `${siteUrl}/en/emojis`,
+      'x-default': `${siteUrl}/en/emojis`,
+    },
+  },
 };
 
 interface Props {

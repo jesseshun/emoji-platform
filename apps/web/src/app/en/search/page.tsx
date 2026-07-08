@@ -6,9 +6,19 @@ import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { searchEmojis, getErrorMessage } from '@/lib/api';
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
 export const metadata: Metadata = {
   title: 'Search Emojis',
   description: 'Search Emoji characters by keyword, name, or Unicode codepoint.',
+  alternates: {
+    canonical: `${siteUrl}/en/search`,
+    languages: {
+      zh: `${siteUrl}/zh/search`,
+      en: `${siteUrl}/en/search`,
+      'x-default': `${siteUrl}/en/search`,
+    },
+  },
 };
 
 interface Props {

@@ -6,9 +6,21 @@ import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { getEmojis, getErrorMessage } from '@/lib/api';
 
+import { getSiteUrl } from '@/lib/seo';
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
 export const metadata: Metadata = {
   title: '表情列表',
   description: '浏览全部 Emoji 表情符号，按分类筛选，一键复制。',
+  alternates: {
+    canonical: `${siteUrl}/zh/emojis`,
+    languages: {
+      zh: `${siteUrl}/zh/emojis`,
+      en: `${siteUrl}/en/emojis`,
+      'x-default': `${siteUrl}/en/emojis`,
+    },
+  },
 };
 
 interface Props {
