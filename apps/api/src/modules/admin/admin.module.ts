@@ -5,6 +5,10 @@ import { AdminAuthController } from './admin-auth.controller';
 import { AdminController } from './admin.controller';
 import { AdminAuthService } from './admin-auth.service';
 import { AdminAuthGuard } from './admin-auth.guard';
+import { AdminEmojiService } from './admin-emoji.service';
+import { AdminDashboardController } from './admin-dashboard.controller';
+import { AdminEmojiController } from './admin-emoji.controller';
+import { AdminCategoryController } from './admin-category.controller';
 
 @Module({
   imports: [
@@ -21,8 +25,14 @@ import { AdminAuthGuard } from './admin-auth.guard';
       }),
     }),
   ],
-  controllers: [AdminAuthController, AdminController],
-  providers: [AdminAuthService, AdminAuthGuard],
+  controllers: [
+    AdminAuthController,
+    AdminController,
+    AdminDashboardController,
+    AdminEmojiController,
+    AdminCategoryController,
+  ],
+  providers: [AdminAuthService, AdminAuthGuard, AdminEmojiService],
   exports: [AdminAuthService],
 })
 export class AdminModule {}

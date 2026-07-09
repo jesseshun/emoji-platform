@@ -17,7 +17,7 @@
 
 ## 当前阶段
 
-**Phase 4A** - Admin Auth and Access Control 已完成。
+**Phase 4B** - Admin Dashboard and Emoji Management 已完成。
 
 ## 技术栈
 
@@ -520,16 +520,95 @@ Base URL：`http://localhost:4000/api/v1`
 
 后台所有页面已设置 `robots: { index: false, follow: false }`（即 `<meta name="robots" content="noindex, nofollow">`）。后续 Phase 5 生成 sitemap 时，应**排除所有 `/admin/*` 路径**。请勿将后台页面提交至搜索引擎。
 
+## Phase 4B - Admin Dashboard and Emoji Management
+
+本阶段完成后台**数据看板**与 **Emoji 内容管理（CRUD）**。
+
+### 后台 Dashboard 范围
+
+页面：`/admin/dashboard`（需登录）。展示基础统计：
+
+- Emoji 总数 / 已发布数 / 草稿数 / 已下线数
+- 分类总数 / 专题总数
+- 今日搜索次数 / 今日复制次数
+- 最近更新的 Emoji（最多 5 条）
+- 当前登录管理员信息
+
+后台 API：
+
+| 方法 | 接口 | 说明 | 鉴权 |
+|------|------|------|------|
+| GET | `/api/v1/admin/dashboard` | 看板统计 + 最近更新 + 当前管理员 | 登录即可 |
+
+### Emoji 管理范围
+
+- 列表页 `/admin/emojis`：分页、关键词搜索、分类筛选、状态筛选、emojiChar / slug / 分类 / 状态 / zh·en 翻译完成情况 / 更新时间展示，提供编辑与预览链接、新建按钮。
+- 新建页 `/admin/emojis/create`：基础信息 + zh/en 翻译 + 分类 + 状态，保存后跳转编辑页。
+- 编辑页 `/admin/emojis/[id]/edit`：编辑基础信息、zh/en 翻译、SEO 标题/描述、examples / keywords / faqJson、分类、状态切换，并提供前台预览链接。
+
+Emoji 后台 API 列表（Base URL：`http://localhost:4000/api/v1`）：
+
+| 方法 | 接口 | 说明 | 鉴权 | 权限 |
+|------|------|------|------|------|
+| GET | `/api/v1/admin/emojis` | Emoji 列表（page/limit/q/categoryId/status） | 登录 | 可读角色 |
+| GET | `/api/v1/admin/emojis/{id}` | Emoji 详情（完整编辑数据） | 登录 | 可读角色 |
+| POST | `/api/v1/admin/emojis` | 新建 Emoji | 登录 | `super_admin` / `editor` |
+| PATCH | `/api/v1/admin/emojis/{id}` | 更新 Emoji | 登录 | `super_admin` / `editor` |
+| PATCH | `/api/v1/admin/emojis/{id}/status` | 切换状态（draft/published/archived） | 登录 | `super_admin` / `editor` |
+| GET | `/api/v1/admin/categories/options` | 分类选项（id/slug/iconEmoji/name） | 登录 | 可读角色 |
+
+> 可读角色：super_admin、editor、seo_manager、translator、reviewer、analyst。写操作仅 `super_admin` / `editor`，其余角色返回 403。未登录返回 401。
+
+### Emoji 表单字段
+
+基础信息：
+
+`emojiChar`、`slug`、`unicodeCodepoint`、`htmlDecimal`、`htmlHex`、`shortcode`、`emojiVersion`、`unicodeVersion`、`categoryId`、`status`、`manualWeight`
+
+每个 locale（zh / en）翻译字段：
+
+`name`、`shortName`、`oneLineMeaning`、`meaning`、`usageNotes`、`formalUsageNotes`、`informalUsageNotes`、`socialUsageNotes`、`examples`、`keywords`、`faqJson`、`seoTitle`、`seoDescription`、`status`、`reviewStatus`
+
+> `categoryId` 留空表示未分类；`slug` 需唯一，仅含小写字母、数字与连字符。
+
+### JSON 字段编辑
+
+`examples`、`keywords`、`faqJson` 为 JSON 字段，在表单中以文本框编辑：
+
+- 保存前会校验 JSON 格式，格式错误会给出明确提示且**不会**写入错误 JSON。
+- `examples` 推荐数组格式，如 `[{ "text": "…", "context": "…" }]`。
+- `keywords` 推荐字符串数组，如 `["开心", "笑"]`。
+- `faqJson` 推荐对象数组，如 `[{ "question": "…", "answer": "…" }]`。
+- 编辑页加载时会把已有 JSON 正确回显为格式化文本。
+
+### audit_logs 记录
+
+以下操作会写入 `audit_logs`：
+
+- `emoji.create`：创建 Emoji
+- `emoji.update`：更新 Emoji
+- `emoji.status_update`：切换 Emoji 状态
+
+记录字段：`adminUserId`、`action`、`entityType=emoji`、`entityId`、`oldData`、`newData`、`ipAddress`（可空）。
+
+- `oldData` / `newData` 仅包含 Emoji 相关数据，**不会**写入 `passwordHash`。
+- audit log 写入失败时，服务端会记录错误日志，主操作流程仍正常完成。
+
+### 默认测试账号
+
+| 邮箱 | 密码 | 角色 |
+|------|------|------|
+| `admin@example.com` | `admin123456` | `super_admin` |
+
 ## 下一阶段
 
-**Phase 4B** - Admin Dashboard and Emoji Management：
+**Phase 4C** - Category, Topic, and Article Management：
 
-- 仪表盘统计与概览
-- Emoji 管理（CRUD）
 - 分类管理（CRUD）
 - 专题管理（CRUD）
+- 文章管理（CRUD）
 
-> 本阶段（Phase 4A）仅完成后台登录与访问控制，未开发任何 CMS 内容的增删改查。
+> 本阶段（Phase 4B）完成后台数据看板与 Emoji 内容管理（CRUD），不含分类/专题/文章的 CRUD，也不含资源授权、SEO 管理中心、Search Logs 列表、Analytics 图表、Meilisearch、sitemap 与 AI 工具。
 
 ## 开发规范
 

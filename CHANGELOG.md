@@ -180,3 +180,43 @@
 - Added `noindex, nofollow` metadata to all admin pages (root layout `robots: { index: false, follow: false }`); README documents that `/admin/*` must be excluded from any future sitemap.
 - Verified `pnpm install`, `db:generate`, `db:migrate`, `db:seed`, `lint`, `typecheck`, `build` all pass.
 - Updated README (Phase 4A section, login account, admin login URL, Auth API list, token/cookie notes, protected pages, noindex note, next phase = Phase 4B), PROJECT_HANDOFF.md (Phase 4A completed, next phase = Phase 4B), and this changelog.
+
+## Phase 4B
+
+- Added admin dashboard API `GET /api/v1/admin/dashboard` (requires login): returns stats
+  (emojiTotal / publishedEmojiTotal / draftEmojiTotal / archivedEmojiTotal / categoryTotal /
+  topicTotal / todaySearchTotal / todayCopyTotal), up to 5 most recently updated emojis, and the
+  current admin info. All counts computed from existing Prisma tables; no schema change.
+- Added admin dashboard UI at `/admin/dashboard` with stat cards, recent-emojis list, and admin info.
+- Added admin emoji list API `GET /api/v1/admin/emojis` with `page`, `limit` (max 100), `q`
+  (matches emojiChar / slug / unicodeCodepoint / shortcode / translation name), `categoryId`, and
+  `status` (draft / published / archived / all) filters; returns `data` + `meta` (page/limit/total/totalPages).
+  Each item includes emojiChar, slug, unicodeCodepoint, shortcode, category, status, updatedAt,
+  zh/en translation completion summary, and preview links (`/zh/emoji/{slug}/`, `/en/emoji/{slug}/`).
+- Added admin emoji detail API `GET /api/v1/admin/emojis/{id}` (404 when not found) returning full
+  base fields plus both zh/en translations (including examples / keywords / faqJson), category, and preview links.
+- Added admin emoji create API `POST /api/v1/admin/emojis` (requires login + write role): validates
+  emojiChar, slug uniqueness + format, categoryId existence, and zh/en translation `name`; writes the
+  emoji row + both `emoji_translations`; records an `emoji.create` audit log; never returns passwordHash.
+- Added admin emoji update API `PATCH /api/v1/admin/emojis/{id}` (requires login + write role): partial
+  update of base fields and per-locale translations, JSON fields validated before save, records an
+  `emoji.update` audit log with `oldData`/`newData` snapshots.
+- Added admin emoji status API `PATCH /api/v1/admin/emojis/{id}/status` (requires login + write role):
+  switches status among draft / published / archived (400 on invalid, 404 when missing), records an
+  `emoji.status_update` audit log with old/new status.
+- Added admin category options API `GET /api/v1/admin/categories/options` (requires login): returns
+  `id`, `slug`, `iconEmoji`, and translation `name` for the requested `locale` (default `zh`); used by
+  the emoji create/edit forms. No full category CRUD in this phase.
+- Added Emoji admin UI: `/admin/emojis` (table with search/filter/pagination, edit + preview links,
+  create button), `/admin/emojis/create` (create form), `/admin/emojis/[id]/edit` (edit form with
+  base fields, zh/en translation sections in tabs, JSON fields with validation, quick status actions).
+- Added `canManageEmoji(role)` / `canViewEmoji(role)` helpers: write ops limited to `super_admin` and
+  `editor` (others get 403); read ops allowed for all known admin roles (others get 403).
+- All admin emoji/category/dashboard write and read endpoints are protected by `AdminAuthGuard`
+  (401 when unauthenticated); no sensitive fields (e.g. passwordHash) are ever returned; JWT secret is
+  read from `JWT_SECRET` via `ConfigService` (never hard-coded); passwords are never logged.
+- audit_logs writes are wrapped in try/catch: on failure the error is logged server-side and the main
+  operation still succeeds; audit payloads contain only emoji data (no admin passwordHash).
+- Updated README (Phase 4B section, admin dashboard + emoji management scope, admin emoji API list,
+  emoji form field reference, JSON field editing notes, audit_logs notes, default test account, next
+  phase = Phase 4C), PROJECT_HANDOFF.md (Phase 4B completed, next phase = Phase 4C), and this changelog.
