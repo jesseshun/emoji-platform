@@ -220,3 +220,53 @@
 - Updated README (Phase 4B section, admin dashboard + emoji management scope, admin emoji API list,
   emoji form field reference, JSON field editing notes, audit_logs notes, default test account, next
   phase = Phase 4C), PROJECT_HANDOFF.md (Phase 4B completed, next phase = Phase 4C), and this changelog.
+
+## Phase 4C-1
+
+- Added admin category list API `GET /api/v1/admin/categories` (requires login): supports `page`,
+  `limit` (default 20, max 100), `q` (matches slug / translation name), `status` (draft / published /
+  archived / all), and `parentId` (category id, or `none` for top-level). Returns `data` + `meta`
+  (page/limit/total/totalPages). Each item includes slug, iconEmoji, sortOrder, status, parent summary,
+  `emojiCount` (sum of direct + subcategory emojis), zh/en translation name + completion summary,
+  updatedAt, and preview links (`/zh/categories/{slug}/`, `/en/categories/{slug}/`).
+- Added admin category detail API `GET /api/v1/admin/categories/{id}` (404 when not found) returning
+  base fields, both zh/en translations (name / description / seoTitle / seoDescription), parent summary,
+  and children (id / slug / name).
+- Added admin category create API `POST /api/v1/admin/categories` (requires login + write role): validates
+  slug uniqueness + `^[a-z0-9-]+$` format, zh/en translation `name` required, `status` in
+  (draft / published / archived), `sortOrder` numeric, and `parentId` existence; writes the category row +
+  both `category_translations`; records a `category.create` audit log; never returns passwordHash.
+- Added admin category update API `PATCH /api/v1/admin/categories/{id}` (requires login + write role):
+  partial update of base fields and per-locale translations; validates slug uniqueness when changed,
+  prevents setting parent to self, and prevents circular references (walks the ancestor chain); records a
+  `category.update` audit log with `oldData`/`newData` snapshots.
+- Added admin category status API `PATCH /api/v1/admin/categories/{id}/status` (requires login + write
+  role): switches status among draft / published / archived (400 on invalid, 404 when missing); records a
+  `category.status_update` audit log with old/new status.
+- Added admin category tree API `GET /api/v1/admin/categories/tree` (requires login): returns the category
+  hierarchy for the parent selector. Supports `locale` (default `zh`) for node names and `exclude` (a
+  category id) to drop that node and its descendants — used to avoid selecting self/descendants as parent
+  (backend cycle check is the authoritative safeguard). Nodes expose `id`, `slug`, `iconEmoji`, `status`,
+  `sortOrder`, `name`, `children`.
+- Added `canManageCategory(role)` / `canViewCategory(role)` helpers (kept distinct from the emoji
+  helpers for explicit intent): write ops limited to `super_admin` and `editor` (others get 403); read
+  ops allowed for all known admin roles (others get 403).
+- Added Category admin UI: `/admin/categories` (table with search / parent / status filters + pagination,
+  emoji count, zh/en names, edit + preview links, create button), `/admin/categories/create` (create
+  form), `/admin/categories/[id]/edit` (edit form with base fields, zh/en translation sections in tabs,
+  SEO fields, quick status actions, preview links). All read/write endpoints remain behind `AdminAuthGuard`
+  (401 unauthenticated). Parent selection uses the tree API with self/descendant exclusion.
+- Added category client helpers in `apps/admin/src/lib/adminApi.ts` (listCategories / getCategory /
+  createCategory / updateCategory / updateCategoryStatus / getCategoryTree) and types mirroring the emoji
+  client.
+- No Prisma schema change: the `Category` / `CategoryTranslation` models already exist and were sufficient
+  for this phase.
+- audit_logs writes for category follow the Phase 4B pattern (try/catch, server-side error log on failure,
+  main op still succeeds; payloads contain only category data — no admin passwordHash).
+- Verified acceptance via automated API tests: 401 when unauthenticated, 403 for read-only roles on writes,
+  list/tree/create/detail/update/status happy paths, slug uniqueness + format + required-name validation,
+  self-parent and circular-reference prevention (400), 404 on missing id, and category audit logs present
+  with no passwordHash leakage.
+- Updated README (Phase 4C-1 section: scope, category admin API list, form field reference, tree API notes,
+  audit_logs notes, default test account, next phase = Phase 4C-2), PROJECT_HANDOFF.md (Phase 4C-1
+  completed, next phase = Phase 4C-2), and this changelog.

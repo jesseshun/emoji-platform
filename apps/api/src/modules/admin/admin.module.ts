@@ -6,6 +6,7 @@ import { AdminController } from './admin.controller';
 import { AdminAuthService } from './admin-auth.service';
 import { AdminAuthGuard } from './admin-auth.guard';
 import { AdminEmojiService } from './admin-emoji.service';
+import { AdminCategoryService } from './admin-category.service';
 import { AdminDashboardController } from './admin-dashboard.controller';
 import { AdminEmojiController } from './admin-emoji.controller';
 import { AdminCategoryController } from './admin-category.controller';
@@ -32,7 +33,7 @@ import { AdminCategoryController } from './admin-category.controller';
     AdminEmojiController,
     AdminCategoryController,
   ],
-  providers: [AdminAuthService, AdminAuthGuard, AdminEmojiService],
+  providers: [AdminAuthService, AdminAuthGuard, AdminEmojiService, AdminCategoryService],
   exports: [AdminAuthService],
 })
 export class AdminModule {}

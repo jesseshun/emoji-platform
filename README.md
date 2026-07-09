@@ -600,15 +600,81 @@ Emoji 后台 API 列表（Base URL：`http://localhost:4000/api/v1`）：
 |------|------|------|
 | `admin@example.com` | `admin123456` | `super_admin` |
 
+## Phase 4C-1 - Category Management
+
+本阶段完成后台**分类管理（CRUD）**，包含分类列表、新建、编辑、状态切换、中英文翻译、父级分类选择与排序。
+
+### 范围
+
+- 列表页 `/admin/categories`：分页、关键词搜索（slug / 名称）、父级筛选、状态筛选；展示图标、slug、zh/en 名称、父级、排序、状态、Emoji 数量、更新时间，提供编辑与前台预览链接、新建按钮。
+- 新建页 `/admin/categories/create`：基础信息 + zh/en 翻译 + 父级选择 + 状态，保存后跳转编辑页。
+- 编辑页 `/admin/categories/[id]/edit`：编辑基础信息、zh/en 翻译、SEO 标题/描述、父级、排序、状态切换，并提供前台预览链接。
+- 前台预览链接：`/zh/categories/{slug}/` 与 `/en/categories/{slug}/`。
+
+### Category 后台 API 列表
+
+Base URL：`http://localhost:4000/api/v1`
+
+| 方法 | 接口 | 说明 | 鉴权 | 权限 |
+|------|------|------|------|------|
+| GET | `/api/v1/admin/categories` | 分类列表（page/limit/q/status/parentId） | 登录 | 可读角色 |
+| GET | `/api/v1/admin/categories/tree` | 分类树（父级选择器用） | 登录 | 可读角色 |
+| GET | `/api/v1/admin/categories/options` | 分类选项（Emoji 表单用） | 登录 | 可读角色 |
+| GET | `/api/v1/admin/categories/{id}` | 分类详情（完整编辑数据 + 父级 + 子级） | 登录 | 可读角色 |
+| POST | `/api/v1/admin/categories` | 新建分类 | 登录 | `super_admin` / `editor` |
+| PATCH | `/api/v1/admin/categories/{id}` | 更新分类 | 登录 | `super_admin` / `editor` |
+| PATCH | `/api/v1/admin/categories/{id}/status` | 切换状态（draft/published/archived） | 登录 | `super_admin` / `editor` |
+
+> 可读角色：super_admin、editor、seo_manager、translator、reviewer、analyst。写操作仅 `super_admin` / `editor`，其余角色返回 403。未登录返回 401。
+
+### Category 表单字段
+
+基础信息：
+
+`slug`、`parentId`、`iconEmoji`、`sortOrder`、`status`
+
+每个 locale（zh / en）翻译字段：
+
+`name`、`description`、`seoTitle`、`seoDescription`
+
+> `parentId` 留空表示顶级分类；`slug` 需唯一，仅含小写字母、数字与连字符（`^[a-z0-9-]+$`）。`parentId` 不能选择自身，也不能造成循环引用（后端在更新时校验祖先链）。`seoTitle` / `seoDescription` 可空，保存时以 `null` 存储（不会写入空字符串）。
+
+### 分类树接口说明
+
+`GET /api/v1/admin/categories/tree` 返回分类层级结构，用于父级分类下拉框：
+
+- 支持 `locale` 参数（默认 `zh`），控制节点 `name` 采用的语言。
+- 支持 `exclude` 参数（分类 id），返回时会剔除该节点及其全部后代，便于在「编辑某分类」时避免将其自身或后代选为父级（同时后端仍有循环引用校验兜底）。
+- 每个节点包含：`id`、`slug`、`iconEmoji`、`status`、`sortOrder`、`name`、`children`。
+
+### audit_logs 记录
+
+以下操作会写入 `audit_logs`：
+
+- `category.create`：创建分类
+- `category.update`：更新分类
+- `category.status_update`：切换分类状态
+
+记录字段：`adminUserId`、`action`、`entityType=category`、`entityId`、`oldData`、`newData`、`ipAddress`（可空）。
+
+- `oldData` / `newData` 仅包含分类相关数据（slug / parentId / iconEmoji / sortOrder / status / 翻译），**不会**写入 `passwordHash`。
+- audit log 写入失败时，服务端会记录错误日志，主操作流程仍正常完成。
+
+### 默认测试账号
+
+| 邮箱 | 密码 | 角色 |
+|------|------|------|
+| `admin@example.com` | `admin123456` | `super_admin` |
+
 ## 下一阶段
 
-**Phase 4C** - Category, Topic, and Article Management：
+**Phase 4C-2** - Topic Management（专题管理 CRUD）：
 
-- 分类管理（CRUD）
-- 专题管理（CRUD）
-- 文章管理（CRUD）
+- 专题列表 / 新建 / 编辑 / 状态切换
+- 专题中英文翻译
+- 专题与 Emoji 的关联（绑定 / 解绑 / 排序）
 
-> 本阶段（Phase 4B）完成后台数据看板与 Emoji 内容管理（CRUD），不含分类/专题/文章的 CRUD，也不含资源授权、SEO 管理中心、Search Logs 列表、Analytics 图表、Meilisearch、sitemap 与 AI 工具。
+> 本阶段（Phase 4C-1）完成后台分类管理（CRUD），不含专题 / 文章的 CRUD，也不含资源授权、SEO 管理中心、Search Logs 列表、Analytics 图表、Meilisearch、sitemap 与 AI 工具。
 
 ## 开发规范
 

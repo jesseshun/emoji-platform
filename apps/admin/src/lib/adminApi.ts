@@ -296,3 +296,158 @@ export async function updateEmojiStatus(
 export async function getCategoryOptions(locale: 'zh' | 'en' = 'zh'): Promise<CategoryOption[]> {
   return adminFetch<CategoryOption[]>(`/admin/categories/options?locale=${locale}`);
 }
+
+// ─── Category (Phase 4C-1) ──────────────────────────────
+
+export type CategoryStatus = 'draft' | 'published' | 'archived';
+
+export interface CategoryTranslation {
+  name: string | null;
+  description?: string | null;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+}
+
+export interface CategoryTranslationInput {
+  name: string;
+  description?: string | null;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+}
+
+export interface AdminCategoryListItem {
+  id: string;
+  slug: string;
+  iconEmoji: string | null;
+  sortOrder: number;
+  status: CategoryStatus;
+  parentId: string | null;
+  parent: { id: string; slug: string; iconEmoji: string | null; name: string | null } | null;
+  emojiCount: number;
+  translations: {
+    zh: { name: string | null; complete: boolean };
+    en: { name: string | null; complete: boolean };
+  };
+  updatedAt: string;
+  previewLinks: { zh: string; en: string };
+}
+
+export interface AdminCategoryListMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface AdminCategoryListResponse {
+  data: AdminCategoryListItem[];
+  meta: AdminCategoryListMeta;
+}
+
+export interface CategoryTreeNode {
+  id: string;
+  slug: string;
+  iconEmoji: string | null;
+  status: CategoryStatus;
+  sortOrder: number;
+  name: string | null;
+  children: CategoryTreeNode[];
+}
+
+export interface AdminCategoryDetail {
+  id: string;
+  slug: string;
+  iconEmoji: string | null;
+  parentId: string | null;
+  sortOrder: number;
+  status: CategoryStatus;
+  createdAt: string;
+  updatedAt: string;
+  parent: { id: string; slug: string; iconEmoji: string | null; name: string | null } | null;
+  children: { id: string; slug: string; name: string | null }[];
+  translations: { zh: CategoryTranslation | null; en: CategoryTranslation | null };
+  previewLinks: { zh: string; en: string };
+}
+
+export interface CreateCategoryPayload {
+  slug: string;
+  parentId?: string | null;
+  iconEmoji?: string | null;
+  sortOrder?: number;
+  status: CategoryStatus;
+  translations: { zh: CategoryTranslationInput; en: CategoryTranslationInput };
+}
+
+export type UpdateCategoryPayload = Partial<Omit<CreateCategoryPayload, 'translations'>> & {
+  translations?: { zh?: Partial<CategoryTranslationInput>; en?: Partial<CategoryTranslationInput> };
+};
+
+export async function listCategories(params: {
+  page?: number;
+  limit?: number;
+  q?: string;
+  status?: string;
+  parentId?: string | null;
+} = {}): Promise<AdminCategoryListResponse> {
+  const qs = new URLSearchParams();
+  if (params.page && params.page > 1) qs.set('page', String(params.page));
+  if (params.limit) qs.set('limit', String(params.limit));
+  if (params.q) qs.set('q', params.q);
+  if (params.parentId) qs.set('parentId', params.parentId);
+  if (params.status && params.status !== 'all') qs.set('status', params.status);
+  const query = qs.toString();
+
+  const body = await adminFetchEnvelope<AdminCategoryListItem[]>(
+    `/admin/categories${query ? `?${query}` : ''}`,
+  );
+  return {
+    data: body.data,
+    meta: (body.meta as unknown as AdminCategoryListMeta) ?? {
+      page: 1,
+      limit: params.limit ?? 20,
+      total: 0,
+      totalPages: 1,
+    },
+  };
+}
+
+export async function getCategory(id: string): Promise<AdminCategoryDetail> {
+  return adminFetch<AdminCategoryDetail>(`/admin/categories/${id}`);
+}
+
+export async function createCategory(payload: CreateCategoryPayload): Promise<AdminCategoryDetail> {
+  return adminFetch<AdminCategoryDetail>('/admin/categories', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateCategory(
+  id: string,
+  payload: UpdateCategoryPayload,
+): Promise<AdminCategoryDetail> {
+  return adminFetch<AdminCategoryDetail>(`/admin/categories/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateCategoryStatus(
+  id: string,
+  status: CategoryStatus,
+): Promise<{ id: string; status: CategoryStatus }> {
+  return adminFetch<{ id: string; status: CategoryStatus }>(`/admin/categories/${id}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  });
+}
+
+export async function getCategoryTree(
+  locale: 'zh' | 'en' = 'zh',
+  exclude?: string,
+): Promise<CategoryTreeNode[]> {
+  const qs = new URLSearchParams();
+  qs.set('locale', locale);
+  if (exclude) qs.set('exclude', exclude);
+  return adminFetch<CategoryTreeNode[]>(`/admin/categories/tree?${qs.toString()}`);
+}
