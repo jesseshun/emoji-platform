@@ -103,7 +103,7 @@ export default async function ZhEmojiDetailPage({ params }: Props) {
         />
 
         {/* Copy Area */}
-        <CopyArea items={copyItems} locale="zh" />
+        <CopyArea items={copyItems} locale="zh" emojiId={emoji.id} />
 
         {/* Meaning */}
         <EmojiMeaningSection
@@ -131,6 +131,7 @@ export default async function ZhEmojiDetailPage({ params }: Props) {
           categoryName={categoryName}
           subcategoryName={subcategoryName}
           locale="zh"
+          emojiId={emoji.id}
         />
 
         {/* Keywords */}

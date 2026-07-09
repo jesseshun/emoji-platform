@@ -103,7 +103,7 @@ export default async function EnEmojiDetailPage({ params }: Props) {
         />
 
         {/* Copy Area */}
-        <CopyArea items={copyItems} locale="en" />
+        <CopyArea items={copyItems} locale="en" emojiId={emoji.id} />
 
         {/* Meaning */}
         <EmojiMeaningSection
@@ -131,6 +131,7 @@ export default async function EnEmojiDetailPage({ params }: Props) {
           categoryName={categoryName}
           subcategoryName={subcategoryName}
           locale="en"
+          emojiId={emoji.id}
         />
 
         {/* Keywords */}

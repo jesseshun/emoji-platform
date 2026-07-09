@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Phase 3C completed.
+Phase 3D completed.
 
 ## Project Goal
 
@@ -41,7 +41,8 @@ Build a long-term maintainable global Emoji dictionary, copy, meaning, search, t
 - Phase 3A: Public Read-only API
 - Phase 3B: Frontend basic pages
 - Phase 3C: Emoji detail and SEO (post-acceptance fix: server-side `<html lang>` per locale; `pnpm typecheck` works on clean checkout)
+- Phase 3D: Search and Copy Experience (SearchBox enhancements, search page UX, CopyButton/CopyValueButton/CopyArea copy-event tracking, EmptyState/ErrorState polish, mobile optimization, dynamic search metadata)
 
 ## Next Phase
 
-Phase 3D - Search and Copy Experience
+Phase 4 - Admin CMS

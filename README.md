@@ -17,7 +17,7 @@
 
 ## 当前阶段
 
-**Phase 3C** - Emoji Detail and SEO 已完成。
+**Phase 3D** - Search and Copy Experience 已完成。
 
 ## 技术栈
 
@@ -426,16 +426,31 @@ JSON 格式示例：
 - [x] 新增组件：DetailHero、CopyArea、CopyValueButton、EmojiMeaningSection、EmojiExamples、EmojiTechInfo、EmojiKeywords、EmojiAssets、RelatedEmojis、RelatedTopics、Breadcrumb、FaqBlock、JsonLd、HtmlLang
 - [x] SEO 工具库（lib/seo.ts）
 
+### Phase 3D - Search and Copy Experience
+
+- [x] SearchBox 交互增强（清空按钮、防重复提交、语言路由、移动端可用）
+- [x] 搜索页体验增强（动态 metadata、空查询展示推荐表情、无结果 EmptyState + 推荐、API 失败 ErrorState）
+- [x] 搜索结果使用 EmojiCard 网格展示并带结果数量
+- [x] CopyButton 体验增强（本地化提示、剪贴板降级、复制可靠性）
+- [x] CopyValueButton 复用并增强（支持传入 emojiId，复制时写入 copy 事件）
+- [x] CopyArea 增强（支持传入 emojiId，每个复制项写入 copy 事件）
+- [x] 新增剪贴板工具 lib/clipboard.ts（Clipboard API + execCommand 降级）
+- [x] EmptyState / ErrorState 优化（ErrorState 按路由自动中文化）
+- [x] 移动端搜索与复制体验优化（点击区 ≥36px、长 Unicode/HTML 字符串截断不溢出）
+- [x] 搜索页基础 metadata 优化（title/description 随 query 动态变化）
+- [x] search_logs 与 copy_events 写入验证通过
+
 ## 下一阶段
 
-**Phase 3D** - Search and Copy Experience:
+**Phase 4** - Admin CMS:
 
-- Emoji detail page
-- Metadata
-- Canonical
-- Hreflang
-- Breadcrumb schema
-- FAQ schema
+- 管理员登录
+- Emoji 管理
+- 分类管理
+- 专题管理
+- 文章管理
+- 素材授权管理
+- SEO 管理
 
 ## 开发规范
 

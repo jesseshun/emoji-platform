@@ -12,6 +12,7 @@ interface EmojiTechInfoProps {
   categoryName: string | null;
   subcategoryName: string | null;
   locale: Locale;
+  emojiId?: string;
 }
 
 const fieldLabels: Record<string, Record<string, string>> = {
@@ -37,6 +38,7 @@ export function EmojiTechInfo({
   categoryName,
   subcategoryName,
   locale,
+  emojiId,
 }: EmojiTechInfoProps) {
   const rows: { key: string; value: string; copyable: boolean }[] = [
     { key: 'emojiChar', value: emojiChar, copyable: true },
@@ -69,7 +71,7 @@ export function EmojiTechInfo({
                 {row.value}
               </span>
               {row.copyable && (
-                <CopyValueButton value={row.value} locale={locale} />
+                <CopyValueButton value={row.value} locale={locale} emojiId={emojiId} />
               )}
             </div>
           ))}

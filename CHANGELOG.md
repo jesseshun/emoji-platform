@@ -119,3 +119,39 @@
 - Fixed `pnpm typecheck` failing on a clean checkout: the root `typecheck` script now builds
   `@emoji-platform/types` and `@emoji-platform/shared` before running `pnpm -r typecheck`, since
   those packages resolve their `types` entry from built `dist` output.
+
+## Phase 3D
+
+- Added `SearchBox` interaction enhancements: clear (✕) button, submit-disabled state to prevent
+  double submission, locale-aware routing to `/zh/search` or `/en/search`, consistent empty-query
+  behavior, and mobile-friendly spacing.
+- Enhanced search pages (`/zh/search`, `/en/search`): dynamic `generateMetadata` that reflects the
+  query in title/description/canonical/hreflang.
+- Enhanced empty-query search state: shows a guidance `EmptyState` plus a "推荐表情 / Popular
+  Emojis" recommended grid instead of a blank page.
+- Enhanced no-results search state: `EmptyState` with the query highlighted plus a "browse
+  categories" action and the recommended grid.
+- Enhanced API-failure search state: localized `ErrorState` plus the recommended grid.
+- Search results continue to render via `EmojiGrid`/`EmojiCard` with a result count.
+- Added `lib/clipboard.ts` helper: prefers the async Clipboard API and falls back to a hidden
+  textarea + `execCommand('copy')` for non-secure/older mobile browsers; never throws.
+- Enhanced `CopyButton`: localized success/failure toasts, uses `copyText()`, keeps fire-and-forget
+  copy-event recording that never blocks the copy UX.
+- Enhanced `CopyValueButton`: added optional `emojiId`; when provided, copying Unicode / HTML
+  decimal / HTML hex / shortcode now records a copy event, with localized toasts and `copyText()`.
+- Enhanced `CopyArea`: added optional `emojiId`; each copy item records a copy event when present,
+  with localized toasts and `copyText()`.
+- Threaded `emojiId` from emoji detail pages (`zh`/`en`) into `EmojiTechInfo` → `CopyValueButton`
+  and into `CopyArea`, so all copy targets on a detail page record copy events.
+- Localized `ErrorState` via route-derived locale (`usePathname`), with proper zh/en titles and a
+  "重试 / Try again" retry control; backward compatible (optional `locale` prop).
+- Refined `EmptyState` layout (centered, action slot spacing).
+- Mobile optimizations: `CopyButton`/`CopyValueButton`/`CopyArea` buttons have a ≥36px tap target;
+  long Unicode/HTML strings truncate and use `break-all` so they never break the layout; `SearchBox`
+  stays within its container on narrow screens.
+- Added `RecommendedEmojis` server component used on search landing / no-results / error states;
+  fetch failures are swallowed so the search page is never broken.
+- Verified `search_logs` writes on both successful and zero-result searches, and `copy_events`
+  writes from `CopyButton`/`CopyValueButton`/`CopyArea`; recording failures do not affect UX.
+- Updated README (current phase, Phase 3D completed checklist, next phase = Phase 4),
+  PROJECT_HANDOFF.md (Phase 3D completed, next phase = Phase 4), and this changelog.
