@@ -17,7 +17,7 @@
 
 ## 当前阶段
 
-**Phase 3D** - Search and Copy Experience 已完成。
+**Phase 4A** - Admin Auth and Access Control 已完成。
 
 ## 技术栈
 
@@ -440,17 +440,96 @@ JSON 格式示例：
 - [x] 搜索页基础 metadata 优化（title/description 随 query 动态变化）
 - [x] search_logs 与 copy_events 写入验证通过
 
+### Phase 4A - Admin Auth and Access Control
+
+- [x] 后台登录页（邮箱 + 密码）真实可用
+- [x] 使用 Phase 2 seed 的管理员账号登录（`admin@example.com` / `admin123456`）
+- [x] 密码使用 bcrypt `passwordHash` 校验，不在任何响应中返回 `passwordHash`
+- [x] 登录成功后跳转 `/admin/dashboard`
+- [x] 未登录访问受保护后台页面自动跳转 `/admin/login`
+- [x] 登录态通过 httpOnly Cookie（`admin_token`）保持，跨端口同源场景可用
+- [x] 退出登录（清除 Cookie + 跳转 `/admin/login`）
+- [x] 基础角色字段（`role`）读取并在后台侧边栏 / 仪表盘展示
+- [x] 后台 API 鉴权保护（`admin/auth/me`、`admin/health` 需登录）
+- [x] 后台全部页面 `noindex, nofollow`，不应被搜索引擎收录
+
+#### 登录账号
+
+| 邮箱 | 密码 | 角色 |
+|------|------|------|
+| `admin@example.com` | `admin123456` | `super_admin` |
+
+> 该账号由 Phase 2 的种子脚本创建，密码以 bcrypt 哈希（`passwordHash`）存储，明文密码不会出现在任何 API 响应或前端代码中。
+
+#### 后台登录地址
+
+| 页面 | 地址 |
+|------|------|
+| 登录 | http://localhost:3001/admin/login |
+| 仪表盘 | http://localhost:3001/admin/dashboard |
+
+#### Auth API 列表
+
+Base URL：`http://localhost:4000/api/v1`
+
+| 方法 | 接口 | 说明 | 鉴权 |
+|------|------|------|------|
+| POST | `/api/v1/admin/auth/login` | 邮箱 + 密码登录，返回管理员信息与 token，并设置 `admin_token` Cookie | 不需要 |
+| GET | `/api/v1/admin/auth/me` | 返回当前登录管理员信息（不含 `passwordHash`） | 需要 |
+| POST | `/api/v1/admin/auth/logout` | 清除 Cookie，返回成功 | 不需要 |
+| GET | `/api/v1/admin/health` | 后台鉴权健康检查 | 需要 |
+
+登录成功返回示例：
+
+```json
+{
+  "success": true,
+  "data": {
+    "admin": { "id": "…", "email": "admin@example.com", "name": "Super Admin", "role": "super_admin" },
+    "token": "…"
+  }
+}
+```
+
+未登录 / token 失效访问受保护接口返回：
+
+```json
+{
+  "success": false,
+  "error": { "code": "UNAUTHORIZED", "message": "Unauthorized" }
+}
+```
+
+#### Token 与 Cookie 说明
+
+- 使用 **JWT**（由 `JWT_SECRET` 与 `JWT_EXPIRES_IN` 配置，定义在 `.env.example`）。
+- 登录成功后，API 在响应中设置 **httpOnly Cookie** `admin_token`（跨端口同源场景下 `sameSite: lax` 可用，生产环境 `secure` 自动开启），同时响应体也返回 `token` 便于调试。
+- 后台前端通过 `fetch(..., { credentials: 'include' })` 自动携带 Cookie，**前端不读取、不存储 token**，也不接触 `passwordHash` / 明文密码。
+- 鉴权 Guard 依次从 `Authorization: Bearer <token>` 请求头或 `admin_token` Cookie 读取 token，无效或过期均返回 `401 UNAUTHORIZED`。
+- 由于 Cookie 由 API 域（localhost:4000）写入，后台前端（localhost:3001）通过调用 `/admin/auth/me` 判断登录态，未登录访问受保护页面时客户端自动跳转到 `/admin/login`。
+
+#### 受保护的后台页面
+
+以下页面均需登录后才能访问，未登录会被重定向到 `/admin/login`：
+
+`/admin/dashboard`、`/admin/emojis`、`/admin/categories`、`/admin/topics`、`/admin/articles`、`/admin/assets`、`/admin/seo`、`/admin/search-logs`、`/admin/analytics`、`/admin/settings`
+
+本阶段这些页面仍为基础占位，但已受登录保护。
+
+#### 后台不应被搜索引擎收录
+
+后台所有页面已设置 `robots: { index: false, follow: false }`（即 `<meta name="robots" content="noindex, nofollow">`）。后续 Phase 5 生成 sitemap 时，应**排除所有 `/admin/*` 路径**。请勿将后台页面提交至搜索引擎。
+
 ## 下一阶段
 
-**Phase 4** - Admin CMS:
+**Phase 4B** - Admin Dashboard and Emoji Management：
 
-- 管理员登录
-- Emoji 管理
-- 分类管理
-- 专题管理
-- 文章管理
-- 素材授权管理
-- SEO 管理
+- 仪表盘统计与概览
+- Emoji 管理（CRUD）
+- 分类管理（CRUD）
+- 专题管理（CRUD）
+
+> 本阶段（Phase 4A）仅完成后台登录与访问控制，未开发任何 CMS 内容的增删改查。
 
 ## 开发规范
 

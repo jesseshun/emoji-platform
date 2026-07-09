@@ -155,3 +155,28 @@
   writes from `CopyButton`/`CopyValueButton`/`CopyArea`; recording failures do not affect UX.
 - Updated README (current phase, Phase 3D completed checklist, next phase = Phase 4),
   PROJECT_HANDOFF.md (Phase 3D completed, next phase = Phase 4), and this changelog.
+
+## Phase 4A
+
+- Added admin login API `POST /api/v1/admin/auth/login`:
+  - Validates email/password (empty email/password/email format → 400 `BAD_REQUEST`).
+  - Verifies credentials against the Phase 2 `admin_users` table using bcrypt `passwordHash` comparison; generic `401` on invalid email or password (no account-existence leak).
+  - Inactive accounts (`status !== 'active'`) are rejected.
+  - Returns `{ admin: { id, email, name, role }, token }`; `passwordHash` is never returned.
+  - Sets an httpOnly Cookie `admin_token` (JWT) on the response; `sameSite: lax`, `secure` in production.
+- Added admin current-user API `GET /api/v1/admin/auth/me` (requires token; returns current admin without `passwordHash`).
+- Added admin logout API `POST /api/v1/admin/auth/logout` (clears the `admin_token` cookie, returns success).
+- Added admin health API `GET /api/v1/admin/health` (requires token; used to verify admin auth).
+- Added JWT support via `@nestjs/jwt`, configured from `JWT_SECRET` and `JWT_EXPIRES_IN` (already present in `.env.example`); secret is not hard-coded.
+- Added `AdminAuthGuard` that reads the token from the `Authorization: Bearer` header or the `admin_token` cookie, verifies it with `JwtService`, and throws `401 UNAUTHORIZED` on missing/invalid/expired tokens.
+- Added `AdminModule` and registered it in `AppModule`.
+- Extended the unified error filter so `401` maps to code `UNAUTHORIZED` (and `403` → `FORBIDDEN`).
+- Restructured the admin frontend with route groups:
+  - `(auth)/admin/login` — real login form (email + password, client-side empty-field check, server-error and network-error messages, redirect to dashboard if already logged in).
+  - `(admin)/admin/*` — protected pages (dashboard + 9 module placeholders) wrapped by an `AuthProvider` that calls `/me`; unauthenticated users are redirected to `/admin/login`.
+  - `AuthProvider`/`useAuth` manage the admin session and expose a logout action.
+- Enhanced `AdminLayout` sidebar to show the current admin email/role and a logout button.
+- Added `src/lib/adminApi.ts` client that calls the admin API with `credentials: 'include'` (Cookie auto-send); the frontend never stores or reads the token or password.
+- Added `noindex, nofollow` metadata to all admin pages (root layout `robots: { index: false, follow: false }`); README documents that `/admin/*` must be excluded from any future sitemap.
+- Verified `pnpm install`, `db:generate`, `db:migrate`, `db:seed`, `lint`, `typecheck`, `build` all pass.
+- Updated README (Phase 4A section, login account, admin login URL, Auth API list, token/cookie notes, protected pages, noindex note, next phase = Phase 4B), PROJECT_HANDOFF.md (Phase 4A completed, next phase = Phase 4B), and this changelog.

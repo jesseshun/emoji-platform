@@ -7,6 +7,7 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { TopicsModule } from './modules/topics/topics.module';
 import { SearchModule } from './modules/search/search.module';
 import { EventsModule } from './modules/events/events.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { EventsModule } from './modules/events/events.module';
     TopicsModule,
     SearchModule,
     EventsModule,
+    AdminModule,
   ],
 })
 export class AppModule {}

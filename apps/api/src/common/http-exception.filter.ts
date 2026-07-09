@@ -18,6 +18,8 @@ interface ErrorBody {
 
 const STATUS_TO_CODE: Record<number, string> = {
   400: 'BAD_REQUEST',
+  401: 'UNAUTHORIZED',
+  403: 'FORBIDDEN',
   404: 'NOT_FOUND',
   500: 'INTERNAL_ERROR',
 };

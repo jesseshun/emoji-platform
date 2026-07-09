@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '@/components/AuthProvider';
 
 const navItems = [
   { href: '/admin/dashboard', label: '仪表盘' },
@@ -18,16 +19,21 @@ const navItems = [
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { admin, logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+  };
 
   return (
     <div className="flex min-h-screen">
-      <aside className="w-60 bg-gray-900 text-white flex-shrink-0">
+      <aside className="w-60 bg-gray-900 text-white flex-shrink-0 flex flex-col">
         <div className="px-5 py-4 border-b border-gray-700">
           <Link href="/admin/dashboard" className="text-lg font-bold">
             😊 Admin
           </Link>
         </div>
-        <nav className="px-3 py-4">
+        <nav className="px-3 py-4 flex-1">
           <ul className="space-y-1">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
@@ -48,6 +54,22 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             })}
           </ul>
         </nav>
+        <div className="px-4 py-3 border-t border-gray-700 text-sm">
+          {admin && (
+            <div className="mb-2">
+              <div className="text-gray-200 truncate" title={admin.email}>
+                {admin.email}
+              </div>
+              <div className="text-gray-400 text-xs">角色：{admin.role}</div>
+            </div>
+          )}
+          <button
+            onClick={handleLogout}
+            className="w-full py-2 bg-red-600 hover:bg-red-700 rounded text-white text-sm"
+          >
+            退出登录
+          </button>
+        </div>
       </aside>
       <main className="flex-1 p-6">{children}</main>
     </div>
