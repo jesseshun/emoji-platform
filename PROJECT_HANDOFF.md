@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Phase 4D-3 completed.
+Phase 4D-4 completed.
 
 ## Project Goal
 
@@ -50,7 +50,8 @@ Build a long-term maintainable global Emoji dictionary, copy, meaning, search, t
 - Phase 4D-1: Asset and license management (admin asset list/create/edit pages, asset admin APIs: list/detail/create/update/status/delete, provider/fileType allow-list validation, isDownloadable + license/attribution rules, emoji selector via `GET /api/v1/admin/emojis/options`, role-based write permission `canManageAsset`, asset writes recording audit_logs with no passwordHash leakage; hard delete supported)
 - Phase 4D-2: SEO management center (admin SEO overview page `/admin/seo`; SEO entity list pages `/admin/seo/emojis` `/admin/seo/categories` `/admin/seo/topics` `/admin/seo/articles` with pagination/search/locale/status/completeness filters; SEO edit page `/admin/seo/{entityType}/{id}/edit` for emoji/category/topic/article with zh/en `seoTitle`/`seoDescription` editing, canonical/hreflang preview, and audit_logs `seo.update`; SEO admin APIs: `GET /admin/seo/overview`, `GET /admin/seo/entities`, `GET /admin/seo/entities/:entityType/:id`, `PATCH /admin/seo/entities/:entityType/:id`, `GET /admin/seo/robots-status`, `GET /admin/seo/sitemap-status`; reusable translation `seoTitle`/`seoDescription` fields, no new SEO table; SEO write role extended to `seo_manager`; no sitemap generation, no Meilisearch, no AI authoring, no pure-static-site conversion)
 - Phase 4D-3: Search logs, copy logs, and review management (admin Search Logs page `/admin/search-logs` with pagination/keyword/locale/date-range/resultCount-range filters and `GET /api/v1/admin/search-logs` + `GET /api/v1/admin/search-logs/summary`; admin Copy Events page `/admin/copy-events` with pagination/locale/emojiId/date-range filters and `GET /api/v1/admin/copy-events` + `GET /api/v1/admin/copy-events/summary`; admin Review Management list `/admin/reviews` and detail `/admin/reviews/[id]` implemented on the existing `user_submissions` model (no placeholder, no new Review table), with `GET /api/v1/admin/reviews`, `GET /api/v1/admin/reviews/:id`, `PATCH /api/v1/admin/reviews/:id/status` writing audit_logs `review.update`; log viewing role `canViewLogs` = super_admin/editor/seo_manager/reviewer/analyst; review write role `canManageReview` = super_admin/reviewer; all log/review APIs guarded by AdminAuthGuard; sensitive data handling returns only non-reversible ipHash and coarse country, never plaintext IP or passwordHash; no Meilisearch, no sitemap generation, no AI review, no Analytics charts, no static-site conversion)
+- Phase 4D-4: Phase 4 Admin CMS acceptance and security hardening (full regression of all admin modules; permission-matrix verification across super_admin/editor/seo_manager/translator/reviewer/analyst; confirmed 401/403/404/400 behaviors; `passwordHash`/`JWT_SECRET`/plaintext-IP leakage checks pass; confirmed `apps/admin` and `apps/web` never import Prisma (all data goes through the API); confirmed `/admin/*` is `noindex,nofollow` via the admin root layout; confirmed `audit_logs` coverage for emoji/category/topic/article/asset/seo/review with no sensitive fields; `lint`/`typecheck`/`build` all green; README/CHANGELOG updated; did NOT add new CMS modules, did NOT add new CRUD, did NOT integrate Meilisearch, did NOT generate sitemap, did NOT add AI tooling, did NOT convert to a pure static site)
 
 ## Next Phase
 
-Phase 4D-4 - Phase 4 Admin CMS Acceptance and Security Hardening
+Phase 5 - SEO Automation, Sitemap, and Public Content Scale

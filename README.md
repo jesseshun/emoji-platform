@@ -17,7 +17,7 @@
 
 ## 当前阶段
 
-**Phase 4D-2** - SEO Management Center 已完成。
+**Phase 4D-4** - Phase 4 Admin CMS Acceptance and Security Hardening 已完成（Phase 4 后台 CMS 全模块验收与安全加固）。
 
 ## 技术栈
 
@@ -1065,13 +1065,88 @@ Base URL：`http://localhost:4000/api/v1`
 - 10 条 `copy_events`（关联前 10 个 Emoji，含 locale、pageUrl、country、ipHash）。
 - 5 条 `user_submissions`（覆盖 pending / approved / rejected / spam 状态与 example / culture_note / correction / translation_suggestion / new_usage 类型），用于审核管理验收。
 
+## Phase 4D-4 - Admin CMS Acceptance and Security Hardening
+
+本阶段为 **Phase 4 Admin CMS 的整体验收与安全加固**（Phase 4 后台 CMS 全模块回归 + 权限矩阵 + 安全 + audit_logs + 构建全绿）。不开发新业务模块、不新增 CMS CRUD、不接入 Meilisearch、不生成 sitemap、不开发 AI 工具、不改为纯静态站、不改 Prisma schema、不重构前台页面。
+
+### 已完成范围（Phase 4 全部后台模块）
+
+| 模块 | 页面 | 后台 API |
+|------|------|----------|
+| Auth | `/admin/login` | `POST /admin/auth/login`、`GET /admin/auth/me`、`POST /admin/auth/logout`、`GET /admin/health` |
+| Dashboard | `/admin/dashboard` | `GET /admin/dashboard` |
+| Emoji | `/admin/emojis`、`/admin/emojis/create`、`/admin/emojis/[id]/edit` | list/detail/create/update/status/options |
+| Category | `/admin/categories`、`/admin/categories/create`、`/admin/categories/[id]/edit` | list/detail/create/update/status/tree/options |
+| Topic | `/admin/topics`、`/admin/topics/create`、`/admin/topics/[id]/edit` | list/detail/create/update/status/emojis(PUT)/emoji-options |
+| Article | `/admin/articles`、`/admin/articles/create`、`/admin/articles/[id]/edit` | list/detail/create/update/status |
+| Asset | `/admin/assets`、`/admin/assets/create`、`/admin/assets/[id]/edit` | list/detail/create/update/status/delete/providers/file-types/emojis-options |
+| SEO | `/admin/seo` 及 `emojis|categories|topics|articles` 列表与编辑页 | overview/entities(PATCH)/robots-status/sitemap-status |
+| Search Logs | `/admin/search-logs` | list + summary |
+| Copy Logs | `/admin/copy-events` | list + summary |
+| Review | `/admin/reviews`、`/admin/reviews/[id]` | list/detail/`PATCH :id/status` |
+
+### 权限与安全说明
+
+- 所有后台 API 与页面均经 `AdminAuthGuard`（JWT + httpOnly `admin_token` Cookie）保护：未登录访问受保护 API 返回 `401`；未登录访问受保护页面由客户端 `AuthProvider` 重定向到 `/admin/login`。
+- 权限矩阵（详见 `apps/api/src/modules/admin/role.util.ts`，命名清晰的 `canManage*` / `canView*` / `assertCan*` helper）：
+  - `super_admin`：可读全部、可写全部后台内容模块与 SEO、可审核。
+  - `editor`：可读主要模块；可管理 Emoji / Category / Topic / Article / Asset；可编辑 SEO。
+  - `seo_manager`：可读主要模块；可编辑 SEO；**不可**管理内容模块。
+  - `translator`：可读相关模块（含内容读、SEO 读、日志读）；**无任何写权限**。
+  - `reviewer`：可读日志与 review；可管理 review 状态；**不可**写其他内容。
+  - `analyst`：可读日志类数据；**无写权限**。
+  - 权限不足返回 `403`，未登录返回 `401`，不存在资源返回 `404`，非法参数返回 `400`。
+- **敏感字段不泄露**：
+  - 登录 / `/me` 响应仅返回 `{ id, email, name, role }`（经 `toPublic()` 脱敏），绝不返回 `passwordHash`。
+  - `JWT_SECRET` 仅从环境变量读取（开发兜底 `change_me`），绝不硬编码真实值、绝不返回到 API、README 中不出现真实密钥。
+  - `search_logs` / `copy_events` / `user_submissions` 响应仅返回不可逆的 `ipHash` 与粗略 `country`，绝不返回明文 IP；`audit_logs.ipAddress` 在 review / SEO 操作中写 `null`。
+- **架构约束**：`apps/admin` 与 `apps/web` 均不直接 import `@prisma/client`，全部数据经由 `apps/api` 的 API 层获取，未改为纯静态站。
+
+### audit_logs 覆盖说明
+
+以下操作均写入 `audit_logs`（`adminUserId` / `action` / `entityType` / `entityId` / `oldData` / `newData` / `ipAddress`）：
+
+- Emoji：`emoji.create` / `emoji.update` / `emoji.status_update`
+- Category：`category.create` / `category.update` / `category.status_update`
+- Topic：`topic.create` / `topic.update` / `topic.status_update` / `topic.update_emojis`
+- Article：`article.create` / `article.update` / `article.status_update`
+- Asset：`asset.create` / `asset.update` / `asset.status_update` / `asset.delete`
+- SEO：`seo.update`
+- Review：`review.update`
+
+记录字段仅含实体数据，**不含 `passwordHash` / `JWT_SECRET` / 明文 IP**；写入失败时仅服务端记录错误日志，不阻断主流程。
+
+### noindex / admin robots 边界说明
+
+- 后台根布局设置 `robots: { index: false, follow: false }`，因此 `/admin/login`、Dashboard 及全部 CMS 页面均为 `noindex, nofollow`，不应被搜索引擎收录，也不得进入任何未来的 sitemap。
+- 前台页面（Web）保持可收录，未受 admin 模块影响。
+- 本阶段仅做后台状态展示，未生成 sitemap、未接入 Meilisearch、未开发 AI 工具。
+
+### 默认测试账号
+
+| 邮箱 | 密码 | 角色 |
+|------|------|------|
+| `admin@example.com` | `admin123456` | `super_admin` |
+
+> 验收时另用 `translator` / `seo_manager` / `reviewer` / `analyst` 账号对比验证 403 / 日志与审核边界（见 `role.util.ts`）。
+
+### 构建与验收命令（本阶段执行，全部 0 error）
+
+```
+pnpm install
+pnpm db:generate
+pnpm db:migrate
+pnpm db:seed
+pnpm lint
+pnpm typecheck
+pnpm build
+```
+
 ## 下一阶段
 
-**Phase 4D-4** - Phase 4 Admin CMS Acceptance and Security Hardening（Phase 4 后台 CMS 总体验收与安全加固）。
+**Phase 5** - SEO Automation, Sitemap, and Public Content Scale（SEO 自动化、sitemap 生成、公开内容规模化）。
 
-> Phase 4D-3 边界：本阶段仅做后台日志与审核管理，不接入 Meilisearch、不生成 sitemap、不开发 AI 审核、不开发 Analytics 图表、不开发复杂报表、不改为纯静态站。
-
-> 本阶段（Phase 4D-2）完成后台 SEO 管理中心（SEO 总览 + 实体列表 + 单实体编辑 + canonical/hreflang 预览 + robots/sitemap 状态检查 + audit_logs）。**不在本阶段范围**：Search Logs / Copy Logs 后台列表、Review Management、Analytics 图表、Meilisearch、sitemap 自动生成与提交、AI 工具、前台资源下载系统、图片上传到对象存储、复杂文件上传服务。不改为纯静态站。
+> Phase 4D-4 边界：本阶段仅做 Phase 4 后台 CMS 全模块验收与安全加固，不开发新业务模块、不新增 CMS CRUD、不接入 Meilisearch、不生成 sitemap、不开发 AI 工具、不改为纯静态站、不改 Prisma schema、不重构前台页面。
 
 ## 开发规范
 

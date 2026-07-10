@@ -1,5 +1,57 @@
 # Changelog
 
+## Phase 4D-4
+
+- Completed Phase 4 Admin CMS acceptance: regression-verified all admin modules end to end
+  (Auth, Dashboard, Emoji, Category, Topic, Article, Asset, SEO, Search Logs, Copy Logs, Review
+  Management) against a local PostgreSQL + the built API/admin/web apps.
+- Verified admin auth and protected routes: login issues an httpOnly `admin_token` JWT; unauthenticated
+  requests to protected admin APIs return `401 UNAUTHORIZED`; unauthenticated browser access to protected
+  admin pages is redirected to `/admin/login` by the client-side `AuthProvider`; logout clears the cookie.
+- Verified the admin API permission matrix at runtime with super_admin / editor-equivalent / seo_manager /
+  translator / reviewer / analyst accounts: content write (emoji/category/topic/article/asset) is limited
+  to `super_admin` + `editor` (others get `403`); SEO write is `super_admin` + `editor` + `seo_manager`;
+  log viewing (`canViewLogs`) is `super_admin` / `editor` / `seo_manager` / `reviewer` / `analyst`
+  (`translator` gets `403`); review status write (`canManageReview`) is `super_admin` / `reviewer`
+  (other roles get `403`); valid requests return `200`/`201`, missing resources return `404`, invalid
+  payloads return `400`.
+- Verified CMS module behaviors: list/detail/create/update/status happy paths, slug uniqueness + format
+  validation, parent/cycle prevention (category), emoji-binding replace (topic), keywords JSON/comma
+  parsing and auto `publishedAt` (article), provider/fileType allow-list + license/attribution rules
+  (asset), canonical/hreflang preview + `seo.update` audit (SEO), and `user_submissions`-based review
+  status switching.
+- Verified no `passwordHash` leakage: the login/`/me` responses return only `{ id, email, name, role }`
+  via `toPublic()`; no API response, audit_log, or page exposes `passwordHash`.
+- Verified no `JWT_SECRET` leakage: the secret is read only from the `JWT_SECRET` environment variable
+  (dev fallback `change_me`), never hardcoded as a real value, never returned by any API, and never
+  appears as a real secret in README.
+- Verified no plaintext sensitive-IP leakage: `search_logs` / `copy_events` / `user_submissions` responses
+  expose only the non-reversible `ipHash` and a coarse `country`; `audit_logs.ipAddress` is written as
+  `null` for review/SEO operations; no plaintext IP is ever returned.
+- Verified `apps/admin` and `apps/web` never import `@prisma/client`; all admin and frontend data access
+  goes through the API layer (`apps/api`), preserving the planned monorepo architecture.
+- Verified `/admin/*` is `noindex, nofollow`: the admin root layout sets
+  `robots: { index: false, follow: false }`, so login, dashboard, and every CMS page are excluded from
+  search engines and must stay out of any future sitemap.
+- Verified `audit_logs` coverage: emoji/category/topic/article/asset each record `create` / `update` /
+  `status_update` (+ `asset.delete`); SEO records `seo.update`; review records `review.update`. All audit
+  payloads contain only entity data (no `passwordHash`, no `JWT_SECRET`, no plaintext IP), are wrapped in
+  try/catch so a failed write never blocks the main operation, and carry the correct `adminUserId`.
+- Verified frontend regression: `/zh/`, `/en/`, emoji/category/topic lists and detail pages, and
+  `/zh/search?q=...` / `/en/search?q=...` all return HTTP 200, render real content (no `undefined` /
+  `null` literals in the HTML), and are indexable (no `noindex`); frontend SEO is unaffected by the admin
+  module; admin pages remain excluded.
+- Ran `pnpm install`, `pnpm db:generate`, `pnpm db:migrate`, `pnpm db:seed`, `pnpm lint`, `pnpm typecheck`,
+  and `pnpm build` — all pass with 0 errors (no warnings introduced by this phase; lint/typecheck/build
+  were already green in Phase 4D-3). No rules were disabled to mask errors; isolated `eslint-disable
+  @typescript-eslint/no-explicit-any` directives in the logs/review services are localized DTO mappers.
+- Did NOT add new business modules, did NOT add new CMS CRUD, did NOT integrate Meilisearch, did NOT
+  generate a sitemap, did NOT add AI tooling, did NOT change the architecture to a pure static site, did
+  NOT modify the Prisma schema, and did NOT refactor frontend pages.
+- Updated README (Phase 4D-4 section: completed scope, module list, permission/security notes, audit_logs
+  coverage, noindex/admin-robots boundary, default test account, next phase = Phase 5), PROJECT_HANDOFF.md
+  (Phase 4D-4 completed, next phase = Phase 5), and this changelog.
+
 ## Phase 4D-3
 
 - Added Search Logs admin pages: `/admin/search-logs` with pagination, keyword (query) search,
