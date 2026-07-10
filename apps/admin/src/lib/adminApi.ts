@@ -1134,3 +1134,253 @@ export async function getSeoRobotsStatus(): Promise<{
 export async function getSeoSitemapStatus(): Promise<{ exists: boolean; note: string }> {
   return adminFetch<{ exists: boolean; note: string }>('/admin/seo/sitemap-status');
 }
+
+// ─── Logs & Reviews (Phase 4D-3) ───────────────────────
+
+export interface SearchLogItem {
+  id: string;
+  query: string | null;
+  locale: 'zh' | 'en' | null;
+  country: string | null;
+  resultCount: number | null;
+  userAgent: string | null;
+  ipHash: string | null;
+  createdAt: string;
+}
+
+export interface SearchLogsSummary {
+  totalSearches: number;
+  todaySearches: number;
+  zeroResultSearches: number;
+  topQueries: { query: string; count: number }[];
+  searchesByLocale: { zh: number; en: number; other: number };
+}
+
+export interface AdminLogListMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface AdminSearchLogsListResponse {
+  data: SearchLogItem[];
+  meta: AdminLogListMeta;
+}
+
+export interface SearchLogsQuery {
+  page?: number;
+  limit?: number;
+  q?: string;
+  locale?: 'zh' | 'en' | 'all';
+  dateFrom?: string;
+  dateTo?: string;
+  minResultCount?: number;
+  maxResultCount?: number;
+}
+
+export async function listSearchLogs(
+  params: SearchLogsQuery = {},
+): Promise<AdminSearchLogsListResponse> {
+  const qs = new URLSearchParams();
+  if (params.page && params.page > 1) qs.set('page', String(params.page));
+  if (params.limit) qs.set('limit', String(params.limit));
+  if (params.q) qs.set('q', params.q);
+  if (params.locale && params.locale !== 'all') qs.set('locale', params.locale);
+  if (params.dateFrom) qs.set('dateFrom', params.dateFrom);
+  if (params.dateTo) qs.set('dateTo', params.dateTo);
+  if (params.minResultCount !== undefined) qs.set('minResultCount', String(params.minResultCount));
+  if (params.maxResultCount !== undefined) qs.set('maxResultCount', String(params.maxResultCount));
+  const query = qs.toString();
+
+  const body = await adminFetchEnvelope<SearchLogItem[]>(
+    `/admin/search-logs${query ? `?${query}` : ''}`,
+  );
+  return {
+    data: body.data,
+    meta: (body.meta as unknown as AdminLogListMeta) ?? {
+      page: 1,
+      limit: params.limit ?? 30,
+      total: 0,
+      totalPages: 1,
+    },
+  };
+}
+
+export async function getSearchLogsSummary(): Promise<SearchLogsSummary> {
+  return adminFetch<SearchLogsSummary>('/admin/search-logs/summary');
+}
+
+export interface CopyEventItem {
+  id: string;
+  emojiId: string | null;
+  emojiChar: string | null;
+  emojiSlug: string | null;
+  locale: 'zh' | 'en' | null;
+  country: string | null;
+  pageUrl: string | null;
+  userAgent: string | null;
+  ipHash: string | null;
+  createdAt: string;
+}
+
+export interface CopyEventsSummary {
+  totalCopies: number;
+  todayCopies: number;
+  topCopiedEmojis: {
+    emojiId: string;
+    emojiChar: string | null;
+    emojiSlug: string | null;
+    count: number;
+  }[];
+  copiesByLocale: { zh: number; en: number; other: number };
+}
+
+export interface AdminCopyEventsListResponse {
+  data: CopyEventItem[];
+  meta: AdminLogListMeta;
+}
+
+export interface CopyEventsQuery {
+  page?: number;
+  limit?: number;
+  locale?: 'zh' | 'en' | 'all';
+  emojiId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+export async function listCopyEvents(
+  params: CopyEventsQuery = {},
+): Promise<AdminCopyEventsListResponse> {
+  const qs = new URLSearchParams();
+  if (params.page && params.page > 1) qs.set('page', String(params.page));
+  if (params.limit) qs.set('limit', String(params.limit));
+  if (params.locale && params.locale !== 'all') qs.set('locale', params.locale);
+  if (params.emojiId) qs.set('emojiId', params.emojiId);
+  if (params.dateFrom) qs.set('dateFrom', params.dateFrom);
+  if (params.dateTo) qs.set('dateTo', params.dateTo);
+  const query = qs.toString();
+
+  const body = await adminFetchEnvelope<CopyEventItem[]>(
+    `/admin/copy-events${query ? `?${query}` : ''}`,
+  );
+  return {
+    data: body.data,
+    meta: (body.meta as unknown as AdminLogListMeta) ?? {
+      page: 1,
+      limit: params.limit ?? 30,
+      total: 0,
+      totalPages: 1,
+    },
+  };
+}
+
+export async function getCopyEventsSummary(): Promise<CopyEventsSummary> {
+  return adminFetch<CopyEventsSummary>('/admin/copy-events/summary');
+}
+
+export type SubmissionType =
+  | 'new_usage'
+  | 'example'
+  | 'correction'
+  | 'culture_note'
+  | 'translation_suggestion';
+export type SubmissionStatus = 'pending' | 'approved' | 'rejected' | 'spam';
+
+export interface ReviewItem {
+  id: string;
+  type: SubmissionType;
+  locale: 'zh' | 'en';
+  status: SubmissionStatus;
+  content: string | null;
+  userName: string | null;
+  userEmail: string | null;
+  emojiId: string | null;
+  emojiChar: string | null;
+  emojiSlug: string | null;
+  createdAt: string;
+  adminNote: string | null;
+}
+
+export interface ReviewDetail extends ReviewItem {
+  emoji: { id: string; emojiChar: string; slug: string; name: string | null } | null;
+  updatedAt: string;
+}
+
+export interface AdminReviewsListResponse {
+  data: ReviewItem[];
+  meta: AdminLogListMeta;
+}
+
+export interface ReviewsQuery {
+  page?: number;
+  limit?: number;
+  status?: SubmissionStatus | 'all';
+  type?: SubmissionType | 'all';
+  locale?: 'zh' | 'en' | 'all';
+  q?: string;
+  emojiId?: string;
+}
+
+export async function listReviews(params: ReviewsQuery = {}): Promise<AdminReviewsListResponse> {
+  const qs = new URLSearchParams();
+  if (params.page && params.page > 1) qs.set('page', String(params.page));
+  if (params.limit) qs.set('limit', String(params.limit));
+  if (params.status && params.status !== 'all') qs.set('status', params.status);
+  if (params.type && params.type !== 'all') qs.set('type', params.type);
+  if (params.locale && params.locale !== 'all') qs.set('locale', params.locale);
+  if (params.q) qs.set('q', params.q);
+  if (params.emojiId) qs.set('emojiId', params.emojiId);
+  const query = qs.toString();
+
+  const body = await adminFetchEnvelope<ReviewItem[]>(
+    `/admin/reviews${query ? `?${query}` : ''}`,
+  );
+  return {
+    data: body.data,
+    meta: (body.meta as unknown as AdminLogListMeta) ?? {
+      page: 1,
+      limit: params.limit ?? 30,
+      total: 0,
+      totalPages: 1,
+    },
+  };
+}
+
+export async function getReview(id: string): Promise<ReviewDetail> {
+  return adminFetch<ReviewDetail>(`/admin/reviews/${id}`);
+}
+
+export async function updateReviewStatus(
+  id: string,
+  status: SubmissionStatus,
+  adminNote?: string,
+): Promise<ReviewDetail> {
+  return adminFetch<ReviewDetail>(`/admin/reviews/${id}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status, adminNote }),
+  });
+}
+
+export const SUBMISSION_TYPE_LABELS: Record<SubmissionType, string> = {
+  new_usage: '新用法',
+  example: '示例',
+  correction: '纠错',
+  culture_note: '文化注释',
+  translation_suggestion: '翻译建议',
+};
+
+export const SUBMISSION_STATUS_LABELS: Record<SubmissionStatus, string> = {
+  pending: '待审核',
+  approved: '已通过',
+  rejected: '已拒绝',
+  spam: '垃圾',
+};
+
+export const SUBMISSION_STATUS_BADGE: Record<SubmissionStatus, string> = {
+  pending: 'bg-amber-100 text-amber-700',
+  approved: 'bg-green-100 text-green-700',
+  rejected: 'bg-red-100 text-red-700',
+  spam: 'bg-gray-200 text-gray-600',
+};

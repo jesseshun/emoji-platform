@@ -537,6 +537,91 @@ async function main() {
   }
   console.log(`✅ Created 10 copy events`);
 
+  // ─── 7b. Create User Submissions / Reviews ─────────────
+  const existingSubmissions = await prisma.userSubmission.count();
+  if (existingSubmissions === 0) {
+    const submissionEmojiIds = Object.values(emojiRecords);
+    const submissionSeed: {
+      emojiIndex: number;
+      type: 'new_usage' | 'example' | 'correction' | 'culture_note' | 'translation_suggestion';
+      locale: 'zh' | 'en';
+      status: 'pending' | 'approved' | 'rejected' | 'spam';
+      content: string;
+      userName: string;
+      userEmail: string;
+    }[] = [
+      {
+        emojiIndex: 0,
+        type: 'example',
+        locale: 'en',
+        status: 'pending',
+        content: 'Great example usage: "That movie was 😂 from start to finish."',
+        userName: 'Alice',
+        userEmail: 'alice@example.com',
+      },
+      {
+        emojiIndex: 1,
+        type: 'culture_note',
+        locale: 'zh',
+        status: 'pending',
+        content: '在中文语境中，这个表情常用于表达友好而非恋爱。',
+        userName: '小明',
+        userEmail: 'xiaoming@example.com',
+      },
+      {
+        emojiIndex: 2,
+        type: 'correction',
+        locale: 'en',
+        status: 'approved',
+        content: 'The shortcode should be :smile: not :smiling:.',
+        userName: 'Bob',
+        userEmail: 'bob@example.com',
+      },
+      {
+        emojiIndex: 3,
+        type: 'translation_suggestion',
+        locale: 'zh',
+        status: 'rejected',
+        content: '建议将名称译为"爱心"而非"红心"。',
+        userName: '小红',
+        userEmail: 'xiaohong@example.com',
+      },
+      {
+        emojiIndex: 4,
+        type: 'new_usage',
+        locale: 'en',
+        status: 'spam',
+        content: 'Buy cheap followers at example-spam-site.com!!!',
+        userName: 'spammer',
+        userEmail: 'spam@example.com',
+      },
+    ];
+
+    for (const s of submissionSeed) {
+      const emojiId = submissionEmojiIds[s.emojiIndex % submissionEmojiIds.length];
+      await prisma.userSubmission.create({
+        data: {
+          emojiId,
+          type: s.type,
+          locale: s.locale,
+          status: s.status,
+          content: s.content,
+          userName: s.userName,
+          userEmail: s.userEmail,
+          adminNote:
+            s.status === 'approved'
+              ? '已采纳'
+              : s.status === 'rejected'
+                ? '与现有翻译重复'
+                : null,
+        },
+      });
+    }
+    console.log(`✅ Created ${submissionSeed.length} user submissions / reviews`);
+  } else {
+    console.log(`ℹ️  Skipped user submissions seed (${existingSubmissions} already exist)`);
+  }
+
   // ─── 8. Create Emoji Assets ─────────────────────────────
   const assetProviders = ['noto', 'openmoji', 'twemoji'];
   let assetCount = 0;

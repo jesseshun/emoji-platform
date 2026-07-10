@@ -2,12 +2,12 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import {
-  listSearchLogs,
-  getSearchLogsSummary,
-  SearchLogItem,
-  SearchLogsSummary,
+  listCopyEvents,
+  getCopyEventsSummary,
+  CopyEventItem,
+  CopyEventsSummary,
   AdminApiError,
-  SearchLogsQuery,
+  CopyEventsQuery,
 } from '@/lib/adminApi';
 
 const LOCALE_OPTIONS = [
@@ -31,39 +31,35 @@ function SummaryCard({ label, value }: { label: string; value: number }) {
   );
 }
 
-export default function AdminSearchLogsPage() {
-  const [items, setItems] = useState<SearchLogItem[]>([]);
+export default function AdminCopyEventsPage() {
+  const [items, setItems] = useState<CopyEventItem[]>([]);
   const [meta, setMeta] = useState({ page: 1, limit: 30, total: 0, totalPages: 1 });
-  const [summary, setSummary] = useState<SearchLogsSummary | null>(null);
+  const [summary, setSummary] = useState<CopyEventsSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const [q, setQ] = useState('');
   const [locale, setLocale] = useState('all');
+  const [emojiId, setEmojiId] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-  const [minResultCount, setMinResultCount] = useState('');
-  const [maxResultCount, setMaxResultCount] = useState('');
   const [page, setPage] = useState(1);
 
-  const buildQuery = useCallback((): SearchLogsQuery => {
-    const query: SearchLogsQuery = { page, limit: 30 };
-    if (q.trim()) query.q = q.trim();
+  const buildQuery = useCallback((): CopyEventsQuery => {
+    const query: CopyEventsQuery = { page, limit: 30 };
     if (locale !== 'all') query.locale = locale as 'zh' | 'en';
+    if (emojiId.trim()) query.emojiId = emojiId.trim();
     if (dateFrom) query.dateFrom = dateFrom;
     if (dateTo) query.dateTo = dateTo;
-    if (minResultCount.trim()) query.minResultCount = Number(minResultCount);
-    if (maxResultCount.trim()) query.maxResultCount = Number(maxResultCount);
     return query;
-  }, [page, q, locale, dateFrom, dateTo, minResultCount, maxResultCount]);
+  }, [page, locale, emojiId, dateFrom, dateTo]);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
       const [listRes, sumRes] = await Promise.all([
-        listSearchLogs(buildQuery()),
-        getSearchLogsSummary(),
+        listCopyEvents(buildQuery()),
+        getCopyEventsSummary(),
       ]);
       setItems(listRes.data);
       setMeta(listRes.meta);
@@ -82,7 +78,6 @@ export default function AdminSearchLogsPage() {
   const onSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
-    // load triggers via effect due to state changes
     setTimeout(load, 0);
   };
 
@@ -94,34 +89,39 @@ export default function AdminSearchLogsPage() {
   return (
     <div>
       <div className="mb-4">
-        <h1 className="text-2xl font-bold mb-1">🔍 搜索日志</h1>
+        <h1 className="text-2xl font-bold mb-1">📋 复制日志</h1>
         <p className="text-gray-500 text-sm">
-          查看用户搜索记录、结果数与搜索趋势。所有日志均不展示明文 IP，仅显示不可逆的 ipHash 与粗略国家。
+          查看用户复制 Emoji 的行为记录，包括表情、语言、来源页面。所有日志均不展示明文 IP，仅显示 ipHash 与粗略国家。
         </p>
       </div>
 
       {summary && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
-          <SummaryCard label="总搜索数" value={summary.totalSearches} />
-          <SummaryCard label="今日搜索" value={summary.todaySearches} />
-          <SummaryCard label="零结果搜索" value={summary.zeroResultSearches} />
+          <SummaryCard label="总复制数" value={summary.totalCopies} />
+          <SummaryCard label="今日复制" value={summary.todayCopies} />
           <SummaryCard
             label="语言分布 (zh/en/其他)"
-            value={summary.searchesByLocale.zh + summary.searchesByLocale.en + summary.searchesByLocale.other}
+            value={summary.copiesByLocale.zh + summary.copiesByLocale.en + summary.copiesByLocale.other}
+          />
+          <SummaryCard
+            label="最热复制表情数"
+            value={summary.topCopiedEmojis.length}
           />
         </div>
       )}
 
-      {summary && summary.topQueries.length > 0 && (
+      {summary && summary.topCopiedEmojis.length > 0 && (
         <div className="bg-white rounded-lg border p-4 mb-5">
-          <h2 className="font-semibold text-gray-800 mb-3">热门搜索词</h2>
-          <div className="flex flex-wrap gap-2">
-            {summary.topQueries.map((t) => (
+          <h2 className="font-semibold text-gray-800 mb-3">最常被复制的表情</h2>
+          <div className="flex flex-wrap gap-3">
+            {summary.topCopiedEmojis.map((e) => (
               <span
-                key={t.query}
+                key={e.emojiId}
                 className="inline-flex items-center gap-1 bg-gray-100 rounded-full px-3 py-1 text-sm"
+                title={e.emojiSlug ?? ''}
               >
-                {t.query} <span className="text-gray-400">· {t.count}</span>
+                <span className="text-lg">{e.emojiChar ?? '—'}</span>
+                <span>{e.count}</span>
               </span>
             ))}
           </div>
@@ -130,17 +130,8 @@ export default function AdminSearchLogsPage() {
 
       <form
         onSubmit={onSearch}
-        className="bg-white rounded-lg border p-4 mb-4 grid grid-cols-1 md:grid-cols-3 gap-3"
+        className="bg-white rounded-lg border p-4 mb-4 grid grid-cols-1 md:grid-cols-4 gap-3"
       >
-        <div>
-          <label className="block text-xs text-gray-500 mb-1">关键词</label>
-          <input
-            className="w-full border rounded px-2 py-1.5 text-sm"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="搜索 query"
-          />
-        </div>
         <div>
           <label className="block text-xs text-gray-500 mb-1">语言</label>
           <select
@@ -155,13 +146,14 @@ export default function AdminSearchLogsPage() {
             ))}
           </select>
         </div>
-        <div className="flex items-end">
-          <button
-            type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded px-3 py-1.5 text-sm"
-          >
-            筛选
-          </button>
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">Emoji ID</label>
+          <input
+            className="w-full border rounded px-2 py-1.5 text-sm"
+            value={emojiId}
+            onChange={(e) => setEmojiId(e.target.value)}
+            placeholder="按 emojiId 筛选"
+          />
         </div>
         <div>
           <label className="block text-xs text-gray-500 mb-1">起始日期</label>
@@ -172,36 +164,22 @@ export default function AdminSearchLogsPage() {
             onChange={(e) => setDateFrom(e.target.value)}
           />
         </div>
-        <div>
-          <label className="block text-xs text-gray-500 mb-1">结束日期</label>
-          <input
-            type="date"
-            className="w-full border rounded px-2 py-1.5 text-sm"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label className="block text-xs text-gray-500 mb-1">最少结果数</label>
+        <div className="flex items-end gap-2">
+          <div className="flex-1">
+            <label className="block text-xs text-gray-500 mb-1">结束日期</label>
             <input
-              type="number"
+              type="date"
               className="w-full border rounded px-2 py-1.5 text-sm"
-              value={minResultCount}
-              onChange={(e) => setMinResultCount(e.target.value)}
-              placeholder="min"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
             />
           </div>
-          <div>
-            <label className="block text-xs text-gray-500 mb-1">最多结果数</label>
-            <input
-              type="number"
-              className="w-full border rounded px-2 py-1.5 text-sm"
-              value={maxResultCount}
-              onChange={(e) => setMaxResultCount(e.target.value)}
-              placeholder="max"
-            />
-          </div>
+          <button
+            type="submit"
+            className="bg-blue-600 hover:bg-blue-700 text-white rounded px-3 py-1.5 text-sm"
+          >
+            筛选
+          </button>
         </div>
       </form>
 
@@ -218,9 +196,10 @@ export default function AdminSearchLogsPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 text-gray-600">
                 <tr>
-                  <th className="text-left px-3 py-2 font-medium">关键词</th>
+                  <th className="text-left px-3 py-2 font-medium">表情</th>
+                  <th className="text-left px-3 py-2 font-medium">Slug</th>
                   <th className="text-left px-3 py-2 font-medium">语言</th>
-                  <th className="text-left px-3 py-2 font-medium">结果数</th>
+                  <th className="text-left px-3 py-2 font-medium">来源页面</th>
                   <th className="text-left px-3 py-2 font-medium">国家</th>
                   <th className="text-left px-3 py-2 font-medium">User Agent</th>
                   <th className="text-left px-3 py-2 font-medium">IP Hash</th>
@@ -230,16 +209,19 @@ export default function AdminSearchLogsPage() {
               <tbody>
                 {items.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-3 py-10 text-center text-gray-400">
-                      暂无搜索日志
+                    <td colSpan={8} className="px-3 py-10 text-center text-gray-400">
+                      暂无复制日志
                     </td>
                   </tr>
                 ) : (
                   items.map((it) => (
                     <tr key={it.id} className="border-t">
-                      <td className="px-3 py-2">{it.query ?? '—'}</td>
+                      <td className="px-3 py-2 text-lg">{it.emojiChar ?? '—'}</td>
+                      <td className="px-3 py-2">{it.emojiSlug ?? '—'}</td>
                       <td className="px-3 py-2">{it.locale ?? '—'}</td>
-                      <td className="px-3 py-2">{it.resultCount ?? '—'}</td>
+                      <td className="px-3 py-2 max-w-xs truncate" title={it.pageUrl ?? ''}>
+                        {it.pageUrl ?? '—'}
+                      </td>
                       <td className="px-3 py-2">{it.country ?? '—'}</td>
                       <td className="px-3 py-2 max-w-xs truncate" title={it.userAgent ?? ''}>
                         {it.userAgent ?? '—'}
@@ -280,7 +262,7 @@ export default function AdminSearchLogsPage() {
       )}
 
       <p className="text-xs text-gray-400 mt-6">
-        说明：本阶段仅做后台日志查看与统计，不接入 Meilisearch、不生成 sitemap、不修改前台搜索逻辑。敏感 IP
+        说明：本阶段仅做后台复制日志查看与统计，不接入 Meilisearch、不生成 sitemap、不修改前台复制逻辑。敏感 IP
         以 ipHash（不可逆）形式展示，绝不返回明文 IP。
       </p>
     </div>

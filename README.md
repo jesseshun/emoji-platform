@@ -973,9 +973,103 @@ Base URL：`http://localhost:4000/api/v1`
 
 `pnpm db:seed` 创建的 Emoji（30）、分类（含子分类）、专题（5）、文章（3）均带 zh/en 翻译；本阶段在既有 `seoTitle` / `seoDescription` 上做管理与检查，不额外新增 SEO 种子数据。
 
+## Phase 4D-3 - Search Logs, Copy Logs, and Review Management
+
+本阶段完成后台 **Search Logs / Copy Logs / Review Management**，提供搜索日志、复制日志的查看/筛选/分页/摘要，以及基于 `user_submissions` 的审核管理（列表 / 详情 / 状态切换）。**不**接入 Meilisearch、不开发 Analytics 图表、不开发复杂报表、不开发数据导出、不生成 sitemap、不开发 AI 审核、不修改前台搜索/复制逻辑、不改为纯静态站。
+
+> Review Management 直接复用既有 `user_submissions` 模型（含 `SubmissionStatus`：`pending` / `approved` / `rejected` / `spam`），不新增独立 Review 表，也不做占位页。
+
+### 范围
+
+**Search Logs（搜索日志）**
+
+- 列表页 `/admin/search-logs`：分页、关键词（query）搜索、locale 筛选（zh / en / all）、日期范围筛选、resultCount 范围筛选（min / max）；展示 query、locale、resultCount、country、userAgent、ipHash、createdAt。
+- 摘要 API `/api/v1/admin/search-logs/summary`：返回 `totalSearches`、`todaySearches`、`zeroResultSearches`、`topQueries`、`searchesByLocale`（zh / en / other）。
+
+**Copy Logs（复制日志）**
+
+- 列表页 `/admin/copy-events`：分页、locale 筛选、emojiId 筛选、日期范围筛选；展示 emojiChar、emoji slug、locale、pageUrl、country、userAgent、ipHash、createdAt。
+- 摘要 API `/api/v1/admin/copy-events/summary`：返回 `totalCopies`、`todayCopies`、`topCopiedEmojis`、`copiesByLocale`（zh / en / other）。
+
+**Review Management（审核管理）**
+
+- 列表页 `/admin/reviews`：分页、status 筛选、type 筛选、locale 筛选、关键词搜索（content / userName / userEmail）；展示表情、类型、语言、内容、提交者、状态、时间，并链接到详情页。
+- 详情页 `/admin/reviews/[id]`：展示提交完整信息（表情、类型、语言、状态、内容、提交者、邮箱、时间），可切换审核状态（pending / approved / rejected / spam）并填写 adminNote。
+- 状态写操作仅 `super_admin` / `reviewer`；其余运营角色（`editor` / `seo_manager` / `analyst`）可查看，但切换状态会返回 403。
+
+### 后台页面列表
+
+| 页面 | 说明 |
+|------|------|
+| `/admin/search-logs` | 搜索日志列表 + 摘要 |
+| `/admin/copy-events` | 复制日志列表 + 摘要 |
+| `/admin/reviews` | 审核管理列表 |
+| `/admin/reviews/[id]` | 审核详情与状态切换 |
+
+### 后台 API 列表
+
+Base URL：`http://localhost:4000/api/v1`
+
+| 方法 | 接口 | 说明 | 鉴权 | 权限 |
+|------|------|------|------|------|
+| GET | `/api/v1/admin/search-logs` | 搜索日志列表（page/limit/q/locale/dateFrom/dateTo/minResultCount/maxResultCount） | 登录 | 日志查看角色 |
+| GET | `/api/v1/admin/search-logs/summary` | 搜索日志摘要（总数/今日/零结果/热门词/语言分布） | 登录 | 日志查看角色 |
+| GET | `/api/v1/admin/copy-events` | 复制日志列表（page/limit/locale/emojiId/dateFrom/dateTo） | 登录 | 日志查看角色 |
+| GET | `/api/v1/admin/copy-events/summary` | 复制日志摘要（总数/今日/最热表情/语言分布） | 登录 | 日志查看角色 |
+| GET | `/api/v1/admin/reviews` | 审核列表（page/limit/status/type/locale/q/emojiId） | 登录 | 日志查看角色 |
+| GET | `/api/v1/admin/reviews/:id` | 审核详情（基于 user_submissions） | 登录 | 日志查看角色 |
+| PATCH | `/api/v1/admin/reviews/:id/status` | 切换审核状态（status + 可选 adminNote） | 登录 | `super_admin` / `reviewer` |
+
+> 日志查看角色：super_admin、editor、seo_manager、reviewer、analyst（translator 无日志查看权限，返回 403）。审核写操作仅 `super_admin` / `reviewer`，其余角色返回 403。未登录返回 401。所有接口均不返回 `passwordHash`。
+
+### 权限说明
+
+- `canViewLogs(role)`：日志（搜索日志 / 复制日志 / 审核列表与详情）查看权限。
+- `canManageReview(role)`：审核状态写操作权限（切换 user_submissions 状态）。
+- 新增可读角色 `reviewer`、`analyst` 用于运营查看；日志为运营数据，翻译角色 `translator` 默认不授予日志查看权限。
+
+### 敏感数据处理说明
+
+- `search_logs` / `copy_events` 模型**不存储明文 IP**，仅存储不可逆的 `ipHash`（当前由前台事件接口写入为 `null`）与粗略 `country`。后台列表仅展示 `ipHash` 与 `country`，**绝不返回明文 IP**。
+- `user_submissions` 中的 `userEmail` 为提交者自行填写的联系字段（非管理员敏感数据），在审核上下文中展示；不返回任何 `passwordHash` 或管理员敏感字段。
+- 所有 admin 日志 / 审核接口均经 `AdminAuthGuard` 保护，未登录返回 401。
+- `/admin/*` 已通过页面 `meta robots: { index: false, follow: false }` 强制 noindex。
+
+### audit_logs 记录
+
+以下操作会写入 `audit_logs`：
+
+- `review.update`：切换审核状态（或更新 adminNote）
+
+记录字段：`adminUserId`、`action=review.update`、`entityType=user_submission`、`entityId`（submission id）、`oldData`（`{ id, status, adminNote }`）、`newData`（`{ id, status, adminNote }`）、`ipAddress`（可空）。
+
+- `oldData` / `newData` **不会**写入 `passwordHash` 或任何明文 IP。
+- 搜索日志 / 复制日志为只读查看，不写入 audit_logs。
+- audit log 写入失败时，服务端记录错误日志，主操作流程仍正常完成。
+
+### 默认测试账号
+
+| 邮箱 | 密码 | 角色 |
+|------|------|------|
+| `admin@example.com` | `admin123456` | `super_admin` |
+
+> 日志查看需要 super_admin / editor / seo_manager / reviewer / analyst。如需验收 403：
+> - 日志查看 403：新增一个 `translator` 账号登录后访问日志接口。
+> - 审核写 403：使用 `editor` / `seo_manager` / `analyst` 账号（非 super_admin / reviewer）访问 `PATCH /api/v1/admin/reviews/:id/status`。
+
+### Seed 数据
+
+`pnpm db:seed` 在既有 Emoji（30）、分类、专题（5）、文章（3）基础上，**新增**：
+
+- 10 条 `search_logs`（含中英文 query、resultCount、country、ipHash、userAgent）。
+- 10 条 `copy_events`（关联前 10 个 Emoji，含 locale、pageUrl、country、ipHash）。
+- 5 条 `user_submissions`（覆盖 pending / approved / rejected / spam 状态与 example / culture_note / correction / translation_suggestion / new_usage 类型），用于审核管理验收。
+
 ## 下一阶段
 
-**Phase 4D-3** - Search Logs、Copy Logs 与 Review Management（搜索日志、复制日志、审核管理）。
+**Phase 4D-4** - Phase 4 Admin CMS Acceptance and Security Hardening（Phase 4 后台 CMS 总体验收与安全加固）。
+
+> Phase 4D-3 边界：本阶段仅做后台日志与审核管理，不接入 Meilisearch、不生成 sitemap、不开发 AI 审核、不开发 Analytics 图表、不开发复杂报表、不改为纯静态站。
 
 > 本阶段（Phase 4D-2）完成后台 SEO 管理中心（SEO 总览 + 实体列表 + 单实体编辑 + canonical/hreflang 预览 + robots/sitemap 状态检查 + audit_logs）。**不在本阶段范围**：Search Logs / Copy Logs 后台列表、Review Management、Analytics 图表、Meilisearch、sitemap 自动生成与提交、AI 工具、前台资源下载系统、图片上传到对象存储、复杂文件上传服务。不改为纯静态站。
 

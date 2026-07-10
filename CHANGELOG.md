@@ -1,5 +1,53 @@
 # Changelog
 
+## Phase 4D-3
+
+- Added Search Logs admin pages: `/admin/search-logs` with pagination, keyword (query) search,
+  locale filter (zh / en / all), date-range filter, and resultCount range filter (min / max);
+  displays query, locale, resultCount, country, userAgent, ipHash, and createdAt; empty and error
+  states are handled with readable messages.
+- Added Copy Events admin pages: `/admin/copy-events` with pagination, locale filter, emojiId
+  filter, and date-range filter; displays emojiChar, emoji slug, locale, pageUrl, country,
+  userAgent, ipHash, and createdAt; empty and error states handled.
+- Added Review Management pages: `/admin/reviews` list (status / type / locale / keyword filters,
+  links to detail) and `/admin/reviews/[id]` detail with status switch (pending / approved /
+  rejected / spam) plus adminNote. Implemented on the existing `user_submissions` model — no
+  placeholder page and no new Review table were added (the schema already provides `user_submissions`
+  with `SubmissionStatus`).
+- Added Search Logs admin APIs: `GET /api/v1/admin/search-logs` (page / limit / q / locale /
+  dateFrom / dateTo / minResultCount / maxResultCount) and `GET /api/v1/admin/search-logs/summary`
+  (totalSearches, todaySearches, zeroResultSearches, topQueries, searchesByLocale).
+- Added Copy Events admin APIs: `GET /api/v1/admin/copy-events` (page / limit / locale / emojiId /
+  dateFrom / dateTo) and `GET /api/v1/admin/copy-events/summary` (totalCopies, todayCopies,
+  topCopiedEmojis, copiesByLocale).
+- Added Review admin APIs: `GET /api/v1/admin/reviews` (page / limit / status / type / locale / q /
+  emojiId), `GET /api/v1/admin/reviews/:id` (detail), and `PATCH /api/v1/admin/reviews/:id/status`
+  (status + optional adminNote). The PATCH writes an `audit_logs` entry with `action = review.update`,
+  `entityType = user_submission`, and `oldData` / `newData` carrying status + adminNote; it never
+  writes `passwordHash` or a plaintext IP.
+- Added log summaries and filters (pagination, keyword search, locale, date range, resultCount
+  range for searches; locale / emojiId / date range for copies).
+- Added sensitive data handling for logs: `search_logs` / `copy_events` store only a
+  non-reversible `ipHash` and a coarse `country`; the admin APIs return `ipHash` / `country` but
+  never a plaintext IP. `user_submissions.userEmail` is the submitter's own contact field and is
+  shown only in the review context.
+- Added permission helpers in `role.util.ts`: `canViewLogs` (super_admin / editor / seo_manager /
+  reviewer / analyst — translator excluded as logs are operational data) and `canManageReview`
+  (super_admin / reviewer). All log / review controllers are guarded by `AdminAuthGuard`; unauthenticated
+  requests return 401, and insufficient role returns 403. `translator` gets 403 on log viewing;
+  `editor` / `seo_manager` / `analyst` get 403 on review status writes.
+- Extended seed data: 10 `search_logs`, 10 `copy_events` (already present), and 5 `user_submissions`
+  covering pending / approved / rejected / spam statuses and example / culture_note / correction /
+  translation_suggestion / new_usage types, so log and review management are demonstrable after
+  `pnpm db:seed`.
+- Did NOT integrate Meilisearch, did NOT generate sitemap, did NOT add AI review, did NOT build
+  Analytics charts or complex reports, did NOT change the front-end search / copy logic, did NOT
+  modify Prisma schema, and did NOT convert the project to a pure static site.
+- Updated README (Phase 4D-3 section: Search Logs scope, Copy Events scope, Review Management scope,
+  admin API list, permission notes, sensitive-data handling, audit_logs notes, default test account,
+  next phase = Phase 4D-4), PROJECT_HANDOFF.md (Phase 4D-3 completed, next phase = Phase 4D-4), and
+  this changelog.
+
 ## Phase 0
 
 - Initialized project governance files.

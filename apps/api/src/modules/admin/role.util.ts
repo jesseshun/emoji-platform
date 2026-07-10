@@ -227,3 +227,44 @@ export function assertCanViewSeo(role: string | undefined | null): void {
     throw new ForbiddenException('当前角色无权访问该资源');
   }
 }
+
+// Logs viewing (Phase 4D-3): Search Logs + Copy Events are visible to operational
+// and content roles. Read = super_admin, editor, seo_manager, reviewer, analyst.
+// translator is intentionally excluded (logs are operational data, not translation
+// content). Kept as a clearly named checker distinct from the CMS helpers.
+const LOG_VIEW_ROLES: AdminRole[] = [
+  'super_admin',
+  'editor',
+  'seo_manager',
+  'reviewer',
+  'analyst',
+];
+
+export function canViewLogs(role: string | undefined | null): boolean {
+  if (!role) return false;
+  return LOG_VIEW_ROLES.includes(role as AdminRole);
+}
+
+export function assertCanViewLogs(role: string | undefined | null): void {
+  if (!canViewLogs(role)) {
+    throw new ForbiddenException(
+      '当前角色无权访问日志（需要 super_admin / editor / seo_manager / reviewer / analyst）',
+    );
+  }
+}
+
+// Review management (Phase 4D-3): user submissions / reviews status changes are
+// limited to super_admin and reviewer. Read (list / detail) follows canViewLogs
+// so the same operational roles can inspect submissions.
+const REVIEW_WRITE_ROLES: AdminRole[] = ['super_admin', 'reviewer'];
+
+export function canManageReview(role: string | undefined | null): boolean {
+  if (!role) return false;
+  return REVIEW_WRITE_ROLES.includes(role as AdminRole);
+}
+
+export function assertCanManageReview(role: string | undefined | null): void {
+  if (!canManageReview(role)) {
+    throw new ForbiddenException('当前角色无权审核（需要 super_admin 或 reviewer）');
+  }
+}

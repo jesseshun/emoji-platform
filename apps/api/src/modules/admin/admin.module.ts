@@ -11,6 +11,8 @@ import { AdminTopicService } from './admin-topic.service';
 import { AdminArticleService } from './admin-article.service';
 import { AdminAssetService } from './admin-asset.service';
 import { AdminSeoService } from './admin-seo.service';
+import { AdminLogsService } from './admin-logs.service';
+import { AdminReviewService } from './admin-review.service';
 import { AdminDashboardController } from './admin-dashboard.controller';
 import { AdminEmojiController } from './admin-emoji.controller';
 import { AdminCategoryController } from './admin-category.controller';
@@ -18,6 +20,8 @@ import { AdminTopicController } from './admin-topic.controller';
 import { AdminArticleController } from './admin-article.controller';
 import { AdminAssetController } from './admin-asset.controller';
 import { AdminSeoController } from './admin-seo.controller';
+import { AdminSearchLogsController, AdminCopyEventsController } from './admin-logs.controller';
+import { AdminReviewController } from './admin-review.controller';
 
 @Module({
   imports: [
@@ -27,9 +31,8 @@ import { AdminSeoController } from './admin-seo.controller';
         secret: config.get<string>('JWT_SECRET') || 'change_me',
         // jsonwebtoken's expiresIn accepts a time-string (e.g. "7d"); the
         // branded StringValue type is not exported, so we assert here.
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         signOptions: {
-          expiresIn: (config.get<string>('JWT_EXPIRES_IN') || '7d') as any,
+          expiresIn: (config.get<string>('JWT_EXPIRES_IN') || '7d') as any, // eslint-disable-line @typescript-eslint/no-explicit-any
         },
       }),
     }),
@@ -44,8 +47,22 @@ import { AdminSeoController } from './admin-seo.controller';
     AdminArticleController,
     AdminAssetController,
     AdminSeoController,
+    AdminSearchLogsController,
+    AdminCopyEventsController,
+    AdminReviewController,
   ],
-  providers: [AdminAuthService, AdminAuthGuard, AdminEmojiService, AdminCategoryService, AdminTopicService, AdminArticleService, AdminAssetService, AdminSeoService],
+  providers: [
+    AdminAuthService,
+    AdminAuthGuard,
+    AdminEmojiService,
+    AdminCategoryService,
+    AdminTopicService,
+    AdminArticleService,
+    AdminAssetService,
+    AdminSeoService,
+    AdminLogsService,
+    AdminReviewService,
+  ],
   exports: [AdminAuthService],
 })
 export class AdminModule {}
