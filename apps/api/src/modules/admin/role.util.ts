@@ -188,3 +188,42 @@ export function assertCanViewAsset(role: string | undefined | null): void {
     throw new ForbiddenException('当前角色无权访问该资源');
   }
 }
+
+// SEO Management Center (Phase 4D-2). Write = super_admin + editor + seo_manager
+// (seo_manager is granted SEO write authority here); read = all known admin roles.
+// Kept as a separate, clearly named checker so role intent stays explicit and
+// independent of the other CMS helpers.
+const SEO_WRITE_ROLES: AdminRole[] = ['super_admin', 'editor', 'seo_manager'];
+
+const SEO_READ_ROLES: AdminRole[] = [
+  'super_admin',
+  'editor',
+  'seo_manager',
+  'translator',
+  'reviewer',
+  'analyst',
+];
+
+export function canManageSeo(role: string | undefined | null): boolean {
+  if (!role) return false;
+  return SEO_WRITE_ROLES.includes(role as AdminRole);
+}
+
+export function canViewSeo(role: string | undefined | null): boolean {
+  if (!role) return false;
+  return SEO_READ_ROLES.includes(role as AdminRole);
+}
+
+export function assertCanManageSeo(role: string | undefined | null): void {
+  if (!canManageSeo(role)) {
+    throw new ForbiddenException(
+      '当前角色无权执行该写操作（需要 super_admin、editor 或 seo_manager）',
+    );
+  }
+}
+
+export function assertCanViewSeo(role: string | undefined | null): void {
+  if (!canViewSeo(role)) {
+    throw new ForbiddenException('当前角色无权访问该资源');
+  }
+}

@@ -17,7 +17,7 @@
 
 ## 当前阶段
 
-**Phase 4D-1** - Asset / License Management 已完成。
+**Phase 4D-2** - SEO Management Center 已完成。
 
 ## 技术栈
 
@@ -881,11 +881,103 @@ Base URL：`http://localhost:4000/api/v1`
 
 `pnpm db:seed` 会创建 6 个示例 Emoji Asset（provider 轮询 `noto` / `openmoji` / `twemoji`，status 均为 `published`，`isDownloadable = true`，并带对应开源许可证信息），用于列表页验收。
 
+## Phase 4D-2 - SEO Management Center
+
+本阶段完成后台 **SEO 管理中心**，统一管理 Emoji / 分类 / 专题 / 文章 四种实体的 `seoTitle` 与 `seoDescription`，提供 SEO 总览、实体列表、单实体编辑、canonical / hreflang 预览，以及 robots / sitemap 状态检查。**不**生成 sitemap、不接入 Meilisearch、不开发 AI 写作、不改为纯静态站。
+
+### 范围
+
+- SEO 总览页 `/admin/seo`：各实体 SEO 完整度（total / complete / missingTitle / missingDescription / missingAny）、全局缺失计数、按语言（zh / en）缺失计数、最近 seo.update 记录、robots.txt / sitemap.xml 状态、快捷入口（Emoji / 分类 / 专题 / 文章 SEO）。
+- SEO 列表页 `/admin/seo/emojis`、`/admin/seo/categories`、`/admin/seo/topics`、`/admin/seo/articles`：分页、关键词搜索、locale 筛选（zh / en / all）、status 筛选、完整度筛选（all / missingTitle / missingDescription / missingAny / complete）；展示名称/标题、slug、locale、seoTitle、seoDescription、字符长度、完整度状态、前台预览链接、编辑按钮。列表以「实体 × locale」为行（一个实体在有 zh/en 翻译时对应两行）。
+- SEO 编辑页 `/admin/seo/{entityType}/{id}/edit`（`entityType` ∈ `emoji` / `category` / `topic` / `article`）：展示实体基础信息与 zh / en 翻译，编辑 zh / en `seoTitle` / `seoDescription`，显示字符长度提示、canonical 预览、hreflang 预览、前台预览链接，保存后记录 audit_logs 并返回最新数据。
+- canonical / hreflang 预览（只读）：依据实体类型与 slug 生成，见下文。
+
+### SEO 后台页面列表
+
+| 页面 | 说明 |
+|------|------|
+| `/admin/seo` | SEO 总览 |
+| `/admin/seo/emojis` | Emoji SEO 列表 |
+| `/admin/seo/categories` | 分类 SEO 列表 |
+| `/admin/seo/topics` | 专题 SEO 列表 |
+| `/admin/seo/articles` | 文章 SEO 列表 |
+| `/admin/seo/{entityType}/{id}/edit` | SEO 编辑页（entityType = emoji / category / topic / article） |
+
+### SEO 后台 API 列表
+
+Base URL：`http://localhost:4000/api/v1`
+
+| 方法 | 接口 | 说明 | 鉴权 | 权限 |
+|------|------|------|------|------|
+| GET | `/api/v1/admin/seo/overview` | SEO 总览（各实体统计、缺失计数、按语言缺失、最近 seo.update、robots / sitemap 状态） | 登录 | 可读角色 |
+| GET | `/api/v1/admin/seo/entities?entityType=emoji` | SEO 实体列表（page/limit/q/locale/status/completeness 筛选，含 canonical / hreflang 预览） | 登录 | 可读角色 |
+| GET | `/api/v1/admin/seo/entities/{entityType}/{id}` | 单个实体 SEO 编辑数据（zh/en translations + 基础信息 + canonical / hreflang 预览） | 登录 | 可读角色 |
+| PATCH | `/api/v1/admin/seo/entities/{entityType}/{id}` | 更新 zh/en `seoTitle` / `seoDescription` | 登录 | `super_admin` / `editor` / `seo_manager` |
+| GET | `/api/v1/admin/seo/robots-status` | robots.txt 状态检查（只读，不写入） | 登录 | 可读角色 |
+| GET | `/api/v1/admin/seo/sitemap-status` | sitemap.xml 状态检查（只读，不生成） | 登录 | 可读角色 |
+
+支持的 `entityType`：`emoji`、`category`、`topic`、`article`（非法值返回 400）。
+
+> 可读角色：super_admin、editor、seo_manager、translator、reviewer、analyst。写操作（PATCH）仅 `super_admin` / `editor` / `seo_manager`，其余角色返回 403。未登录返回 401。所有接口均不返回 `passwordHash`。
+
+### SEO 字段管理说明
+
+- 本阶段**复用** `EmojiTranslation` / `CategoryTranslation` / `TopicTranslation` / `ArticleTranslation` 表中已有的 `seoTitle` / `seoDescription` 字段，**不新增**独立的 SEO 表。
+- `seoTitle` / `seoDescription` 可为空（视为 SEO 不完整，UI 提示但不强制阻止保存，仅做字符长度建议：标题 10–70、描述 50–180）。
+- 保存时拦截字面量字符串 `"undefined"` / `"null"`，避免污染元数据；空值以 `null` 或空字符串表示。
+- 列表「完整度」判定：`complete`（标题与描述均非空）、`missingTitle`、`missingDescription`、`missingAny`（标题或描述缺失）。
+
+### canonical / hreflang 预览说明
+
+后台仅做预览，不重构前台 SEO。依据实体类型与 slug 生成（SITE_URL 取自环境变量 `SITE_URL`，默认 `http://localhost:3000`，不写死生产域名）：
+
+| 实体 | zh 路径 | en 路径 |
+|------|---------|---------|
+| Emoji | `/zh/emoji/{slug}/` | `/en/emoji/{slug}/` |
+| Category | `/zh/categories/{slug}/` | `/en/categories/{slug}/` |
+| Topic | `/zh/topics/{slug}/` | `/en/topics/{slug}/` |
+| Article | `/zh/articles/{slug}/` | `/en/articles/{slug}/` |
+
+- hreflang 预览包含 `zh`、`en`、`x-default`（默认指向 en）。
+- Article 前台详情页**尚未实现**，canonical / hreflang 显示为规划路径（`/zh/articles/{slug}/`、`/en/articles/{slug}/`），并标注 `planned / not active`，不强行创建前台文章详情页。
+
+### robots / sitemap 状态边界
+
+本阶段**仅做后台状态展示，不做完整 sitemap 系统**：
+
+- `robots-status` 检查 `apps/web/public/robots.txt` 是否存在、是否疑似全局阻止收录、是否保护 admin noindex（只读，不写入）。该路径可通过环境变量 `WEB_PUBLIC_DIR` 覆盖。
+- `sitemap-status` 检查 `apps/web/public/sitemap.xml` 是否存在；不存在时提示将在 Phase 5 / 专门 SEO automation 阶段处理。
+- `/admin/*` 已通过页面 `meta robots: { index: false, follow: false }` 强制 noindex，不依赖 robots.txt，也不进入 sitemap。
+- 不生成大量 sitemap 文件、不自动扫描数据库生成 sitemap、不开发搜索引擎提交功能、不修改 robots 规则导致前台不可收录。
+
+### audit_logs 记录
+
+以下操作会写入 `audit_logs`：
+
+- `seo.update`：更新 SEO 字段
+
+记录字段：`adminUserId`、`action=seo.update`、`entityType=seo`、`entityId`（格式 `{entityType}:{id}`，如 `emoji:xxxx`）、`oldData`、`newData`、`ipAddress`（可空）。
+
+- `oldData` / `newData` 包含 `{ entityType, entityId, zh: { seoTitle, seoDescription }, en: { seoTitle, seoDescription } }` 的变更前后值，**不会**写入 `passwordHash`。
+- audit log 写入失败时，服务端会记录错误日志，主操作流程仍正常完成。
+
+### 默认测试账号
+
+| 邮箱 | 密码 | 角色 |
+|------|------|------|
+| `admin@example.com` | `admin123456` | `super_admin` |
+
+> 写操作需要 `super_admin` / `editor` / `seo_manager`。如需验收 403，可新增一个 `seo_manager` 或只读角色（如 `translator`）账号进行对比测试。
+
+### Seed 数据
+
+`pnpm db:seed` 创建的 Emoji（30）、分类（含子分类）、专题（5）、文章（3）均带 zh/en 翻译；本阶段在既有 `seoTitle` / `seoDescription` 上做管理与检查，不额外新增 SEO 种子数据。
+
 ## 下一阶段
 
-**Phase 4D-2** - SEO Management Center（SEO 管理中心）。
+**Phase 4D-3** - Search Logs、Copy Logs 与 Review Management（搜索日志、复制日志、审核管理）。
 
-> 本阶段（Phase 4D-1）完成后台资源与授权管理（CRUD + 删除 + provider/fileType 允许列表 + 授权校验 + audit_logs）。**不在本阶段范围**：SEO 管理中心、Search Logs / Copy Logs 后台列表、Review Management、Analytics 图表、Meilisearch、sitemap、AI 工具、前台资源下载系统、图片上传到对象存储、复杂文件上传服务。不改为纯静态站。
+> 本阶段（Phase 4D-2）完成后台 SEO 管理中心（SEO 总览 + 实体列表 + 单实体编辑 + canonical/hreflang 预览 + robots/sitemap 状态检查 + audit_logs）。**不在本阶段范围**：Search Logs / Copy Logs 后台列表、Review Management、Analytics 图表、Meilisearch、sitemap 自动生成与提交、AI 工具、前台资源下载系统、图片上传到对象存储、复杂文件上传服务。不改为纯静态站。
 
 ## 开发规范
 

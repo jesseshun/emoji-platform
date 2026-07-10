@@ -422,3 +422,53 @@
   provider / fileType notes, license & attribution rules, isDownloadable rules, audit_logs notes,
   default test account, next phase = Phase 4D-2), PROJECT_HANDOFF.md (Phase 4D-1 completed,
   next phase = Phase 4D-2), and this changelog.
+
+## Phase 4D-2
+
+- Added SEO management overview page `/admin/seo`: per-entity SEO completeness (total / complete /
+  missingTitle / missingDescription / missingAny) for emoji / category / topic / article, global
+  missing-title / missing-description counts, zh / en missing-by-locale counts, recent `seo.update`
+  records, robots.txt / sitemap.xml status, and quick links to each entity's SEO list.
+- Added SEO entity list pages `/admin/seo/emojis`, `/admin/seo/categories`, `/admin/seo/topics`,
+  `/admin/seo/articles`: pagination, keyword search, locale filter (zh / en / all), status filter,
+  and completeness filter (all / missingTitle / missingDescription / missingAny / complete); each
+  row is an entity × locale with name/title, slug, locale, seoTitle, seoDescription, character
+  lengths, completeness badge, front-end preview link, and edit link; canonical / hreflang preview
+  data included in the API response.
+- Added SEO edit page `/admin/seo/{entityType}/{id}/edit` (entityType ∈ emoji / category / topic /
+  article): shows base info + zh / en translations, edits zh / en `seoTitle` / `seoDescription`,
+  displays character-length hints, read-only canonical preview, read-only hreflang preview, front-end
+  preview links, and saves; never renders `undefined` / `null` literals in the UI.
+- Added SEO admin APIs (all behind `AdminAuthGuard`): `GET /api/v1/admin/seo/overview`,
+  `GET /api/v1/admin/seo/entities` (entityType / page / limit / q / locale / status /
+  completeness), `GET /api/v1/admin/seo/entities/:entityType/:id`,
+  `PATCH /api/v1/admin/seo/entities/:entityType/:id`,
+  `GET /api/v1/admin/seo/robots-status`, `GET /api/v1/admin/seo/sitemap-status`.
+- SEO write API validates `entityType` (400 on invalid), entity existence (404), locale, and rejects
+  literal `"undefined"` / `"null"` strings (400); updates the matching
+  `EmojiTranslation` / `CategoryTranslation` / `TopicTranslation` / `ArticleTranslation`
+  `seoTitle` / `seoDescription`, and returns the refreshed SEO data.
+- Reused existing translation `seoTitle` / `seoDescription` fields — no new SEO table was added.
+- canonical / hreflang previews generated from `SITE_URL` (env, default `http://localhost:3000`) and
+  entity slug: emoji `/{locale}/emoji/{slug}/`, category `/{locale}/categories/{slug}/`,
+  topic `/{locale}/topics/{slug}/`, article `/{locale}/articles/{slug}/` (article path marked
+  `planned` / not active since the front-end article detail page is not implemented yet); hreflang
+  set includes `zh`, `en`, and `x-default` (→ en).
+- robots / sitemap status endpoints are read-only checks of `apps/web/public/robots.txt` and
+  `sitemap.xml` (path overridable via `WEB_PUBLIC_DIR`); neither generates files nor submits to
+  search engines. `/admin/*` remains noindex via page meta `robots: { index: false, follow: false }`.
+- SEO read allowed for all known admin roles; SEO write limited to `super_admin`, `editor`, and
+  `seo_manager` (403 otherwise) via new `canManageSeo` / `canViewSeo` helpers in `role.util.ts`.
+- SEO updates record an `audit_logs` entry with `action = seo.update`, `entityType = seo`,
+  `entityId = "{entityType}:{id}"`, and `oldData` / `newData` carrying zh / en `seoTitle` /
+  `seoDescription` changes; no `passwordHash` is ever included, and audit-log write failure is
+  logged server-side without blocking the main operation.
+- Verified `pnpm lint`, `pnpm typecheck`, and `pnpm build` all pass. Verified SEO API acceptance
+  against a local Postgres: 401 when unauthenticated; super_admin / seo_manager can read and update;
+  translator (read-only) receives 403 on write; list / overview / detail / robots / sitemap endpoints
+  work; `seo.update` appears in audit/recent-updates; invalid `entityType` and `"undefined"` / `"null"`
+  payloads return 400; no `passwordHash` leakage; no sitemap generated; robots rules unchanged.
+- Updated README (Phase 4D-2 section: scope, SEO admin pages, SEO admin API list, supported
+  entityType, seoTitle / seoDescription management notes, canonical / hreflang preview rules, robots /
+  sitemap status boundaries, audit_logs notes, default test account, next phase = Phase 4D-3),
+  PROJECT_HANDOFF.md (Phase 4D-2 completed, next phase = Phase 4D-3), and this changelog.

@@ -940,3 +940,197 @@ export async function deleteAsset(
     method: 'DELETE',
   });
 }
+
+// ─── SEO Management Center (Phase 4D-2) ─────────────
+
+export type SeoEntityType = 'emoji' | 'category' | 'topic' | 'article';
+export type SeoCompleteness =
+  | 'all'
+  | 'missingTitle'
+  | 'missingDescription'
+  | 'missingAny'
+  | 'complete';
+export type SeoLocaleFilter = 'zh' | 'en' | 'all';
+
+export interface SeoStats {
+  total: number;
+  missingTitle: number;
+  missingDescription: number;
+  missingAny: number;
+  complete: number;
+  missingByLocale: {
+    zh: { missingTitle: number; missingDescription: number };
+    en: { missingTitle: number; missingDescription: number };
+  };
+}
+
+export interface SeoRecentUpdate {
+  id: string;
+  action: string | null;
+  entityType: string | null;
+  entityId: string | null;
+  adminUserId: string | null;
+  createdAt: string;
+}
+
+export interface SeoOverview {
+  emojiSeoStats: SeoStats;
+  categorySeoStats: SeoStats;
+  topicSeoStats: SeoStats;
+  articleSeoStats: SeoStats;
+  missingTitleCount: number;
+  missingDescriptionCount: number;
+  missingByLocale: {
+    zh: { missingTitle: number; missingDescription: number };
+    en: { missingTitle: number; missingDescription: number };
+  };
+  recentSeoUpdates: SeoRecentUpdate[];
+  robotsStatus: {
+    exists: boolean;
+    blocksIndexing: boolean;
+    protectsAdminNoindex: boolean;
+    note: string;
+  };
+  sitemapStatus: { exists: boolean; note: string };
+}
+
+export interface SeoEntityListItem {
+  id: string;
+  entityId: string | null;
+  entityType: SeoEntityType;
+  locale: 'zh' | 'en';
+  nameOrTitle: string | null;
+  slug: string;
+  status: string | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  seoTitleLength: number;
+  seoDescriptionLength: number;
+  completeness: SeoCompleteness | string;
+  previewLink: string;
+  canonical: { zh: string; en: string; xdefault: string };
+  hreflang: { lang: string; href: string }[];
+  editUrl: string;
+  planned: boolean;
+}
+
+export interface SeoEntityTranslation {
+  seoTitle: string | null;
+  seoDescription: string | null;
+  name?: string | null;
+  title?: string | null;
+}
+
+export interface SeoEntityDetail {
+  entityType: SeoEntityType;
+  id: string;
+  slug: string;
+  status: string;
+  publishedAt: string | null;
+  name: string | null;
+  translations: {
+    zh: SeoEntityTranslation | null;
+    en: SeoEntityTranslation | null;
+  };
+  canonical: { zh: string; en: string; xdefault: string };
+  hreflang: { lang: string; href: string }[];
+  previewLinks: { zh: string; en: string };
+  planned: boolean;
+  seoNote?: string;
+}
+
+export interface SeoUpdatePayload {
+  translations: {
+    zh?: { seoTitle?: string | null; seoDescription?: string | null };
+    en?: { seoTitle?: string | null; seoDescription?: string | null };
+  };
+}
+
+export interface AdminSeoListMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface AdminSeoListResponse {
+  data: SeoEntityListItem[];
+  meta: AdminSeoListMeta;
+}
+
+export async function getSeoOverview(): Promise<SeoOverview> {
+  return adminFetch<SeoOverview>('/admin/seo/overview');
+}
+
+export async function listSeoEntities(
+  entityType: SeoEntityType,
+  params: {
+    page?: number;
+    limit?: number;
+    q?: string;
+    locale?: SeoLocaleFilter;
+    status?: string;
+    completeness?: SeoCompleteness;
+  } = {},
+): Promise<AdminSeoListResponse> {
+  const qs = new URLSearchParams();
+  qs.set('entityType', entityType);
+  if (params.page && params.page > 1) qs.set('page', String(params.page));
+  if (params.limit) qs.set('limit', String(params.limit));
+  if (params.q) qs.set('q', params.q);
+  if (params.locale && params.locale !== 'all') qs.set('locale', params.locale);
+  if (params.status && params.status !== 'all') qs.set('status', params.status);
+  if (params.completeness && params.completeness !== 'all') {
+    qs.set('completeness', params.completeness);
+  }
+  const query = qs.toString();
+
+  const body = await adminFetchEnvelope<SeoEntityListItem[]>(
+    `/admin/seo/entities${query ? `?${query}` : ''}`,
+  );
+  return {
+    data: body.data,
+    meta: (body.meta as unknown as AdminSeoListMeta) ?? {
+      page: 1,
+      limit: params.limit ?? 20,
+      total: 0,
+      totalPages: 1,
+    },
+  };
+}
+
+export async function getSeoEntity(
+  entityType: SeoEntityType,
+  id: string,
+): Promise<SeoEntityDetail> {
+  return adminFetch<SeoEntityDetail>(`/admin/seo/entities/${entityType}/${id}`);
+}
+
+export async function updateSeoEntity(
+  entityType: SeoEntityType,
+  id: string,
+  payload: SeoUpdatePayload,
+): Promise<SeoEntityDetail> {
+  return adminFetch<SeoEntityDetail>(`/admin/seo/entities/${entityType}/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function getSeoRobotsStatus(): Promise<{
+  exists: boolean;
+  blocksIndexing: boolean;
+  protectsAdminNoindex: boolean;
+  note: string;
+}> {
+  return adminFetch<{
+    exists: boolean;
+    blocksIndexing: boolean;
+    protectsAdminNoindex: boolean;
+    note: string;
+  }>('/admin/seo/robots-status');
+}
+
+export async function getSeoSitemapStatus(): Promise<{ exists: boolean; note: string }> {
+  return adminFetch<{ exists: boolean; note: string }>('/admin/seo/sitemap-status');
+}
