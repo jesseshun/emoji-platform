@@ -16,7 +16,7 @@ import {
   EmojiStatusValue,
   EmojiTranslationInput,
 } from './dto/admin-emoji-body.dto';
-import { buildPaginationMeta } from '@emoji-platform/types';
+import { buildPaginationMeta, isLocale } from '@emoji-platform/types';
 
 const SITE_URL = process.env.SITE_URL || 'http://localhost:3000';
 
@@ -464,6 +464,27 @@ export class AdminEmojiService {
     });
 
     return { data: { id, status } };
+  }
+
+  // ─── Emoji options (for asset create/edit selector) ──
+
+  async emojiOptions(locale: string) {
+    const safeLocale = isLocale(locale) ? locale : 'zh';
+    const emojis = await this.prisma.emoji.findMany({
+      orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
+      include: {
+        translations: { where: { locale: safeLocale as any } },
+      },
+    });
+
+    return {
+      data: emojis.map((e: any) => ({
+        id: e.id,
+        slug: e.slug,
+        emojiChar: e.emojiChar,
+        name: e.translations[0]?.name ?? null,
+      })),
+    };
   }
 
   // ─── Category options ──────────────────────────────────

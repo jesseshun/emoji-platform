@@ -760,3 +760,183 @@ export async function updateArticleStatus(
     body: JSON.stringify({ status }),
   });
 }
+
+// ─── Emoji options (for asset selector) ─────────────
+export interface EmojiOption {
+  id: string;
+  slug: string;
+  emojiChar: string;
+  name: string | null;
+}
+
+export async function getEmojiOptions(locale: 'zh' | 'en' = 'zh'): Promise<EmojiOption[]> {
+  return adminFetch<EmojiOption[]>(`/admin/emojis/options?locale=${locale}`);
+}
+
+// ─── Asset / License (Phase 4D-1) ──────────────────
+export type AssetProvider = 'noto' | 'openmoji' | 'twemoji' | 'custom';
+export type AssetFileType = 'svg' | 'png' | 'webp' | 'gif';
+export type AssetStatus = 'draft' | 'published' | 'archived';
+
+export interface AssetEmojiSummary {
+  id: string;
+  emojiChar: string;
+  slug: string;
+  name: string | null;
+}
+
+export interface AdminAssetDetail {
+  id: string;
+  emojiId: string;
+  emoji: AssetEmojiSummary | null;
+  provider: string | null;
+  fileType: string | null;
+  fileUrl: string | null;
+  localPath: string | null;
+  width: number | null;
+  height: number | null;
+  licenseName: string | null;
+  licenseUrl: string | null;
+  attribution: string | null;
+  isDownloadable: boolean;
+  status: AssetStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminAssetListItem {
+  id: string;
+  emojiId: string;
+  emoji: AssetEmojiSummary | null;
+  provider: string | null;
+  fileType: string | null;
+  fileUrl: string | null;
+  localPath: string | null;
+  width: number | null;
+  height: number | null;
+  licenseName: string | null;
+  licenseUrl: string | null;
+  attribution: string | null;
+  isDownloadable: boolean;
+  status: AssetStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminAssetListMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface AdminAssetListResponse {
+  data: AdminAssetListItem[];
+  meta: AdminAssetListMeta;
+}
+
+export interface CreateAssetPayload {
+  emojiId: string;
+  provider: AssetProvider;
+  fileType: AssetFileType;
+  fileUrl?: string | null;
+  localPath?: string | null;
+  width?: number | null;
+  height?: number | null;
+  licenseName?: string | null;
+  licenseUrl?: string | null;
+  attribution?: string | null;
+  isDownloadable: boolean;
+  status: AssetStatus;
+}
+
+export type UpdateAssetPayload = Partial<Omit<CreateAssetPayload, 'isDownloadable'>> & {
+  isDownloadable?: boolean;
+};
+
+export const ASSET_PROVIDERS: AssetProvider[] = ['noto', 'openmoji', 'twemoji', 'custom'];
+export const ASSET_FILE_TYPES: AssetFileType[] = ['svg', 'png', 'webp', 'gif'];
+
+export async function listAssets(params: {
+  page?: number;
+  limit?: number;
+  q?: string;
+  provider?: string;
+  fileType?: string;
+  status?: string;
+  emojiId?: string;
+  isDownloadable?: string;
+} = {}): Promise<AdminAssetListResponse> {
+  const qs = new URLSearchParams();
+  if (params.page && params.page > 1) qs.set('page', String(params.page));
+  if (params.limit) qs.set('limit', String(params.limit));
+  if (params.q) qs.set('q', params.q);
+  if (params.provider && params.provider !== 'all') qs.set('provider', params.provider);
+  if (params.fileType && params.fileType !== 'all') qs.set('fileType', params.fileType);
+  if (params.status && params.status !== 'all') qs.set('status', params.status);
+  if (params.emojiId) qs.set('emojiId', params.emojiId);
+  if (params.isDownloadable && params.isDownloadable !== 'all') {
+    qs.set('isDownloadable', params.isDownloadable);
+  }
+  const query = qs.toString();
+
+  const body = await adminFetchEnvelope<AdminAssetListItem[]>(
+    `/admin/assets${query ? `?${query}` : ''}`,
+  );
+  return {
+    data: body.data,
+    meta: (body.meta as unknown as AdminAssetListMeta) ?? {
+      page: 1,
+      limit: params.limit ?? 20,
+      total: 0,
+      totalPages: 1,
+    },
+  };
+}
+
+export async function getAsset(id: string): Promise<AdminAssetDetail> {
+  return adminFetch<AdminAssetDetail>(`/admin/assets/${id}`);
+}
+
+export async function getAssetProviders(): Promise<AssetProvider[]> {
+  return adminFetch<AssetProvider[]>('/admin/assets/providers');
+}
+
+export async function getAssetFileTypes(): Promise<AssetFileType[]> {
+  return adminFetch<AssetFileType[]>('/admin/assets/file-types');
+}
+
+export async function createAsset(payload: CreateAssetPayload): Promise<AdminAssetDetail> {
+  return adminFetch<AdminAssetDetail>('/admin/assets', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateAsset(
+  id: string,
+  payload: UpdateAssetPayload,
+): Promise<AdminAssetDetail> {
+  return adminFetch<AdminAssetDetail>(`/admin/assets/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateAssetStatus(
+  id: string,
+  status: AssetStatus,
+): Promise<{ id: string; status: AssetStatus }> {
+  return adminFetch<{ id: string; status: AssetStatus }>(`/admin/assets/${id}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  });
+}
+
+export async function deleteAsset(
+  id: string,
+): Promise<{ id: string; deleted: boolean }> {
+  return adminFetch<{ id: string; deleted: boolean }>(`/admin/assets/${id}`, {
+    method: 'DELETE',
+  });
+}

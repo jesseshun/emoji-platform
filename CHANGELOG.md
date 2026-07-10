@@ -364,3 +364,61 @@
 - Updated README (Phase 4C-3 section: scope, article admin API list, form field reference, keywords
   editing notes, publishedAt behavior, audit_logs notes, default test account, seed data, next phase =
   Phase 4D), PROJECT_HANDOFF.md (Phase 4C-3 completed, next phase = Phase 4D), and this changelog.
+
+## Phase 4D-1
+
+- Added admin asset list API `GET /api/v1/admin/assets` (requires login): supports `page`, `limit`
+  (default 20, max 100), `q` (matches provider / fileType / fileUrl / localPath / licenseName /
+  attribution / emoji char·slug·name), `provider`, `fileType`, `status`, `emojiId`, and
+  `isDownloadable` filters. Returns `data` + `meta` (page/limit/total/totalPages). Each item includes
+  the associated Emoji summary (id / emojiChar / slug / name), provider, fileType, fileUrl,
+  localPath, width, height, licenseName, licenseUrl, attribution, isDownloadable, status, and timestamps.
+- Added admin asset detail API `GET /api/v1/admin/assets/:id` (404 when not found) returning the
+  full asset edit payload with the associated Emoji summary.
+- Added admin asset create API `POST /api/v1/admin/assets` (requires login + write role): validates
+  emojiId existence, provider allow-list (`noto` / `openmoji` / `twemoji` / `custom`), fileType
+  allow-list (`svg` / `png` / `webp` / `gif`), fileUrl/localPath at-least-one, positive-integer
+  width/height, license rules, and status enum; records an `asset.create` audit log; never returns passwordHash.
+- Added admin asset update API `PATCH /api/v1/admin/assets/:id` (requires login + write role):
+  partial update with the same field validations, records an `asset.update` audit log with
+  `oldData`/`newData` snapshots; never returns passwordHash.
+- Added admin asset status API `PATCH /api/v1/admin/assets/:id/status` (requires login + write role):
+  switches status among draft / published / archived (400 on invalid, 404 when missing); records an
+  `asset.status_update` audit log with old/new status.
+- Added admin asset delete API `DELETE /api/v1/admin/assets/:id` (requires login + write role): hard
+  delete (the schema has no soft-delete field) with an `asset.delete` audit log written BEFORE the
+  row is removed; 404 when missing.
+- Added admin asset provider API `GET /api/v1/admin/assets/providers` returning the allow-list
+  `[noto, openmoji, twemoji, custom]`.
+- Added admin asset file-type API `GET /api/v1/admin/assets/file-types` returning `[svg, png, webp, gif]`.
+- Added admin emoji-options API `GET /api/v1/admin/emojis/options` (requires login) returning
+  `id` / `emojiChar` / `slug` / `name` for the Asset form's Emoji selector; no sensitive fields.
+- Added Asset admin UI: `/admin/assets` (table with search / provider / fileType / status /
+  isDownloadable filters + pagination, associated Emoji, provider·fileType·source·license·downloadable·
+  status columns, edit link, create button), `/admin/assets/create` (create form),
+  `/admin/assets/[id]/edit` (edit form with Emoji selector, provider/fileType, fileUrl/localPath,
+  width/height, licenseName/licenseUrl, attribution, isDownloadable, status, quick-status actions,
+  delete button with confirm).
+- License / attribution rules: `provider` is restricted to the allow-list (Apple / Samsung / Microsoft /
+  微信 / QQ and other unlicensed sources are rejected by design); `isDownloadable = true` requires
+  `licenseName`; `provider = custom` requires both `licenseName` and `attribution`; the UI surfaces a
+  clear notice that the Emoji character and platform image designs are different and that image
+  resources must comply with the provider license; README documents the licensing boundary.
+- All read and write asset endpoints are behind `AdminAuthGuard` (401 unauthenticated); read ops
+  allowed for all known admin roles, write ops limited to `super_admin` and `editor` (403 otherwise)
+  via `canViewAsset` / `canManageAsset` helpers kept distinct from the other CMS helpers.
+- audit_logs writes for asset follow the Phase 4B/4C pattern (try/catch, server-side error log on
+  failure, main op still succeeds; payloads contain only asset data — no admin passwordHash).
+- Verified `pnpm lint`, `pnpm typecheck`, and `pnpm build` all pass (Prisma Client must be generated
+  via `pnpm db:generate` first so service map callbacks are typed). Verified asset API acceptance
+  against a local Postgres: 401 when unauthenticated; super_admin can list/create/update/status/
+  delete; translator can list (200) but cannot create (403); list shows 6 seed assets; provider /
+  file-type / emoji-options endpoints work; validation rejects missing emojiId, invalid provider
+  (`apple`), isDownloadable-without-licenseName, custom-without-license/attribution, empty
+  fileUrl+localPath, invalid fileType, and invalid status (all 400); 404 on missing id;
+  audit_logs contain asset.create/update/status_update/delete with zero passwordHash leakage;
+  login / me / asset responses never leak passwordHash.
+- Updated README (Phase 4D-1 section: scope, asset admin API list, form field reference,
+  provider / fileType notes, license & attribution rules, isDownloadable rules, audit_logs notes,
+  default test account, next phase = Phase 4D-2), PROJECT_HANDOFF.md (Phase 4D-1 completed,
+  next phase = Phase 4D-2), and this changelog.

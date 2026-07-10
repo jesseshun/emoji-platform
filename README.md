@@ -17,7 +17,7 @@
 
 ## 当前阶段
 
-**Phase 4C-3** - Article Management 已完成。
+**Phase 4D-1** - Asset / License Management 已完成。
 
 ## 技术栈
 
@@ -807,11 +807,85 @@ Base URL：`http://localhost:4000/api/v1`
 
 `pnpm db:seed` 会创建 3 篇示例文章（`how-to-read-emoji-meaning`、`emoji-history-and-unicode` 为 published，`common-emoji-misuses` 为 draft），作者默认为超级管理员，用于列表页验收。
 
+## Phase 4D-1 - Asset / License Management
+
+本阶段完成后台 **Emoji 资源与授权管理（Asset / License）**，包含 Asset 列表、新建、编辑、状态切换、删除，以及 provider / fileType / license / attribution 编辑与校验。
+
+### 范围
+
+- 列表页 `/admin/assets`：分页、关键词搜索（provider / fileType / fileUrl / localPath / licenseName / attribution / Emoji）、provider 筛选、fileType 筛选、status 筛选、isDownloadable 筛选；展示关联 Emoji、provider、fileType、来源（fileUrl / localPath）、licenseName、isDownloadable、status、更新时间，提供编辑链接、创建按钮。
+- 新建页 `/admin/assets/create`：选择关联 Emoji、设置 provider / fileType / fileUrl / localPath / width / height / licenseName / licenseUrl / attribution / isDownloadable / status，保存后跳转编辑页。
+- 编辑页 `/admin/assets/[id]/edit`：编辑上述全部字段，快捷状态切换，并提供删除（硬删除，二次确认）。
+- 关联 Emoji 选择器通过复用的 `GET /api/v1/admin/emojis/options` 获取（id / emojiChar / slug / name）。
+
+### Asset 后台 API 列表
+
+Base URL：`http://localhost:4000/api/v1`
+
+| 方法 | 接口 | 说明 | 鉴权 | 权限 |
+|------|------|------|------|------|
+| GET | `/api/v1/admin/assets` | Asset 列表（page/limit/q/provider/fileType/status/emojiId/isDownloadable） | 登录 | 可读角色 |
+| GET | `/api/v1/admin/assets/{id}` | Asset 详情（完整编辑数据 + 关联 Emoji 摘要） | 登录 | 可读角色 |
+| POST | `/api/v1/admin/assets` | 新建 Asset | 登录 | `super_admin` / `editor` |
+| PATCH | `/api/v1/admin/assets/{id}` | 更新 Asset | 登录 | `super_admin` / `editor` |
+| PATCH | `/api/v1/admin/assets/{id}/status` | 切换状态（draft/published/archived） | 登录 | `super_admin` / `editor` |
+| DELETE | `/api/v1/admin/assets/{id}` | 删除 Asset（硬删除；schema 无软删除字段） | 登录 | `super_admin` / `editor` |
+| GET | `/api/v1/admin/assets/providers` | provider 允许列表 `[noto, openmoji, twemoji, custom]` | 登录 | 可读角色 |
+| GET | `/api/v1/admin/assets/file-types` | fileType 允许列表 `[svg, png, webp, gif]` | 登录 | 可读角色 |
+| GET | `/api/v1/admin/emojis/options` | Emoji 选项（id / emojiChar / slug / name），供 Asset 表单选择器 | 登录 | 可读角色 |
+
+> 可读角色：super_admin、editor、seo_manager、translator、reviewer、analyst。写操作仅 `super_admin` / `editor`，其余角色返回 403。未登录返回 401。所有接口均不返回 `passwordHash`。
+
+### Asset 表单字段
+
+`emojiId`、`provider`、`fileType`、`fileUrl`、`localPath`、`width`、`height`、`licenseName`、`licenseUrl`、`attribution`、`isDownloadable`、`status`
+
+### provider / fileType 说明
+
+- `provider` 仅允许：`noto`、`openmoji`、`twemoji`、`custom`。该允许列表是授权合规的权威校验，**Apple / Samsung / Microsoft / 微信 / QQ** 等未授权平台 Emoji 图片来源会被直接拒绝。
+- `fileType` 仅允许：`svg`、`png`、`webp`、`gif`。
+- `fileUrl` 与 `localPath` 至少填写一项。
+
+### 授权与 attribution 规则
+
+- `isDownloadable = true` 时，`licenseName` 为必填项。
+- `provider = custom` 时，`licenseName` 与 `attribution` 均为必填项。
+- 后台 UI 明确提示：**Emoji 字符本身与平台图片设计不是一回事**，图片资源必须遵守对应 provider 的开源许可证，并正确填写授权链接（licenseUrl）与出处（attribution）。
+- 授权边界说明：本项目仅集成已开源、可合规使用的 Emoji 图片资源（Noto / OpenMoji / Twemoji 等），不抓取或托管任何未授权平台的专有 Emoji 图片（如 Apple、Samsung、Microsoft、微信、QQ 等），也不将其设为可下载资源。自定义（custom）来源必须明确填写 license 与 attribution，由运营者自行承担授权合规责任。
+
+### isDownloadable 规则
+
+- `isDownloadable` 为布尔值；开启时强制要求 `licenseName`（明确授权），UI 同时提示建议填写 `licenseUrl`。
+
+### audit_logs 记录
+
+以下操作会写入 `audit_logs`：
+
+- `asset.create`：创建 Asset
+- `asset.update`：更新 Asset
+- `asset.status_update`：切换 Asset 状态
+- `asset.delete`：删除 Asset（在删除行之前写入）
+
+记录字段：`adminUserId`、`action`、`entityType=asset`、`entityId`、`oldData`、`newData`、`ipAddress`（可空）。
+
+- `oldData` / `newData` 仅包含 Asset 相关数据（emojiId / emoji / provider / fileType / fileUrl / localPath / width / height / licenseName / licenseUrl / attribution / isDownloadable / status），**不会**写入 `passwordHash`。
+- audit log 写入失败时，服务端会记录错误日志，主操作流程仍正常完成。
+
+### 默认测试账号
+
+| 邮箱 | 密码 | 角色 |
+|------|------|------|
+| `admin@example.com` | `admin123456` | `super_admin` |
+
+### Seed 数据
+
+`pnpm db:seed` 会创建 6 个示例 Emoji Asset（provider 轮询 `noto` / `openmoji` / `twemoji`，status 均为 `published`，`isDownloadable = true`，并带对应开源许可证信息），用于列表页验收。
+
 ## 下一阶段
 
-**Phase 4D** - Assets, SEO, Logs, and Review Management（资源授权、SEO 管理中心、搜索日志、Analytics、审核队列等后台模块）。
+**Phase 4D-2** - SEO Management Center（SEO 管理中心）。
 
-> 本阶段（Phase 4C-3）完成后台文章管理（CRUD），不含资源授权管理 / SEO 管理中心 / Search Logs 后台列表 / Analytics 图表 / Meilisearch / sitemap / AI 工具，也不含公开前台 Article 页面的完整 SEO 与关联展示。
+> 本阶段（Phase 4D-1）完成后台资源与授权管理（CRUD + 删除 + provider/fileType 允许列表 + 授权校验 + audit_logs）。**不在本阶段范围**：SEO 管理中心、Search Logs / Copy Logs 后台列表、Review Management、Analytics 图表、Meilisearch、sitemap、AI 工具、前台资源下载系统、图片上传到对象存储、复杂文件上传服务。不改为纯静态站。
 
 ## 开发规范
 

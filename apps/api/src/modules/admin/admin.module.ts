@@ -9,11 +9,13 @@ import { AdminEmojiService } from './admin-emoji.service';
 import { AdminCategoryService } from './admin-category.service';
 import { AdminTopicService } from './admin-topic.service';
 import { AdminArticleService } from './admin-article.service';
+import { AdminAssetService } from './admin-asset.service';
 import { AdminDashboardController } from './admin-dashboard.controller';
 import { AdminEmojiController } from './admin-emoji.controller';
 import { AdminCategoryController } from './admin-category.controller';
 import { AdminTopicController } from './admin-topic.controller';
 import { AdminArticleController } from './admin-article.controller';
+import { AdminAssetController } from './admin-asset.controller';
 
 @Module({
   imports: [
@@ -38,8 +40,9 @@ import { AdminArticleController } from './admin-article.controller';
     AdminCategoryController,
     AdminTopicController,
     AdminArticleController,
+    AdminAssetController,
   ],
-  providers: [AdminAuthService, AdminAuthGuard, AdminEmojiService, AdminCategoryService, AdminTopicService, AdminArticleService],
+  providers: [AdminAuthService, AdminAuthGuard, AdminEmojiService, AdminCategoryService, AdminTopicService, AdminArticleService, AdminAssetService],
   exports: [AdminAuthService],
 })
 export class AdminModule {}

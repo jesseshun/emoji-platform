@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Phase 4C-3 completed.
+Phase 4D-1 completed.
 
 ## Project Goal
 
@@ -47,7 +47,8 @@ Build a long-term maintainable global Emoji dictionary, copy, meaning, search, t
 - Phase 4C-1: Category management (admin category list/create/edit pages, category admin APIs: list/detail/create/update/status/tree, zh/en translation editing, parent selection with cycle prevention, status switching, SEO title/description editing, category write operations recording audit_logs, role-based write permission `canManageCategory`)
 - Phase 4C-2: Topic management (admin topic list/create/edit pages, topic admin APIs: list/detail/create/update/status, zh/en translation editing for title/summary/content/seoTitle/seoDescription/faqJson, status switching, Topic↔Emoji association management via `PUT /admin/topics/:id/emojis` (bind/unbind/reorder), emoji-options endpoint for the binding selector, topic write operations recording audit_logs, role-based write permission `canManageTopic`)
 - Phase 4C-3: Article management (admin article list/create/edit pages, article admin APIs: list/detail/create/update/status, zh/en translation editing for title/summary/content/seoTitle/seoDescription/keywords, coverImage/authorId/publishedAt editing, slug uniqueness + format validation, keywords JSON/comma-list parsing, status switching with auto publishedAt on publish, role-based write permission `canManageArticle`, article writes recording audit_logs; front-end article pages not implemented this phase)
+- Phase 4D-1: Asset and license management (admin asset list/create/edit pages, asset admin APIs: list/detail/create/update/status/delete, provider/fileType allow-list validation, isDownloadable + license/attribution rules, emoji selector via `GET /api/v1/admin/emojis/options`, role-based write permission `canManageAsset`, asset writes recording audit_logs with no passwordHash leakage; hard delete supported)
 
 ## Next Phase
 
-Phase 4D - Assets, SEO, Logs, and Review Management
+Phase 4D-2 - SEO Management Center

@@ -152,3 +152,39 @@ export function assertCanViewArticle(role: string | undefined | null): void {
     throw new ForbiddenException('当前角色无权访问该资源');
   }
 }
+
+// Asset / license management (Phase 4D-1). Write = super_admin + editor (same as
+// the other CMS entities); read = all known admin roles. Kept as a separate, clearly
+// named checker so role intent stays explicit and independent of other helpers.
+const ASSET_WRITE_ROLES: AdminRole[] = ['super_admin', 'editor'];
+
+const ASSET_READ_ROLES: AdminRole[] = [
+  'super_admin',
+  'editor',
+  'seo_manager',
+  'translator',
+  'reviewer',
+  'analyst',
+];
+
+export function canManageAsset(role: string | undefined | null): boolean {
+  if (!role) return false;
+  return ASSET_WRITE_ROLES.includes(role as AdminRole);
+}
+
+export function canViewAsset(role: string | undefined | null): boolean {
+  if (!role) return false;
+  return ASSET_READ_ROLES.includes(role as AdminRole);
+}
+
+export function assertCanManageAsset(role: string | undefined | null): void {
+  if (!canManageAsset(role)) {
+    throw new ForbiddenException('当前角色无权执行该写操作（需要 super_admin 或 editor）');
+  }
+}
+
+export function assertCanViewAsset(role: string | undefined | null): void {
+  if (!canViewAsset(role)) {
+    throw new ForbiddenException('当前角色无权访问该资源');
+  }
+}

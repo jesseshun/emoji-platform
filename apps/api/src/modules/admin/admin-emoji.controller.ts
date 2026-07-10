@@ -18,6 +18,7 @@ import {
   parseAdminEmojiUpdateBody,
   parseEmojiStatusUpdateBody,
 } from './dto/admin-emoji-body.dto';
+import { isLocale } from '@emoji-platform/types';
 
 @Controller('admin/emojis')
 export class AdminEmojiController {
@@ -36,6 +37,21 @@ export class AdminEmojiController {
       success: true,
       data: result.data,
       meta: result.meta,
+    };
+  }
+
+  @Get('options')
+  @UseGuards(AdminAuthGuard)
+  async options(
+    @Query('locale') locale: string | undefined,
+    @CurrentAdmin() admin: AdminJwtPayload,
+  ) {
+    assertCanViewEmoji(admin.role);
+    const safeLocale = locale && isLocale(locale) ? locale : 'zh';
+    const result = await this.emojiService.emojiOptions(safeLocale);
+    return {
+      success: true,
+      data: result.data,
     };
   }
 
