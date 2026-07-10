@@ -270,3 +270,49 @@
 - Updated README (Phase 4C-1 section: scope, category admin API list, form field reference, tree API notes,
   audit_logs notes, default test account, next phase = Phase 4C-2), PROJECT_HANDOFF.md (Phase 4C-1
   completed, next phase = Phase 4C-2), and this changelog.
+
+## Phase 4C-2
+
+- Added admin topic list API `GET /api/v1/admin/topics` (requires login): supports `page`, `limit`
+  (default 20, max 100), `q` (matches slug / translation title), and `status` (draft / published /
+  archived / all) filters. Returns `data` + `meta` (page/limit/total/totalPages). Each item includes
+  slug, coverImage, topicType, sortOrder, status, `emojiCount` (count of bound emojis), zh/en
+  translation title + completion summary, updatedAt, and preview links (`/zh/topics/{slug}/`,
+  `/en/topics/{slug}/`).
+- Added admin topic detail API `GET /api/v1/admin/topics/:id` (404 when not found) returning base
+  fields, both zh/en translations (title / summary / content / seoTitle / seoDescription / faqJson),
+  and the bound emojis (id / emojiId / sortOrder / note / emoji: id·slug·emojiChar·name).
+- Added admin topic create API `POST /api/v1/admin/topics` (requires login + write role): validates
+  slug uniqueness + `^[a-z0-9-]+$` format, zh/en translation `title` required, `status` in
+  (draft / published / archived), `sortOrder` numeric, and `topicType` / `coverImage` optional; writes
+  the topic row + both `topic_translations`; records a `topic.create` audit log; never returns
+  passwordHash.
+- Added admin topic update API `PATCH /api/v1/admin/topics/:id` (requires login + write role): partial
+  update of base fields and per-locale translations (faqJson validated as JSON before save); validates
+  slug uniqueness when changed; records a `topic.update` audit log with `oldData`/`newData` snapshots.
+- Added admin topic status API `PATCH /api/v1/admin/topics/:id/status` (requires login + write role):
+  switches status among draft / published / archived (400 on invalid, 404 when missing); records a
+  `topic.status_update` audit log with old/new status.
+- Added admin topic-emoji binding API `PUT /api/v1/admin/topics/:id/emojis` (requires login + write
+  role): replaces the full ordered set of emoji bindings in one call (bind / unbind / reorder). Body
+  `{ items: [{ emojiId, note? }] }`; an empty array clears all bindings. Each `emojiId` is validated to
+  exist (400 on invalid). Records a `topic.update_emojis` audit log with old/new bindings.
+- Added admin topic emoji-options API `GET /api/v1/admin/topics/emoji-options` (requires login):
+  returns `id`, `slug`, `emojiChar`, and translation `name` (default `zh`) for the binding selector.
+- Added `canManageTopic(role)` / `canViewTopic(role)` helpers (kept distinct from the category/emoji
+  helpers for explicit intent): write ops limited to `super_admin` and `editor` (others get 403); read
+  ops allowed for all known admin roles (others get 403).
+- Added Topic admin UI: `/admin/topics` (table with search / status filters + pagination, emoji count,
+  zh/en titles, topicType, edit + preview links, create button), `/admin/topics/create` (create form),
+  `/admin/topics/[id]/edit` (edit form with base fields, an Emoji-association manager — add / remove /
+  reorder / per-binding note, zh/en translation sections in tabs, faqJson JSON textarea with
+  validation, quick status actions, preview links). All read/write endpoints remain behind
+  `AdminAuthGuard` (401 unauthenticated).
+- No Prisma schema change: the `Topic` / `TopicTranslation` / `TopicEmoji` models already exist and were
+  sufficient for this phase.
+- audit_logs writes for topic follow the Phase 4B/4C-1 pattern (try/catch, server-side error log on
+  failure, main op still succeeds; payloads contain only topic data — no admin passwordHash).
+- Verified `pnpm typecheck`, `pnpm lint`, and `pnpm build` all pass.
+- Updated README (Phase 4C-2 section: scope, topic admin API list, form field reference, emoji-binding
+  notes, audit_logs notes, default test account, next phase = Phase 4C-3), PROJECT_HANDOFF.md
+  (Phase 4C-2 completed, next phase = Phase 4C-3), and this changelog.

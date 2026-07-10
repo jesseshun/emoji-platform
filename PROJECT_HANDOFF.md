@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Phase 4C-1 completed.
+Phase 4C-2 completed.
 
 ## Project Goal
 
@@ -45,7 +45,8 @@ Build a long-term maintainable global Emoji dictionary, copy, meaning, search, t
 - Phase 4A: Admin auth and access control (admin login API, bcrypt passwordHash verification, JWT + httpOnly cookie `admin_token`, admin auth guard protecting `/admin/auth/me` and `/admin/health`, protected admin routes with redirect to `/admin/login`, logout, role read, admin noindex)
 - Phase 4B: Admin dashboard and emoji management (admin dashboard API + UI with stats/recent emojis, emoji admin list with search/filter/pagination, emoji create/edit pages, emoji status switching, zh/en translation editing, SEO/examples/keywords/faqJson editing, category options API, emoji write operations recording audit_logs, role-based write permission `canManageEmoji`)
 - Phase 4C-1: Category management (admin category list/create/edit pages, category admin APIs: list/detail/create/update/status/tree, zh/en translation editing, parent selection with cycle prevention, status switching, SEO title/description editing, category write operations recording audit_logs, role-based write permission `canManageCategory`)
+- Phase 4C-2: Topic management (admin topic list/create/edit pages, topic admin APIs: list/detail/create/update/status, zh/en translation editing for title/summary/content/seoTitle/seoDescription/faqJson, status switching, Topic↔Emoji association management via `PUT /admin/topics/:id/emojis` (bind/unbind/reorder), emoji-options endpoint for the binding selector, topic write operations recording audit_logs, role-based write permission `canManageTopic`)
 
 ## Next Phase
 
-Phase 4C-2 - Topic Management
+Phase 4C-3 - Article Management

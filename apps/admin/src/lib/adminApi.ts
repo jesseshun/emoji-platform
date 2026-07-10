@@ -451,3 +451,172 @@ export async function getCategoryTree(
   if (exclude) qs.set('exclude', exclude);
   return adminFetch<CategoryTreeNode[]>(`/admin/categories/tree?${qs.toString()}`);
 }
+
+// ─── Topic (Phase 4C-2) ────────────────────────────────
+
+export type TopicStatus = 'draft' | 'published' | 'archived';
+
+export interface TopicTranslation {
+  title: string | null;
+  summary?: string | null;
+  content?: string | null;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  faqJson?: unknown;
+}
+
+export interface TopicTranslationInput {
+  title: string;
+  summary?: string | null;
+  content?: string | null;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  faqJson?: unknown;
+}
+
+export interface TopicEmojiBinding {
+  id: string;
+  emojiId: string;
+  sortOrder: number;
+  note: string | null;
+  emoji: {
+    id: string;
+    slug: string;
+    emojiChar: string;
+    name: string | null;
+  };
+}
+
+export interface TopicEmojiOption {
+  id: string;
+  slug: string;
+  emojiChar: string;
+  name: string | null;
+}
+
+export interface AdminTopicListItem {
+  id: string;
+  slug: string;
+  coverImage: string | null;
+  topicType: string | null;
+  sortOrder: number;
+  status: TopicStatus;
+  emojiCount: number;
+  translations: {
+    zh: { title: string | null; complete: boolean };
+    en: { title: string | null; complete: boolean };
+  };
+  updatedAt: string;
+  previewLinks: { zh: string; en: string };
+}
+
+export interface AdminTopicListMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface AdminTopicListResponse {
+  data: AdminTopicListItem[];
+  meta: AdminTopicListMeta;
+}
+
+export interface AdminTopicDetail {
+  id: string;
+  slug: string;
+  coverImage: string | null;
+  topicType: string | null;
+  status: TopicStatus;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+  translations: { zh: TopicTranslation | null; en: TopicTranslation | null };
+  emojis: TopicEmojiBinding[];
+  previewLinks: { zh: string; en: string };
+}
+
+export interface CreateTopicPayload {
+  slug: string;
+  coverImage?: string | null;
+  topicType?: string | null;
+  sortOrder?: number;
+  status: TopicStatus;
+  translations: { zh: TopicTranslationInput; en: TopicTranslationInput };
+}
+
+export type UpdateTopicPayload = Partial<Omit<CreateTopicPayload, 'translations'>> & {
+  translations?: { zh?: Partial<TopicTranslationInput>; en?: Partial<TopicTranslationInput> };
+};
+
+export async function listTopics(params: {
+  page?: number;
+  limit?: number;
+  q?: string;
+  status?: string;
+} = {}): Promise<AdminTopicListResponse> {
+  const qs = new URLSearchParams();
+  if (params.page && params.page > 1) qs.set('page', String(params.page));
+  if (params.limit) qs.set('limit', String(params.limit));
+  if (params.q) qs.set('q', params.q);
+  if (params.status && params.status !== 'all') qs.set('status', params.status);
+  const query = qs.toString();
+
+  const body = await adminFetchEnvelope<AdminTopicListItem[]>(
+    `/admin/topics${query ? `?${query}` : ''}`,
+  );
+  return {
+    data: body.data,
+    meta: (body.meta as unknown as AdminTopicListMeta) ?? {
+      page: 1,
+      limit: params.limit ?? 20,
+      total: 0,
+      totalPages: 1,
+    },
+  };
+}
+
+export async function getTopic(id: string): Promise<AdminTopicDetail> {
+  return adminFetch<AdminTopicDetail>(`/admin/topics/${id}`);
+}
+
+export async function createTopic(payload: CreateTopicPayload): Promise<AdminTopicDetail> {
+  return adminFetch<AdminTopicDetail>('/admin/topics', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateTopic(
+  id: string,
+  payload: UpdateTopicPayload,
+): Promise<AdminTopicDetail> {
+  return adminFetch<AdminTopicDetail>(`/admin/topics/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateTopicStatus(
+  id: string,
+  status: TopicStatus,
+): Promise<{ id: string; status: TopicStatus }> {
+  return adminFetch<{ id: string; status: TopicStatus }>(`/admin/topics/${id}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  });
+}
+
+export async function getTopicEmojiOptions(locale: 'zh' | 'en' = 'zh'): Promise<TopicEmojiOption[]> {
+  return adminFetch<TopicEmojiOption[]>(`/admin/topics/emoji-options?locale=${locale}`);
+}
+
+export async function setTopicEmojis(
+  id: string,
+  items: { emojiId: string; note?: string | null }[],
+): Promise<AdminTopicDetail> {
+  return adminFetch<AdminTopicDetail>(`/admin/topics/${id}/emojis`, {
+    method: 'PUT',
+    body: JSON.stringify({ items }),
+  });
+}

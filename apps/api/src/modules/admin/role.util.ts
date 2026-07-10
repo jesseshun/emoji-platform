@@ -80,3 +80,39 @@ export function assertCanViewCategory(role: string | undefined | null): void {
     throw new ForbiddenException('当前角色无权访问该资源');
   }
 }
+
+// Topic management (Phase 4C-2). Write = super_admin + editor (same as Category
+// and Emoji); read = all known admin roles. Kept as a separate, clearly named
+// checker so role intent stays explicit and independent of the category helper.
+const TOPIC_WRITE_ROLES: AdminRole[] = ['super_admin', 'editor'];
+
+const TOPIC_READ_ROLES: AdminRole[] = [
+  'super_admin',
+  'editor',
+  'seo_manager',
+  'translator',
+  'reviewer',
+  'analyst',
+];
+
+export function canManageTopic(role: string | undefined | null): boolean {
+  if (!role) return false;
+  return TOPIC_WRITE_ROLES.includes(role as AdminRole);
+}
+
+export function canViewTopic(role: string | undefined | null): boolean {
+  if (!role) return false;
+  return TOPIC_READ_ROLES.includes(role as AdminRole);
+}
+
+export function assertCanManageTopic(role: string | undefined | null): void {
+  if (!canManageTopic(role)) {
+    throw new ForbiddenException('当前角色无权执行该写操作（需要 super_admin 或 editor）');
+  }
+}
+
+export function assertCanViewTopic(role: string | undefined | null): void {
+  if (!canViewTopic(role)) {
+    throw new ForbiddenException('当前角色无权访问该资源');
+  }
+}

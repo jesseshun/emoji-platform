@@ -17,7 +17,7 @@
 
 ## 当前阶段
 
-**Phase 4B** - Admin Dashboard and Emoji Management 已完成。
+**Phase 4C-2** - Topic Management 已完成。
 
 ## 技术栈
 
@@ -666,15 +666,80 @@ Base URL：`http://localhost:4000/api/v1`
 |------|------|------|
 | `admin@example.com` | `admin123456` | `super_admin` |
 
+## Phase 4C-2 - Topic Management
+
+本阶段完成后台**专题管理（CRUD）**，包含专题列表、新建、编辑、状态切换、中英文翻译，以及专题与 Emoji 的关联（绑定 / 解绑 / 排序）。
+
+### 范围
+
+- 列表页 `/admin/topics`：分页、关键词搜索（slug / 标题）、状态筛选；展示封面、slug、zh/en 标题、类型、排序、状态、Emoji 数量、更新时间，提供编辑与前台预览链接、新建按钮。
+- 新建页 `/admin/topics/create`：基础信息 + zh/en 翻译 + 状态，保存后跳转编辑页（编辑页再关联 Emoji）。
+- 编辑页 `/admin/topics/[id]/edit`：编辑基础信息、zh/en 翻译（title/summary/content/seoTitle/seoDescription/faqJson）、状态切换、Emoji 关联管理（添加 / 移除 / 排序 / 备注），并提供前台预览链接。
+
+### Topic 后台 API 列表
+
+Base URL：`http://localhost:4000/api/v1`
+
+| 方法 | 接口 | 说明 | 鉴权 | 权限 |
+|------|------|------|------|------|
+| GET | `/api/v1/admin/topics` | 专题列表（page/limit/q/status） | 登录 | 可读角色 |
+| GET | `/api/v1/admin/topics/emoji-options` | Emoji 选项（绑定选择器用） | 登录 | 可读角色 |
+| GET | `/api/v1/admin/topics/{id}` | 专题详情（完整编辑数据 + 绑定 Emoji） | 登录 | 可读角色 |
+| POST | `/api/v1/admin/topics` | 新建专题 | 登录 | `super_admin` / `editor` |
+| PATCH | `/api/v1/admin/topics/{id}` | 更新专题 | 登录 | `super_admin` / `editor` |
+| PATCH | `/api/v1/admin/topics/{id}/status` | 切换状态（draft/published/archived） | 登录 | `super_admin` / `editor` |
+| PUT | `/api/v1/admin/topics/{id}/emojis` | 替换专题 Emoji 关联（绑定/解绑/排序） | 登录 | `super_admin` / `editor` |
+
+> 可读角色：super_admin、editor、seo_manager、translator、reviewer、analyst。写操作仅 `super_admin` / `editor`，其余角色返回 403。未登录返回 401。
+
+### Topic 表单字段
+
+基础信息：
+
+`slug`、`coverImage`、`topicType`、`sortOrder`、`status`
+
+每个 locale（zh / en）翻译字段：
+
+`title`、`summary`、`content`、`seoTitle`、`seoDescription`、`faqJson`
+
+> `slug` 需唯一，仅含小写字母、数字与短横线（`^[a-z0-9-]+$`）。`title` 不能为空。`faqJson` 为 JSON 字段，保存前会校验格式，错误格式会被拒绝保存且不会写入。`seoTitle` / `seoDescription` / `summary` / `content` / `coverImage` / `topicType` 可空。
+
+### 专题与 Emoji 关联
+
+- 通过 `PUT /api/v1/admin/topics/{id}/emojis` 一次性替换该专题的 Emoji 关联集合：`{ "items": [{ "emojiId": "...", "note": "..." }] }`。
+- 数组顺序即展示 / 关联顺序（排序）。空数组表示解绑全部。
+- 每个 `emojiId` 在保存前会校验其存在，无效的 `emojiId` 返回 400。
+- 绑定选择器数据来自 `GET /api/v1/admin/topics/emoji-options?locale=zh`。
+
+### audit_logs 记录
+
+以下操作会写入 `audit_logs`：
+
+- `topic.create`：创建专题
+- `topic.update`：更新专题
+- `topic.status_update`：切换专题状态
+- `topic.update_emojis`：变更专题 Emoji 关联
+
+记录字段：`adminUserId`、`action`、`entityType=topic`、`entityId`、`oldData`、`newData`、`ipAddress`（可空）。
+
+- `oldData` / `newData` 仅包含专题相关数据（slug / coverImage / topicType / sortOrder / status / 翻译 / Emoji 关联），**不会**写入 `passwordHash`。
+- audit log 写入失败时，服务端会记录错误日志，主操作流程仍正常完成。
+
+### 默认测试账号
+
+| 邮箱 | 密码 | 角色 |
+|------|------|------|
+| `admin@example.com` | `admin123456` | `super_admin` |
+
 ## 下一阶段
 
-**Phase 4C-2** - Topic Management（专题管理 CRUD）：
+**Phase 4C-3** - Article Management（文章管理 CRUD）：
 
-- 专题列表 / 新建 / 编辑 / 状态切换
-- 专题中英文翻译
-- 专题与 Emoji 的关联（绑定 / 解绑 / 排序）
+- 文章列表 / 新建 / 编辑 / 状态切换
+- 文章中英文翻译
+- 文章与专题 / 分类的关联
 
-> 本阶段（Phase 4C-1）完成后台分类管理（CRUD），不含专题 / 文章的 CRUD，也不含资源授权、SEO 管理中心、Search Logs 列表、Analytics 图表、Meilisearch、sitemap 与 AI 工具。
+> 本阶段（Phase 4C-2）完成后台专题管理（CRUD），不含文章 / 资源授权 / SEO 管理中心的 CRUD，也不含 Search Logs 列表、Analytics 图表、Meilisearch、sitemap 与 AI 工具。
 
 ## 开发规范
 
