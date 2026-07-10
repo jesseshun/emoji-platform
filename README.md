@@ -17,7 +17,7 @@
 
 ## 当前阶段
 
-**Phase 4C-2** - Topic Management 已完成。
+**Phase 4C-3** - Article Management 已完成。
 
 ## 技术栈
 
@@ -731,15 +731,87 @@ Base URL：`http://localhost:4000/api/v1`
 |------|------|------|
 | `admin@example.com` | `admin123456` | `super_admin` |
 
+## Phase 4C-3 - Article Management
+
+本阶段完成后台**文章管理（CRUD）**，包含文章列表、新建、编辑、发布 / 草稿 / 归档状态切换，以及中英文翻译。
+
+### 范围
+
+- 列表页 `/admin/articles`：分页、关键词搜索（slug / 标题）、状态筛选；展示 slug、zh/en 标题、状态、发布时间、作者、更新时间，提供编辑链接、创建按钮。前台文章页（/zh/articles/ 与 /en/articles/）将在后续阶段实现，列表页的「预览」为占位禁用状态。
+- 新建页 `/admin/articles/create`：基础信息 + zh/en 翻译 + 封面图 + SEO + 关键词 + 正文 + 状态 + 发布时间，保存后跳转编辑页（作者默认填充为当前登录管理员）。
+- 编辑页 `/admin/articles/[id]/edit`：编辑基础信息、zh/en 翻译（title / summary / content / seoTitle / seoDescription / keywords）、状态切换、发布时间，并提供前台预览占位。
+
+### Article 后台 API 列表
+
+Base URL：`http://localhost:4000/api/v1`
+
+| 方法 | 接口 | 说明 | 鉴权 | 权限 |
+|------|------|------|------|------|
+| GET | `/api/v1/admin/articles` | Article 列表（page/limit/q/status） | 登录 | 可读角色 |
+| GET | `/api/v1/admin/articles/{id}` | Article 详情（完整编辑数据 + 翻译 + 作者摘要） | 登录 | 可读角色 |
+| POST | `/api/v1/admin/articles` | 新建 Article | 登录 | `super_admin` / `editor` |
+| PATCH | `/api/v1/admin/articles/{id}` | 更新 Article | 登录 | `super_admin` / `editor` |
+| PATCH | `/api/v1/admin/articles/{id}/status` | 切换状态（draft/published/archived） | 登录 | `super_admin` / `editor` |
+
+> 可读角色：super_admin、editor、seo_manager、translator、reviewer、analyst。写操作仅 `super_admin` / `editor`，其余角色返回 403。未登录返回 401。
+
+### Article 表单字段
+
+基础信息：
+
+`slug`、`coverImage`、`authorId`、`status`、`publishedAt`
+
+每个 locale（zh / en）翻译字段：
+
+`title`、`summary`、`content`、`seoTitle`、`seoDescription`、`keywords`
+
+> `slug` 需唯一，仅含小写字母、数字与短横线（`^[a-z0-9-]+$`）。`title` 中英文均不能为空。`seoTitle` / `seoDescription` / `summary` / `content` / `coverImage` / `authorId` 可空；这些字段保存时以 `null` 存储（不会写入空字符串）。`authorId` 在新建时默认填充为当前登录管理员 id（编辑页只读展示）。
+
+### keywords 编辑说明
+
+`keywords` 为 JSON 字段，在表单中以文本框编辑：
+
+- 保存前会校验并解析，支持两种写法，错误格式会被拒绝保存且不会写入：
+  - **合法 JSON**：如 `["开心", "笑"]` 或 `[{"term":"开心","weight":2}]`。
+  - **逗号分隔列表**：如 `开心, 笑, 笑脸`（自动解析为字符串数组 `["开心","笑","笑脸"]`）。
+- 空字符串视为「未提供」，保存后以 `null` 存储（schema 默认值 `[]` 生效）。
+- 编辑页加载时会把已有 `keywords` 正确回显为格式化文本。
+
+### 发布时间（publishedAt）说明
+
+- `publishedAt` 为日期字段（`<input type="date">`）。
+- 发布状态（`published`）下若未手动设置 `publishedAt`，保存时会**自动填充为当前时间**。
+- 已设置过 `publishedAt` 的文章再次保存时，若未改该字段则保持原值；若清空则置为 `null`。
+- 草稿 / 归档状态下 `publishedAt` 可为空。
+
+### audit_logs 记录
+
+以下操作会写入 `audit_logs`：
+
+- `article.create`：创建 Article
+- `article.update`：更新 Article
+- `article.status_update`：切换 Article 状态
+
+记录字段：`adminUserId`、`action`、`entityType=article`、`entityId`、`oldData`、`newData`、`ipAddress`（可空）。
+
+- `oldData` / `newData` 仅包含 Article 相关数据（slug / coverImage / authorId / status / publishedAt / 翻译），**不会**写入 `passwordHash`。
+- audit log 写入失败时，服务端会记录错误日志，主操作流程仍正常完成。
+
+### 默认测试账号
+
+| 邮箱 | 密码 | 角色 |
+|------|------|------|
+| `admin@example.com` | `admin123456` | `super_admin` |
+
+### Seed 数据
+
+`pnpm db:seed` 会创建 3 篇示例文章（`how-to-read-emoji-meaning`、`emoji-history-and-unicode` 为 published，`common-emoji-misuses` 为 draft），作者默认为超级管理员，用于列表页验收。
+
 ## 下一阶段
 
-**Phase 4C-3** - Article Management（文章管理 CRUD）：
+**Phase 4D** - Assets, SEO, Logs, and Review Management（资源授权、SEO 管理中心、搜索日志、Analytics、审核队列等后台模块）。
 
-- 文章列表 / 新建 / 编辑 / 状态切换
-- 文章中英文翻译
-- 文章与专题 / 分类的关联
-
-> 本阶段（Phase 4C-2）完成后台专题管理（CRUD），不含文章 / 资源授权 / SEO 管理中心的 CRUD，也不含 Search Logs 列表、Analytics 图表、Meilisearch、sitemap 与 AI 工具。
+> 本阶段（Phase 4C-3）完成后台文章管理（CRUD），不含资源授权管理 / SEO 管理中心 / Search Logs 后台列表 / Analytics 图表 / Meilisearch / sitemap / AI 工具，也不含公开前台 Article 页面的完整 SEO 与关联展示。
 
 ## 开发规范
 

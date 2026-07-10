@@ -620,3 +620,143 @@ export async function setTopicEmojis(
     body: JSON.stringify({ items }),
   });
 }
+
+// ─── Article (Phase 4C-3) ──────────────────────────────
+
+export type ArticleStatus = 'draft' | 'published' | 'archived';
+
+export interface ArticleAuthorSummary {
+  id: string | null;
+  name: string | null;
+  email: string | null;
+}
+
+export interface ArticleTranslation {
+  title: string | null;
+  summary?: string | null;
+  content?: string | null;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  keywords?: unknown;
+}
+
+export interface ArticleTranslationInput {
+  title: string;
+  summary?: string | null;
+  content?: string | null;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  keywords?: unknown;
+}
+
+export interface AdminArticleListItem {
+  id: string;
+  slug: string;
+  coverImage: string | null;
+  status: ArticleStatus;
+  publishedAt: string | null;
+  author: ArticleAuthorSummary;
+  translations: {
+    zh: { title: string | null; complete: boolean };
+    en: { title: string | null; complete: boolean };
+  };
+  updatedAt: string;
+  previewLinks: { zh: string; en: string };
+}
+
+export interface AdminArticleListMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface AdminArticleListResponse {
+  data: AdminArticleListItem[];
+  meta: AdminArticleListMeta;
+}
+
+export interface AdminArticleDetail {
+  id: string;
+  slug: string;
+  coverImage: string | null;
+  authorId: string | null;
+  author: ArticleAuthorSummary;
+  status: ArticleStatus;
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  translations: { zh: ArticleTranslation | null; en: ArticleTranslation | null };
+  previewLinks: { zh: string; en: string };
+}
+
+export interface CreateArticlePayload {
+  slug: string;
+  coverImage?: string | null;
+  authorId?: string | null;
+  status: ArticleStatus;
+  publishedAt?: string | null;
+  translations: { zh: ArticleTranslationInput; en: ArticleTranslationInput };
+}
+
+export type UpdateArticlePayload = Partial<Omit<CreateArticlePayload, 'translations'>> & {
+  translations?: { zh?: Partial<ArticleTranslationInput>; en?: Partial<ArticleTranslationInput> };
+};
+
+export async function listArticles(params: {
+  page?: number;
+  limit?: number;
+  q?: string;
+  status?: string;
+} = {}): Promise<AdminArticleListResponse> {
+  const qs = new URLSearchParams();
+  if (params.page && params.page > 1) qs.set('page', String(params.page));
+  if (params.limit) qs.set('limit', String(params.limit));
+  if (params.q) qs.set('q', params.q);
+  if (params.status && params.status !== 'all') qs.set('status', params.status);
+  const query = qs.toString();
+
+  const body = await adminFetchEnvelope<AdminArticleListItem[]>(
+    `/admin/articles${query ? `?${query}` : ''}`,
+  );
+  return {
+    data: body.data,
+    meta: (body.meta as unknown as AdminArticleListMeta) ?? {
+      page: 1,
+      limit: params.limit ?? 20,
+      total: 0,
+      totalPages: 1,
+    },
+  };
+}
+
+export async function getArticle(id: string): Promise<AdminArticleDetail> {
+  return adminFetch<AdminArticleDetail>(`/admin/articles/${id}`);
+}
+
+export async function createArticle(payload: CreateArticlePayload): Promise<AdminArticleDetail> {
+  return adminFetch<AdminArticleDetail>('/admin/articles', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateArticle(
+  id: string,
+  payload: UpdateArticlePayload,
+): Promise<AdminArticleDetail> {
+  return adminFetch<AdminArticleDetail>(`/admin/articles/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateArticleStatus(
+  id: string,
+  status: ArticleStatus,
+): Promise<{ id: string; status: ArticleStatus }> {
+  return adminFetch<{ id: string; status: ArticleStatus }>(`/admin/articles/${id}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  });
+}

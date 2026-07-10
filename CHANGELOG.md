@@ -316,3 +316,51 @@
 - Updated README (Phase 4C-2 section: scope, topic admin API list, form field reference, emoji-binding
   notes, audit_logs notes, default test account, next phase = Phase 4C-3), PROJECT_HANDOFF.md
   (Phase 4C-2 completed, next phase = Phase 4C-3), and this changelog.
+
+## Phase 4C-3
+
+- Added admin article list API `GET /api/v1/admin/articles` (requires login): supports `page`, `limit`
+  (default 20, max 100), `q` (matches slug / translation title), and `status` (draft / published /
+  archived / all) filters. Returns `data` + `meta` (page/limit/total/totalPages). Each item includes
+  slug, coverImage, status, `publishedAt`, author summary (id / name / email), zh/en translation title +
+  completion summary, updatedAt, and preview links (`/zh/articles/{slug}/`, `/en/articles/{slug}/`).
+- Added admin article detail API `GET /api/v1/admin/articles/:id` (404 when not found) returning base
+  fields, both zh/en translations (title / summary / content / seoTitle / seoDescription / keywords),
+  author summary, and preview links.
+- Added admin article create API `POST /api/v1/admin/articles` (requires login + write role): validates
+  slug uniqueness + `^[a-z0-9-]+$` format, zh/en translation `title` required, `status` in
+  (draft / published / archived), parses `keywords` (JSON array or comma-separated list) and `publishedAt`
+  (ISO/date string), writes the article row + both `article_translations`, auto-sets `publishedAt` when
+  publishing without an explicit date, records an `article.create` audit log; never returns passwordHash.
+- Added admin article update API `PATCH /api/v1/admin/articles/:id` (requires login + write role): partial
+  update of base fields and per-locale translations; validates slug uniqueness when changed; parses
+  `keywords` / `publishedAt`; on transition into `published` with no date set, stamps `publishedAt`;
+  records an `article.update` audit log with `oldData`/`newData` snapshots.
+- Added admin article status API `PATCH /api/v1/admin/articles/:id/status` (requires login + write role):
+  switches status among draft / published / archived (400 on invalid, 404 when missing); stamps
+  `publishedAt` when entering `published` with no date; records an `article.status_update` audit log with
+  old/new status.
+- Added `canManageArticle(role)` / `canViewArticle(role)` helpers (kept distinct from the
+  emoji/category/topic helpers for explicit intent): write ops limited to `super_admin` and `editor`
+  (others get 403); read ops allowed for all known admin roles (others get 403).
+- Added Article admin UI: `/admin/articles` (table with search / status filters + pagination, slug,
+  zh/en titles, status, publishedAt, author, updatedAt, edit link + disabled preview placeholder,
+  create button), `/admin/articles/create` (create form), `/admin/articles/[id]/edit` (edit form with
+  base fields, zh/en translation sections in tabs, SEO fields, keywords JSON/comma textarea, quick status
+  actions, author read-only display, preview placeholder). All read/write endpoints remain behind
+  `AdminAuthGuard` (401 unauthenticated).
+- Added seed articles (`apps/api/prisma/seed.ts`): 3 sample articles
+  (`how-to-read-emoji-meaning`, `emoji-history-and-unicode` published; `common-emoji-misuses` draft) with
+  zh/en translations and keywords, authored by the super admin, for list-page acceptance.
+- No Prisma schema change: the `Article` / `ArticleTranslation` models already exist and were sufficient
+  for this phase. Front-end article pages (`/zh/articles/`, `/en/articles/`) are intentionally not
+  implemented in this phase (next phase scope), so admin "preview" links are placeholders.
+- audit_logs writes for article follow the Phase 4B/4C-1/4C-2 pattern (try/catch, server-side error log
+  on failure, main op still succeeds; payloads contain only article data — no admin passwordHash).
+- Verified `pnpm lint`, `pnpm typecheck`, and `pnpm build` all pass; verified API acceptance (401 when
+  unauthenticated, 403 for read-only roles on writes, list/detail/create/update/status happy paths, slug
+  uniqueness + format + required-title validation, keywords JSON/comma parsing, auto publishedAt on
+  publish, 404 on missing id, article audit logs present with no passwordHash leakage).
+- Updated README (Phase 4C-3 section: scope, article admin API list, form field reference, keywords
+  editing notes, publishedAt behavior, audit_logs notes, default test account, seed data, next phase =
+  Phase 4D), PROJECT_HANDOFF.md (Phase 4C-3 completed, next phase = Phase 4D), and this changelog.

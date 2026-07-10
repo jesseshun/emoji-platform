@@ -8,10 +8,12 @@ import { AdminAuthGuard } from './admin-auth.guard';
 import { AdminEmojiService } from './admin-emoji.service';
 import { AdminCategoryService } from './admin-category.service';
 import { AdminTopicService } from './admin-topic.service';
+import { AdminArticleService } from './admin-article.service';
 import { AdminDashboardController } from './admin-dashboard.controller';
 import { AdminEmojiController } from './admin-emoji.controller';
 import { AdminCategoryController } from './admin-category.controller';
 import { AdminTopicController } from './admin-topic.controller';
+import { AdminArticleController } from './admin-article.controller';
 
 @Module({
   imports: [
@@ -35,8 +37,9 @@ import { AdminTopicController } from './admin-topic.controller';
     AdminEmojiController,
     AdminCategoryController,
     AdminTopicController,
+    AdminArticleController,
   ],
-  providers: [AdminAuthService, AdminAuthGuard, AdminEmojiService, AdminCategoryService, AdminTopicService],
+  providers: [AdminAuthService, AdminAuthGuard, AdminEmojiService, AdminCategoryService, AdminTopicService, AdminArticleService],
   exports: [AdminAuthService],
 })
 export class AdminModule {}

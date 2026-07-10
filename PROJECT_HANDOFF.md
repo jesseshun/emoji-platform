@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Phase 4C-2 completed.
+Phase 4C-3 completed.
 
 ## Project Goal
 
@@ -46,7 +46,8 @@ Build a long-term maintainable global Emoji dictionary, copy, meaning, search, t
 - Phase 4B: Admin dashboard and emoji management (admin dashboard API + UI with stats/recent emojis, emoji admin list with search/filter/pagination, emoji create/edit pages, emoji status switching, zh/en translation editing, SEO/examples/keywords/faqJson editing, category options API, emoji write operations recording audit_logs, role-based write permission `canManageEmoji`)
 - Phase 4C-1: Category management (admin category list/create/edit pages, category admin APIs: list/detail/create/update/status/tree, zh/en translation editing, parent selection with cycle prevention, status switching, SEO title/description editing, category write operations recording audit_logs, role-based write permission `canManageCategory`)
 - Phase 4C-2: Topic management (admin topic list/create/edit pages, topic admin APIs: list/detail/create/update/status, zh/en translation editing for title/summary/content/seoTitle/seoDescription/faqJson, status switching, Topic↔Emoji association management via `PUT /admin/topics/:id/emojis` (bind/unbind/reorder), emoji-options endpoint for the binding selector, topic write operations recording audit_logs, role-based write permission `canManageTopic`)
+- Phase 4C-3: Article management (admin article list/create/edit pages, article admin APIs: list/detail/create/update/status, zh/en translation editing for title/summary/content/seoTitle/seoDescription/keywords, coverImage/authorId/publishedAt editing, slug uniqueness + format validation, keywords JSON/comma-list parsing, status switching with auto publishedAt on publish, role-based write permission `canManageArticle`, article writes recording audit_logs; front-end article pages not implemented this phase)
 
 ## Next Phase
 
-Phase 4C-3 - Article Management
+Phase 4D - Assets, SEO, Logs, and Review Management

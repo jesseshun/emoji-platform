@@ -390,6 +390,109 @@ async function main() {
   }
   console.log(`✅ Created ${topicData.length} topics\n`);
 
+  // ─── 5.5 Create Articles ──────────────────────────────
+  const articleData = [
+    {
+      slug: 'how-to-read-emoji-meaning',
+      zhTitle: '如何读懂表情符号的含义',
+      enTitle: 'How to Read the Meaning of Emojis',
+      zhSummary: '从语境、文化和平台差异三个角度，教你准确理解表情符号的含义。',
+      enSummary:
+        'Understand emoji meanings accurately from context, culture, and cross-platform differences.',
+      zhContent:
+        '# 如何读懂表情符号的含义\n\n表情符号的含义并非固定不变，它会随语境、文化与平台而不同。\n\n## 看语境\n\n同一个表情在朋友聊天和工作邮件中含义可能完全不同。\n\n## 看平台\n\n不同系统对同一表情的渲染略有差异，理解时请以实际发送平台为准。',
+      enContent:
+        '# How to Read the Meaning of Emojis\n\nEmoji meaning is not fixed — it shifts with context, culture, and platform.\n\n## Context\n\nThe same emoji can mean different things in a chat with friends vs. a work email.\n\n## Platform\n\nRendering differs slightly across systems; interpret based on the platform used.',
+      zhKeywords: ['表情含义', 'emoji', '语境', '解读'],
+      enKeywords: ['emoji meaning', 'emoji', 'context', 'interpretation'],
+      seoTitle: '如何读懂表情符号的含义 - Emoji 含义解读指南',
+      seoDescription: '从语境、文化和平台差异三个角度，教你准确理解表情符号的含义。',
+      status: 'published' as const,
+    },
+    {
+      slug: 'emoji-history-and-unicode',
+      zhTitle: '表情符号与 Unicode 简史',
+      enTitle: 'A Brief History of Emoji and Unicode',
+      zhSummary: '了解表情符号是如何被纳入 Unicode 标准，并逐步走向全球化的。',
+      enSummary: 'Learn how emojis were adopted into the Unicode standard and went global.',
+      zhContent:
+        '# 表情符号与 Unicode 简史\n\n表情符号最早由日本运营商推出，后由 Unicode 联盟统一编码，才实现跨平台一致显示。',
+      enContent:
+        '# A Brief History of Emoji and Unicode\n\nEmojis started with Japanese carriers, then were standardized by the Unicode Consortium for consistent cross-platform display.',
+      zhKeywords: ['Unicode', '表情历史', '标准'],
+      enKeywords: ['Unicode', 'emoji history', 'standard'],
+      seoTitle: '表情符号与 Unicode 简史 - Emoji 标准化历程',
+      seoDescription: '了解表情符号是如何被纳入 Unicode 标准，并逐步走向全球化的。',
+      status: 'published' as const,
+    },
+    {
+      slug: 'common-emoji-misuses',
+      zhTitle: '常见表情符号误用',
+      enTitle: 'Common Emoji Misuses',
+      zhSummary: '盘点那些经常被误读或滥用的表情符号，避免沟通误会。',
+      enSummary: 'A roundup of frequently misread or overused emojis to avoid miscommunication.',
+      zhContent:
+        '# 常见表情符号误用\n\n有些表情符号的含义与字面相去甚远，使用前最好确认其常见语境。',
+      enContent:
+        '# Common Emoji Misuses\n\nSome emojis mean something far from their literal look — check the common context before using them.',
+      zhKeywords: ['误用', '表情', '沟通'],
+      enKeywords: ['misuse', 'emoji', 'communication'],
+      seoTitle: '常见表情符号误用 - 避免沟通误会',
+      seoDescription: '盘点那些经常被误读或滥用的表情符号，避免沟通误会。',
+      status: 'draft' as const,
+    },
+  ];
+
+  for (const article of articleData) {
+    const a = await prisma.article.upsert({
+      where: { slug: article.slug },
+      update: {
+        status: article.status,
+        publishedAt: article.status === 'published' ? new Date() : null,
+        authorId: admin.id,
+      },
+      create: {
+        slug: article.slug,
+        status: article.status,
+        publishedAt: article.status === 'published' ? new Date() : null,
+        authorId: admin.id,
+      },
+    });
+
+    await prisma.articleTranslation.upsert({
+      where: { articleId_locale: { articleId: a.id, locale: 'en' } },
+      update: {},
+      create: {
+        articleId: a.id,
+        locale: 'en',
+        title: article.enTitle,
+        summary: article.enSummary,
+        content: article.enContent,
+        seoTitle: article.seoTitle,
+        seoDescription: article.seoDescription,
+        keywords: JSON.stringify(article.enKeywords),
+      },
+    });
+
+    await prisma.articleTranslation.upsert({
+      where: { articleId_locale: { articleId: a.id, locale: 'zh' } },
+      update: {},
+      create: {
+        articleId: a.id,
+        locale: 'zh',
+        title: article.zhTitle,
+        summary: article.zhSummary,
+        content: article.zhContent,
+        seoTitle: article.seoTitle,
+        seoDescription: article.seoDescription,
+        keywords: JSON.stringify(article.zhKeywords),
+      },
+    });
+
+    console.log(`  📄 ${article.enTitle} (${article.status})`);
+  }
+  console.log(`✅ Created ${articleData.length} articles\n`);
+
   // ─── 6. Create Search Logs ──────────────────────────────
   const searchQueries = [
     { query: 'laugh', locale: 'en' as const, resultCount: 12 },

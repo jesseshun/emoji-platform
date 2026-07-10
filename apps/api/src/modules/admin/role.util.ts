@@ -116,3 +116,39 @@ export function assertCanViewTopic(role: string | undefined | null): void {
     throw new ForbiddenException('当前角色无权访问该资源');
   }
 }
+
+// Article management (Phase 4C-3). Write = super_admin + editor (same as the
+// other CMS entities); read = all known admin roles. Kept as a separate, clearly
+// named checker so role intent stays explicit and independent of other helpers.
+const ARTICLE_WRITE_ROLES: AdminRole[] = ['super_admin', 'editor'];
+
+const ARTICLE_READ_ROLES: AdminRole[] = [
+  'super_admin',
+  'editor',
+  'seo_manager',
+  'translator',
+  'reviewer',
+  'analyst',
+];
+
+export function canManageArticle(role: string | undefined | null): boolean {
+  if (!role) return false;
+  return ARTICLE_WRITE_ROLES.includes(role as AdminRole);
+}
+
+export function canViewArticle(role: string | undefined | null): boolean {
+  if (!role) return false;
+  return ARTICLE_READ_ROLES.includes(role as AdminRole);
+}
+
+export function assertCanManageArticle(role: string | undefined | null): void {
+  if (!canManageArticle(role)) {
+    throw new ForbiddenException('当前角色无权执行该写操作（需要 super_admin 或 editor）');
+  }
+}
+
+export function assertCanViewArticle(role: string | undefined | null): void {
+  if (!canViewArticle(role)) {
+    throw new ForbiddenException('当前角色无权访问该资源');
+  }
+}
