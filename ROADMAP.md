@@ -76,7 +76,7 @@
 - Asset license management
 - SEO management
 
-## Phase 5 - Search, Sitemap, Analytics and Automation
+## Phase 5 - SEO Automation, Sitemap, and Public Content Scale
 
 - Meilisearch
 - Sitemap generation

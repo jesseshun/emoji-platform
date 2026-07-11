@@ -7,6 +7,7 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { TopicsModule } from './modules/topics/topics.module';
 import { SearchModule } from './modules/search/search.module';
 import { EventsModule } from './modules/events/events.module';
+import { SitemapModule } from './modules/sitemap/sitemap.module';
 import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
@@ -22,6 +23,7 @@ import { AdminModule } from './modules/admin/admin.module';
     TopicsModule,
     SearchModule,
     EventsModule,
+    SitemapModule,
     AdminModule,
   ],
 })

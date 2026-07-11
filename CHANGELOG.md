@@ -1,5 +1,44 @@
 # Changelog
 
+## Phase 5A
+
+- Added sitemap index at `/sitemap.xml` (App Router route handler, `force-dynamic`): a `<sitemapindex>`
+  referencing `static` / `emojis` / `categories` / `topics` sub-sitemaps; `articles` is intentionally
+  omitted until the article frontend pages ship in Phase 5B.
+- Added static sitemap `/sitemaps/static.xml`: public landing/listing pages only (`/zh`, `/en`,
+  `/zh/emojis`, `/en/emojis`, `/zh/categories`, `/en/categories`, `/zh/topics`, `/en/topics`,
+  `/zh/search`, `/en/search`); search *result* pages (`?q=...`) are not bulk-added.
+- Added Emoji sitemap `/sitemaps/emojis.xml`: one URL per locale for every `published` emoji, with
+  `xhtml:link` hreflang (`zh` / `en` / `x-default`), `lastmod` (entity `updatedAt`), `changefreq=monthly`,
+  `priority=0.8`.
+- Added Category sitemap `/sitemaps/categories.xml`: published categories, `weekly` / `0.7`.
+- Added Topic sitemap `/sitemaps/topics.xml`: published topics, `weekly` / `0.7`.
+- Added Article sitemap boundary handling `/sitemaps/articles.xml`: reserved empty `<urlset>` (article
+  frontend detail pages are not implemented yet); it is not listed in the sitemap index so crawlers are
+  never pointed at non-existent pages. It can be enabled in Phase 5B without API changes.
+- Added public read-only sitemap API in `apps/api` (`SitemapModule`, no admin auth):
+  `GET /api/v1/sitemap/{emojis,categories,topics,articles}` returns only `published` entities
+  (`slug` + `updatedAt` + `createdAt`), supports `limit` (max 50,000) / `offset` for future
+  sharding, and never exposes backend fields or `passwordHash`.
+- Updated robots rules via dynamic `/robots.txt` (`apps/web` route handler): `Allow: /`,
+  `Disallow: /admin/`, `Disallow: /api/v1/admin/`, and `Sitemap: {NEXT_PUBLIC_SITE_URL}/sitemap.xml`
+  (no hard-coded production domain).
+- Ensured admin routes are excluded from sitemap: `apps/web` never imports Prisma and only fetches
+  published public data; `/admin/*` stays `noindex,nofollow` via the admin root layout and is never
+  emitted into any sitemap.
+- Ensured draft and archived content are excluded from sitemap: all sitemap data is filtered by
+  `status = 'published'`; `undefined`/`null` slugs are dropped.
+- Linked admin SEO status: `robots-status` / `sitemap-status` now probe the live web routes
+  (`/robots.txt`, `/sitemap.xml`) so the `/admin/seo` status reflects the actual dynamic output;
+  degrades gracefully when web is not running. No new SEO center features were added.
+- Verified architecture constraints: `apps/web` fetches all sitemap data through `apps/api` (no Prisma
+  import); no Meilisearch integration; no AI content generation; no pure-static-site conversion.
+- Ran `pnpm install`, `pnpm db:generate`, `pnpm db:migrate`, `pnpm db:seed`, `pnpm lint`,
+  `pnpm typecheck`, and `pnpm build` — all pass with 0 errors. Did NOT develop article detail pages,
+  did NOT bulk-generate low-quality pages, did NOT add a complex SEO scorer.
+- Updated README (Phase 5A section), PROJECT_HANDOFF.md (Phase 5A completed, next = Phase 5B), and
+  this changelog.
+
 ## Phase 4D-4
 
 - Completed Phase 4 Admin CMS acceptance: regression-verified all admin modules end to end

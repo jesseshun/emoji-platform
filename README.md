@@ -1142,11 +1142,71 @@ pnpm typecheck
 pnpm build
 ```
 
+## Phase 5A - Sitemap, Robots, and Indexing Automation
+
+本阶段完成全站 sitemap、robots 与索引边界自动化：sitemap index、实体 sitemap、动态 `robots.txt`，并联动后台 SEO 状态检查。不开发公开文章详情页、不开发 AI 内容生成、不批量生成低质量页面、不接入 Meilisearch、不做复杂 SEO 评分、不改为纯静态站生成器。
+
+### Sitemap 自动化范围
+
+- 在 `apps/web` 以 Next.js App Router **route handler**（动态 `force-dynamic`，运行时生成，非静态文件、非一次性生成）实现：
+  - `/sitemap.xml` —— sitemap index，引用 `static` / `emojis` / `categories` / `topics` 四个子 sitemap。
+  - `/sitemaps/static.xml` —— 公开落地/列表页（首页、`/emojis`、`/categories`、`/topics`、`/search`，中英各一）。
+  - `/sitemaps/emojis.xml` / `categories.xml` / `topics.xml` —— 已发布实体的详情页（每实体中英双 URL + hreflang）。
+  - `/sitemaps/articles.xml` —— **预留空 urlset**（见下方 Article 边界说明），暂不进入 sitemap index。
+- `apps/web` **不直连 Prisma**：实体数据来自 `apps/api` 新增的公开只读 sitemap API（`GET /api/v1/sitemap/{emojis,categories,topics,articles}`），仅返回 `published` 实体的 `slug` + `updatedAt` + `createdAt`，无后台字段、无 `passwordHash`、无需 admin 鉴权。
+
+### sitemap index 说明
+
+- `/sitemap.xml` 为 `<sitemapindex>`，列出 `static` / `emojis` / `categories` / `topics` 四个子 sitemap 地址。
+- **刻意不包含 `articles`**：文章前台详情页尚未实现（Phase 5B），避免指向不存在页面。
+
+### 实体 sitemap 说明
+
+- 每条 `<url>` 包含：
+  - `<loc>`：`http://<NEXT_PUBLIC_SITE_URL>/zh|en/{segment}/{slug}`（**无尾部斜杠**，与前台 `canonical` 保持一致）。
+  - `<xhtml:link rel="alternate" hreflang="zh|en|x-default">`：中英互链，`x-default` 指向英文。
+  - `<lastmod>`：使用实体 `updatedAt`（ISO 8601）；未提供时回退 `createdAt`，**不使用当前时间伪造**。
+  - `<changefreq>` / `<priority>`：emoji 详情 `monthly`/`0.8`；category / topic 详情 `weekly`/`0.7`；静态页 `weekly`~`daily` / `0.6`~`0.9`（首页 `0.9`）。
+
+### robots.txt 规则说明
+
+- `apps/web` 动态生成 `robots.txt`（`/robots.txt` route handler）：
+  - `Allow: /` —— 允许抓取全部公开前台页。
+  - `Disallow: /admin/` —— 禁止抓取后台。
+  - `Disallow: /api/v1/admin/` —— 禁止抓取后台 API。
+  - `Sitemap: {NEXT_PUBLIC_SITE_URL}/sitemap.xml` —— 引用 sitemap 索引，**不写死生产域名**（由 `NEXT_PUBLIC_SITE_URL` 驱动）。
+
+### admin noindex 边界说明
+
+- 后台根布局仍设置 `robots: { index: false, follow: false }`，`/admin/*`（含 `/admin/login` 与全部 CMS 页）均为 `noindex, nofollow`，独立于 `robots.txt`，**不会进入任何 sitemap**。
+
+### draft / archived 不收录说明
+
+- 所有 sitemap 数据经 `status = 'published'` 过滤：draft / archived 实体不返回、不进入 sitemap。
+- `/sitemaps/articles.xml` 当前为空，且不在 index 中（文章前台页未实现）。
+
+### query search 页面不批量加入 sitemap 说明
+
+- 仅收录 `/zh/search` 与 `/en/search` 基础页；**搜索结果页（`?q=...`）不批量加入 sitemap**，避免低质量/重复 URL。
+
+### sitemap 分片边界说明
+
+- 单个 sitemap URL 上限 50,000、文件上限 50MB（sitemap.org 约束）；当前数据量小，暂不分片。
+- 代码结构便于后续按 `entity + page` 分片：`apps/api` 的 sitemap API 已支持 `limit`（上限 50,000）/ `offset` 分页参数，web 端子 sitemap 可平滑切换为分片拉取。
+
+### 后台 SEO 状态联动
+
+- `apps/api` 的 `robots-status` / `sitemap-status` 改为**探测真实 web 路由**（`fetch` 实时探测 `/robots.txt` 与 `/sitemap.xml`），与实际动态 robots / sitemap 状态一致；未运行 web 时优雅降级并提示。未新增任何 SEO 管理中心复杂功能。
+
+### 下一阶段 Phase 5B
+
+**Phase 5B - Public Article Pages and Content Scale**（公开文章详情页与内容规模化）：实现文章前台详情页，启用 `/sitemaps/articles.xml` 并将其加入 sitemap index。
+
 ## 下一阶段
 
-**Phase 5** - SEO Automation, Sitemap, and Public Content Scale（SEO 自动化、sitemap 生成、公开内容规模化）。
+**Phase 5B** - Public Article Pages and Content Scale（公开文章详情页与内容规模化）。
 
-> Phase 4D-4 边界：本阶段仅做 Phase 4 后台 CMS 全模块验收与安全加固，不开发新业务模块、不新增 CMS CRUD、不接入 Meilisearch、不生成 sitemap、不开发 AI 工具、不改为纯静态站、不改 Prisma schema、不重构前台页面。
+> Phase 5A 边界：本阶段仅做 sitemap / robots / indexing 自动化，不开发公开文章详情页、不开发 AI 内容生成、不批量生成低质量页面、不接入 Meilisearch、不做复杂 SEO 评分、不改为纯静态站生成器。
 
 ## 开发规范
 

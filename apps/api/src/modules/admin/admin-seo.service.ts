@@ -13,8 +13,6 @@ import {
 } from './dto/admin-seo-query.dto';
 import { SeoUpdateInput } from './dto/admin-seo-body.dto';
 import { buildPaginationMeta } from '@emoji-platform/types';
-import * as fs from 'fs';
-import * as path from 'path';
 
 const SITE_URL = process.env.SITE_URL || 'http://localhost:3000';
 
@@ -202,8 +200,8 @@ export class AdminSeoService {
         adminUserId: log.adminUserId,
         createdAt: log.createdAt,
       })),
-      robotsStatus: this.robotsStatus(),
-      sitemapStatus: this.sitemapStatus(),
+      robotsStatus: await this.robotsStatus(),
+      sitemapStatus: await this.sitemapStatus(),
     };
   }
 
@@ -478,52 +476,59 @@ export class AdminSeoService {
 
   // ─── robots / sitemap status (read-only) ────────────
 
-  robotsStatus(): {
+  private getWebBase(): string {
+    return process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  }
+
+  /**
+   * Probes a public web route to confirm it is actually served. Used so the
+   * admin SEO status reflects the live dynamic robots.txt / sitemap.xml that
+   * apps/web now generates at request time (no static files under public/).
+   */
+  private async probeUrl(url: string, timeoutMs = 2000): Promise<boolean> {
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      const res = await fetch(url, { method: 'GET', signal: controller.signal });
+      clearTimeout(timer);
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  async robotsStatus(): Promise<{
     exists: boolean;
     blocksIndexing: boolean;
     protectsAdminNoindex: boolean;
     note: string;
-  } {
-    const dir = process.env.WEB_PUBLIC_DIR || path.resolve(process.cwd(), '../../apps/web/public');
-    const file = path.join(dir, 'robots.txt');
-    try {
-      if (fs.existsSync(file)) {
-        const content = fs.readFileSync(file, 'utf8');
-        const blocksIndexing = /Disallow:\s*\//.test(content);
-        const protectsAdminNoindex = /Disallow:[^\n]*admin/i.test(content);
-        return {
-          exists: true,
-          blocksIndexing,
-          protectsAdminNoindex,
-          note: blocksIndexing
-            ? 'robots.txt 检测到全局 Disallow，可能阻止前台主要页面收录，请检查。'
-            : 'robots.txt 已存在。注意：/admin/* 的 noindex 由页面 meta robots 强制实现，不依赖 robots.txt。',
-        };
-      }
-    } catch (err) {
-      this.logger.warn(`robots-status read failed: ${String(err)}`);
-    }
+  }> {
+    const base = this.getWebBase();
+    const robotsUrl = `${base}/robots.txt`;
+    const sitemapUrl = `${base}/sitemap.xml`;
+    const [robotsOk, sitemapOk] = await Promise.all([
+      this.probeUrl(robotsUrl),
+      this.probeUrl(sitemapUrl),
+    ]);
+
     return {
-      exists: false,
+      exists: robotsOk,
       blocksIndexing: false,
-      protectsAdminNoindex: false,
-      note: '未检测到 public/robots.txt。后台 /admin/* 已通过页面 meta robots 强制 noindex，不影响前台。',
+      protectsAdminNoindex: true,
+      note: robotsOk
+        ? `robots.txt 由 web 动态生成（Disallow /admin/ 与 /api/v1/admin/），不阻止前台公开页面；sitemap 索引${sitemapOk ? '可访问' : '（web 未运行或路由异常）不可访问'}。`
+        : '未检测到 robots.txt（web 未运行或路由异常）。后台 /admin/* 仍通过页面 meta robots 强制 noindex，不影响前台。',
     };
   }
 
-  sitemapStatus(): { exists: boolean; note: string } {
-    const dir = process.env.WEB_PUBLIC_DIR || path.resolve(process.cwd(), '../../apps/web/public');
-    const file = path.join(dir, 'sitemap.xml');
-    try {
-      if (fs.existsSync(file)) {
-        return { exists: true, note: '已检测到 sitemap.xml。' };
-      }
-    } catch (err) {
-      this.logger.warn(`sitemap-status read failed: ${String(err)}`);
-    }
+  async sitemapStatus(): Promise<{ exists: boolean; note: string }> {
+    const base = this.getWebBase();
+    const ok = await this.probeUrl(`${base}/sitemap.xml`);
     return {
-      exists: false,
-      note: 'sitemap.xml 尚未生成；自动化 sitemap 将在 Phase 5 / 专门 SEO automation 阶段处理，本阶段不生成。',
+      exists: ok,
+      note: ok
+        ? 'sitemap 索引已由 web 动态生成，包含 static / emojis / categories / topics（articles 在 Phase 5B 启用）。'
+        : 'sitemap.xml 不可访问（web 未运行或路由异常）；动态 sitemap 将在 web 运行时生效。',
     };
   }
 

@@ -78,13 +78,13 @@ export class AdminSeoController {
   @UseGuards(AdminAuthGuard)
   async robotsStatus(@CurrentAdmin() admin: AdminJwtPayload) {
     assertCanViewSeo(admin.role);
-    return { success: true, data: this.seoService.robotsStatus() };
+    return { success: true, data: await this.seoService.robotsStatus() };
   }
 
   @Get('sitemap-status')
   @UseGuards(AdminAuthGuard)
   async sitemapStatus(@CurrentAdmin() admin: AdminJwtPayload) {
     assertCanViewSeo(admin.role);
-    return { success: true, data: this.seoService.sitemapStatus() };
+    return { success: true, data: await this.seoService.sitemapStatus() };
   }
 }
