@@ -1,5 +1,19 @@
 # Changelog
 
+## Phase 5E
+
+- Completed Phase 5 final acceptance (verified Phase 5A–5D outcomes end-to-end).
+- Verified sitemap and robots automation: `/sitemap.xml` index + `static` / `emojis` / `categories` / `topics` / `articles` sub-sitemaps all return `200` with valid XML, exclude `/admin`, `/api/v1/admin/`, `draft`, `archived`, `undefined`, `null`; `robots.txt` allows public pages, disallows `/admin/` and `/api/v1/admin/`, and references the sitemap via `NEXT_PUBLIC_SITE_URL`.
+- Verified public article pages: list/detail return `200`; Article API returns `published` only; missing / draft / archived return `404`; canonical / hreflang / `html lang` / `BlogPosting` JSON-LD correct and free of `undefined` / `null`.
+- Verified SEO quality checker: `/admin/seo/quality` and `/admin/seo/quality/issues` require auth (`401` unauthenticated, `403` insufficient), `overview` / `issues` return `200`, `run` is read-only (does not rewrite content), 11 issue types present.
+- Verified internal linking: `/admin/seo/internal-links/suggestions` returns real, existing links (articles + topics), excludes draft / archived, no AI, no Meilisearch.
+- Verified structured data: metadata / canonical / hreflang / JSON-LD contain no `undefined` / `null`, do not fabricate author / date / image; sitemap and canonical are consistent.
+- Verified crawl budget boundaries: search query result pages emit `noindex, follow` and are excluded from sitemap; draft / archived return `404`; admin is `noindex, nofollow` and excluded from sitemap.
+- Verified public web pages (20 paths) and admin pages (12 paths): correct `200` / `404` behavior, no `undefined` / `null` in visible content, admin `noindex`, unauthenticated admin access client-redirects to `/admin/login`.
+- Verified security boundaries: `apps/web` and `apps/admin` never import `@prisma/client`; API responses do not leak `passwordHash` / `JWT_SECRET` / plaintext IP; no Meilisearch integration; no AI content generation; not converted to a pure static site; no competitor code / UI / content / assets copied.
+- Ran command acceptance: `pnpm install`, `pnpm db:generate`, `pnpm db:migrate`, `pnpm db:seed`, `pnpm lint`, `pnpm typecheck`, `pnpm build` — all passed with 0 errors and 0 warnings.
+- Did NOT develop Phase 6, did NOT add new business modules, did NOT integrate Meilisearch, did NOT generate AI content, did NOT bulk-generate low-quality content, did NOT convert to a pure static site, did NOT refactor Admin CMS / Web frontend, did NOT copy competitor code / UI / content / assets, did NOT modify Prisma schema.
+
 ## Phase 5D
 
 - Hardened public page metadata (title / description / canonical never undefined / null via `safeText` / `optionalText`).
