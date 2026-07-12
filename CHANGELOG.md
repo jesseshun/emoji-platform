@@ -1,5 +1,19 @@
 # Changelog
 
+## Phase 5D
+
+- Hardened public page metadata (title / description / canonical never undefined / null via `safeText` / `optionalText`).
+- Hardened canonical and hreflang handling (zh canonical → zh, en canonical → en; hreflang outputs zh / en / x-default with x-default defaulting to en).
+- Hardened JSON-LD structured data (`BreadcrumbList` + `FAQPage` / `BlogPosting` via `apps/web/src/lib/seo.ts`; no undefined / null keys; URLs from `NEXT_PUBLIC_SITE_URL`; no fabricated fields).
+- Verified sitemap and robots crawl boundaries (`/sitemap.xml` index + `static / emojis / categories / topics / articles` sub-sitemaps exclude `/admin`, `/api/v1/admin/`, draft / archived, and undefined; `robots.txt` blocks `/admin/` and `/api/v1/admin/` and references the sitemap).
+- Fixed missing / draft / archived public detail pages to return HTTP 404 (emoji / category / topic / article detail pages now use `ApiError.status === 404` + `notFound()` instead of a fragile message check).
+- Added `noindex, follow` to search query result pages (`/zh/search?q=...`, `/en/search?q=...`) with canonical / hreflang consolidated to the base search page to protect crawl budget.
+- Verified admin exclusion from sitemap and `noindex,nofollow` on `/admin/*`.
+- Verified public page performance basics (no Prisma access from `apps/web` or `apps/admin`; no Admin code in public pages; images carry `alt`; list-page canonicals consolidate pagination).
+- Verified SEO Quality Checker compatibility (endpoints intact and guarded; published-only data source; no draft / archived; no undefined / null in JSON-LD).
+- Did NOT convert to a pure static site, did NOT integrate Meilisearch, did NOT generate AI content, did NOT add new CMS CRUD, did NOT break Admin CMS / Sitemap / public pages.
+- `lint` / `typecheck` / `build` green.
+
 ## Phase 5C
 
 - Added SEO quality checker overview backend (`AdminSeoQualityService` + `AdminSeoQualityController` under `admin/seo`).

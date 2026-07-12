@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getTopicDetail, getErrorMessage } from '@/lib/api';
+import { getTopicDetail, getErrorMessage, ApiError } from '@/lib/api';
 import { buildDetailMetadata, optionalText, safeText } from '@/lib/seo';
 import type { FaqItem } from '@/lib/seo';
 import { Breadcrumb } from '@/components/Breadcrumb';
@@ -148,7 +148,7 @@ export default async function ZhTopicDetailPage({ params }: Props) {
       </div>
     );
   } catch (error) {
-    if (error instanceof Error && error.message.includes('404')) {
+    if (error instanceof ApiError && error.status === 404) {
       notFound();
     }
     return (

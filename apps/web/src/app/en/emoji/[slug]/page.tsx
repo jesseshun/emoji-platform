@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getEmojiDetail, getErrorMessage } from '@/lib/api';
+import { getEmojiDetail, getErrorMessage, ApiError } from '@/lib/api';
 import { buildDetailMetadata, optionalText, safeText } from '@/lib/seo';
 import type { FaqItem } from '@/lib/seo';
 import { DetailHero } from '@/components/DetailHero';
@@ -151,7 +151,7 @@ export default async function EnEmojiDetailPage({ params }: Props) {
       </div>
     );
   } catch (error) {
-    if (error instanceof Error && error.message.includes('404')) {
+    if (error instanceof ApiError && error.status === 404) {
       notFound();
     }
     return (

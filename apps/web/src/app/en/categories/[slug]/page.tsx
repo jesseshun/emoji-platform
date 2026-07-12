@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getCategoryDetail, getErrorMessage } from '@/lib/api';
+import { getCategoryDetail, getErrorMessage, ApiError } from '@/lib/api';
 import { buildDetailMetadata, optionalText, safeText } from '@/lib/seo';
 import { Breadcrumb } from '@/components/Breadcrumb';
 import { EmojiGrid } from '@/components/EmojiGrid';
@@ -117,7 +117,7 @@ export default async function EnCategoryDetailPage({ params, searchParams }: Pro
       </div>
     );
   } catch (error) {
-    if (error instanceof Error && error.message.includes('404')) {
+    if (error instanceof ApiError && error.status === 404) {
       notFound();
     }
     return (

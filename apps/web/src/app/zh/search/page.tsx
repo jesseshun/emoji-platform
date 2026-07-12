@@ -21,18 +21,23 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const description = query
     ? `搜索与“${query}”相关的 Emoji 表情符号，支持按名称、关键词、Unicode 编码搜索与一键复制。`
     : '搜索 Emoji 表情符号，输入关键词快速找到你需要的表情。';
-  const zhPath = query ? `${siteUrl}/zh/search?q=${encodeURIComponent(query)}` : `${siteUrl}/zh/search`;
-  const enPath = query ? `${siteUrl}/en/search?q=${encodeURIComponent(query)}` : `${siteUrl}/en/search`;
+  // The base search landing page (/zh/search) is indexable and listed in the
+  // sitemap. Search *result* pages (with a ?q= query) are low-value for search
+  // engines and must not be crawled in bulk (crawl budget): they are noindexed
+  // and their canonical/hreflang consolidate back to the base search page.
+  const zhBase = `${siteUrl}/zh/search`;
+  const enBase = `${siteUrl}/en/search`;
 
   return {
     title,
     description,
+    ...(query ? { robots: { index: false, follow: true } } : {}),
     alternates: {
-      canonical: zhPath,
+      canonical: zhBase,
       languages: {
-        zh: zhPath,
-        en: enPath,
-        'x-default': enPath,
+        zh: zhBase,
+        en: enBase,
+        'x-default': enBase,
       },
     },
   };
