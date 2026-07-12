@@ -17,7 +17,7 @@
 
 ## 当前阶段
 
-**Phase 5B** - Public Article Pages and Content Scale 已完成（公开文章列表/详情页、Article 公共 API、文章 SEO metadata 与 JSON-LD、文章 sitemap 启用）。
+**Phase 5C** - SEO Quality Checker and Internal Linking 已完成（SEO 质量检查后台页与 API、11 种 SEO issue 类型、内部链接建议、公开文章详情页相关专题/表情模块）。
 
 ## 技术栈
 
@@ -198,6 +198,7 @@ docker compose up postgres redis meilisearch
 | 文章管理 | http://localhost:3001/admin/articles |
 | 素材管理 | http://localhost:3001/admin/assets |
 | SEO 管理 | http://localhost:3001/admin/seo |
+| SEO 质量检查 | http://localhost:3001/admin/seo/quality |
 | 搜索日志 | http://localhost:3001/admin/search-logs |
 | 统计分析 | http://localhost:3001/admin/analytics |
 | 系统设置 | http://localhost:3001/admin/settings |
@@ -1262,6 +1263,65 @@ Base URL：`http://localhost:4000/api/v1`
 **Phase 5C** - SEO Quality Checker and Internal Linking（SEO 质量检查与内部链接）。
 
 > Phase 5B 边界：本阶段仅做公开文章页面与内容规模化基础能力，不开发 Phase 5C 的 SEO Quality Checker、不开发复杂 Internal Linking 系统、不接入 Meilisearch、不开发 AI 自动生成内容、不批量生成低质量内容、不改为纯静态站。
+
+## Phase 5C - SEO Quality Checker and Internal Linking
+
+本阶段完成基础 SEO 质量检查与基础内部链接能力：后台质量检查页与 API、11 种 SEO 问题类型、内部链接建议、公开文章详情页相关专题/表情模块。**不**自动改写 title/description、不批量生成内容、不接入 Meilisearch、不开发复杂评分算法、不改为纯静态站、不复制竞品代码/文案/数据库/图片。
+
+### SEO Quality Checker 范围
+
+- 后台总览页 `/admin/seo/quality`：检查总数、通过数量、问题数、警告数、按实体类型统计（emoji / category / topic / article）、按问题类型统计、最近发现问题、一键「运行检查」、快捷跳转到 SEO 编辑页。
+- 后台问题列表页 `/admin/seo/quality/issues`：分页 + 筛选（实体类型 / 问题类型 / 严重级别 / 语言 / 关键词），每条问题展示实体摘要、问题类型、严重程度、说明、建议操作、编辑入口、公开页入口。
+- 实时只读扫描：每次请求基于数据库当前数据计算，不落库、不修改任何实体数据。
+
+### SEO issue 类型说明
+
+| issueType | 触发条件 | 严重程度 |
+|------|------|------|
+| `missingSeoTitle` | seoTitle 缺失（null / 空） | issue |
+| `missingSeoDescription` | seoDescription 缺失 | issue |
+| `titleTooShort` | seoTitle 长度 < 10 字符 | warning |
+| `titleTooLong` | seoTitle 长度 > 70 字符 | warning |
+| `descriptionTooShort` | seoDescription 长度 < 50 字符 | warning |
+| `descriptionTooLong` | seoDescription 长度 > 180 字符 | warning |
+| `missingCanonicalPreview` | 已发布页面 slug 无效（空 / 含 undefined / null / 非法格式），无法生成 canonical | issue |
+| `missingHreflangPreview` | 已发布页面缺 zh 或 en 翻译，无法生成 hreflang 交替 | issue |
+| `missingJsonLd` | 已发布 emoji/topic/article 因 slug 无效或双语名称均缺失，无法生成 JSON-LD | issue |
+| `sitemapMismatch` | 已发布内容因 slug 无效无法正确进入 sitemap | issue |
+| `noInternalLinks` | 实体缺少可关联的内部内容（如 emoji 无分类且无专题、category 下无 emoji、topic 无绑定 emoji、文章无其它已发布文章） | warning |
+
+> 说明：canonical / hreflang / JSON-LD 为**风险检查**，聚焦「已发布页面是否具备可用的预览/结构化数据」；不强制为所有页面新增复杂 JSON-LD，不编造作者 / 日期 / publisher。
+
+### SEO quality API 说明
+
+Base URL：`http://localhost:4000/api/v1`（全部需 admin 登录，401 未登录 / 403 权限不足）
+
+| 方法 | 接口 | 说明 | 权限 |
+|------|------|------|------|
+| GET | `/api/v1/admin/seo/quality/overview` | 质量总览（总数 / 通过 / issue / warning / 按类型 / 最近） | 查看：super_admin / editor / seo_manager / reviewer / analyst |
+| GET | `/api/v1/admin/seo/quality/issues` | 问题列表（page / limit / entityType / issueType / severity / locale / q + 分页 meta + 按类型计数） | 查看（同上） |
+| POST | `/api/v1/admin/seo/quality/run` | 即时只读重查，不写库、不自动改写 | 运行：super_admin / editor / seo_manager |
+| GET | `/api/v1/admin/seo/internal-links/suggestions` | 内部链接建议（entityType / id / locale） | 查看（同上） |
+
+- 建议数据全部来自已有 Emoji / Category / Topic / Article 数据，基于关键词/标题 token 重叠简单匹配，**不调用 AI、不接入 Meilisearch、不改写内容**。
+- 建议来源：emoji → 同分类 emoji + 关联专题；category → 分类下 emoji + 同分类相关专题；topic → 绑定 emoji + 共享 emoji 的其它专题；article → 关键词相关文章 + 相关专题 + 相关 emoji。
+
+### Internal Linking 规则说明
+
+- 公开详情页已有相关模块：emoji（同分类表情 + 相关专题）、topic（绑定表情 + 相关专题）、category（分类表情 + 相关专题）、article（相关文章 + **本阶段新增相关专题与相关表情**）。
+- 每页只添加适度相关链接模块，链接均真实存在、不指向 draft / archived、不显示 undefined / null。
+- 禁止：大量重复链接、页面堆满链接、隐藏链接、关键词堆砌、复制竞品内链结构、使用 AI 生成推荐文案。
+
+### 禁止 AI 自动生成 / 关键词堆砌
+
+- 不开发 AI 自动写 SEO（title / description 仍由人工在后台编辑）。
+- 不自动改写 title / description，不批量生成内容，不接入 Meilisearch。
+- 不开发复杂 SEO 评分系统、不开发搜索排名预测、不开发外链系统。
+- 内部链接基于简单关键词匹配，数量受控，避免关键词堆砌与隐藏链接，符合搜索引擎质量规范。
+
+### 下一阶段 Phase 5D
+
+**Phase 5D - Performance, Crawl Budget, and Structured Data Hardening**（性能、抓取预算与结构化数据加固）：在已完成的质量检查与内部链接基础上，优化公开页面性能、控制 crawl budget、加固核心结构化数据。不改为纯静态站、不破坏已完成 Admin CMS / Sitemap / 公开页面。
 
 ## 开发规范
 

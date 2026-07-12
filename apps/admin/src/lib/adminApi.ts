@@ -994,6 +994,89 @@ export interface SeoOverview {
   sitemapStatus: { exists: boolean; note: string };
 }
 
+// ─── SEO Quality Checker (Phase 5C) ───────────────
+
+export type SeoIssueType =
+  | 'missingSeoTitle'
+  | 'missingSeoDescription'
+  | 'titleTooShort'
+  | 'titleTooLong'
+  | 'descriptionTooShort'
+  | 'descriptionTooLong'
+  | 'missingCanonicalPreview'
+  | 'missingHreflangPreview'
+  | 'missingJsonLd'
+  | 'sitemapMismatch'
+  | 'noInternalLinks';
+
+export type SeoSeverity = 'issue' | 'warning';
+
+export interface SeoQualityIssuesByType {
+  missingSeoTitle: number;
+  missingSeoDescription: number;
+  titleTooShort: number;
+  titleTooLong: number;
+  descriptionTooShort: number;
+  descriptionTooLong: number;
+  missingCanonicalPreview: number;
+  missingHreflangPreview: number;
+  missingJsonLd: number;
+  sitemapMismatch: number;
+  noInternalLinks: number;
+}
+
+export interface SeoQualityIssuesByEntityType {
+  emoji: { issue: number; warning: number };
+  category: { issue: number; warning: number };
+  topic: { issue: number; warning: number };
+  article: { issue: number; warning: number };
+}
+
+export interface SeoIssue {
+  id: string;
+  entityType: 'emoji' | 'category' | 'topic' | 'article';
+  entityId: string;
+  locale: 'zh' | 'en' | 'all';
+  issueType: SeoIssueType;
+  severity: SeoSeverity;
+  message: string;
+  recommendedAction: string;
+  nameOrTitle: string | null;
+  slug: string | null;
+  status: string | null;
+  updatedAt: string;
+  editUrl: string;
+  publicUrl: string | null;
+}
+
+export interface SeoQualityOverview {
+  totalChecked: number;
+  passedCount: number;
+  issueCount: number;
+  warningCount: number;
+  issuesByEntityType: SeoQualityIssuesByEntityType;
+  issuesByType: SeoQualityIssuesByType;
+  recentIssues: SeoIssue[];
+  generatedAt: string;
+}
+
+export interface InternalLinkSuggestion {
+  entityType: 'emoji' | 'category' | 'topic' | 'article';
+  id: string;
+  slug: string;
+  title: string | null;
+  url: string;
+  reason: string;
+  score: number;
+}
+
+export interface InternalLinkSuggestionResponse {
+  entityType: 'emoji' | 'category' | 'topic' | 'article';
+  id: string;
+  locale: 'zh' | 'en';
+  suggestions: InternalLinkSuggestion[];
+}
+
 export interface SeoEntityListItem {
   id: string;
   entityId: string | null;
@@ -1384,3 +1467,70 @@ export const SUBMISSION_STATUS_BADGE: Record<SubmissionStatus, string> = {
   rejected: 'bg-red-100 text-red-700',
   spam: 'bg-gray-200 text-gray-600',
 };
+
+// ─── SEO Quality Checker (Phase 5C) ──────────────────
+
+export interface SeoQualityIssuesQuery {
+  page?: number;
+  limit?: number;
+  entityType?: 'emoji' | 'category' | 'topic' | 'article' | 'all';
+  issueType?: SeoIssueType | 'all';
+  severity?: SeoSeverity | 'all';
+  locale?: 'zh' | 'en' | 'all';
+  q?: string;
+}
+
+export interface SeoQualityIssuesResponse {
+  data: SeoIssue[];
+  meta: { page: number; limit: number; total: number; totalPages: number };
+  issuesByType: SeoQualityIssuesByType;
+}
+
+export async function getSeoQualityOverview(): Promise<SeoQualityOverview> {
+  return adminFetch<SeoQualityOverview>('/admin/seo/quality/overview');
+}
+
+export async function runSeoQualityCheck(): Promise<SeoQualityOverview> {
+  return adminFetch<SeoQualityOverview>('/admin/seo/quality/run', { method: 'POST' });
+}
+
+export async function listSeoQualityIssues(
+  params: SeoQualityIssuesQuery = {},
+): Promise<SeoQualityIssuesResponse> {
+  const qs = new URLSearchParams();
+  if (params.page && params.page > 1) qs.set('page', String(params.page));
+  if (params.limit) qs.set('limit', String(params.limit));
+  if (params.entityType && params.entityType !== 'all') qs.set('entityType', params.entityType);
+  if (params.issueType && params.issueType !== 'all') qs.set('issueType', params.issueType);
+  if (params.severity && params.severity !== 'all') qs.set('severity', params.severity);
+  if (params.locale && params.locale !== 'all') qs.set('locale', params.locale);
+  if (params.q) qs.set('q', params.q);
+  const query = qs.toString();
+  const body = (await adminFetchEnvelope<SeoIssue[]>(
+    `/admin/seo/quality/issues${query ? `?${query}` : ''}`,
+  )) as unknown as { data: SeoIssue[]; meta?: unknown; issuesByType?: SeoQualityIssuesByType };
+  return {
+    data: body.data,
+    meta: (body.meta as unknown as SeoQualityIssuesResponse['meta']) ?? {
+      page: 1,
+      limit: params.limit ?? 30,
+      total: 0,
+      totalPages: 1,
+    },
+    issuesByType: body.issuesByType ?? ({} as SeoQualityIssuesByType),
+  };
+}
+
+export async function getInternalLinkSuggestions(
+  entityType: 'emoji' | 'category' | 'topic' | 'article',
+  id: string,
+  locale: 'zh' | 'en' = 'zh',
+): Promise<InternalLinkSuggestionResponse> {
+  const qs = new URLSearchParams();
+  qs.set('entityType', entityType);
+  qs.set('id', id);
+  qs.set('locale', locale);
+  return adminFetch<InternalLinkSuggestionResponse>(
+    `/admin/seo/internal-links/suggestions?${qs.toString()}`,
+  );
+}

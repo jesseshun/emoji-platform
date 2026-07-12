@@ -1,5 +1,19 @@
 # Changelog
 
+## Phase 5C
+
+- Added SEO quality checker overview backend (`AdminSeoQualityService` + `AdminSeoQualityController` under `admin/seo`).
+- Added `GET /api/v1/admin/seo/quality/overview`: total checked, passed count, issue/warning counts, issues by entity type, issues by issue type, and recent issues.
+- Added `GET /api/v1/admin/seo/quality/issues`: paginated + filterable issue list (page / limit / entityType / issueType / severity / locale / q) with entity summary, issue type, severity, message, recommended action, edit URL, and public URL.
+- Added `POST /api/v1/admin/seo/quality/run`: on-demand read-only re-check; never writes to the database or modifies entity data.
+- Added `GET /api/v1/admin/seo/internal-links/suggestions`: basic internal-link suggestions for an entity (related emoji / category / topic / article) computed from existing published data by keyword/title overlap — no AI, no Meilisearch, no content rewriting.
+- Implemented 11 SEO issue types: missingSeoTitle, missingSeoDescription, titleTooShort, titleTooLong, descriptionTooShort, descriptionTooLong, missingCanonicalPreview, missingHreflangPreview, missingJsonLd, sitemapMismatch, noInternalLinks.
+- Added admin pages `/admin/seo/quality` (overview) and `/admin/seo/quality/issues` (issue list with filters, pagination, and quick jump to the SEO edit page); added a "SEO 质量检查" entry to the admin sidebar.
+- Enhanced public article detail pages (`/zh/articles/{slug}/`, `/en/articles/{slug}/`) with related topics and related emojis modules (keyword-overlap, published-only, excludes draft/archived) via the public `GET /api/v1/articles/{slug}` API.
+- Added `canViewSeoQuality` (super_admin / editor / seo_manager / reviewer / analyst) and `canRunSeoQualityCheck` (super_admin / editor / seo_manager) role helpers; all quality endpoints are guarded by `AdminAuthGuard` (401 when unauthenticated, 403 when unauthorized).
+- Updated README, PROJECT_HANDOFF.md, and this changelog. `lint` / `typecheck` / `build` green.
+- Did NOT build a complex SEO scorer, did NOT auto-rewrite title/description, did NOT bulk-generate content, did NOT integrate Meilisearch, did NOT build search-ranking prediction, did NOT build an outbound-link system, did NOT convert to a pure static site.
+
 ## Phase 5A
 
 - Added sitemap index at `/sitemap.xml` (App Router route handler, `force-dynamic`): a `<sitemapindex>`

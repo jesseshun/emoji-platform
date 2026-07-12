@@ -228,6 +228,47 @@ export function assertCanViewSeo(role: string | undefined | null): void {
   }
 }
 
+// SEO Quality Checker (Phase 5C). Read-only overview + issues list are visible to
+// the same operational / content roles as the SEO management center plus reviewer
+// and analyst; running an on-demand check (POST) is limited to the roles that
+// own SEO write authority (super_admin, editor, seo_manager). Kept as clearly
+// named helpers distinct from the management-center helpers.
+const SEO_QUALITY_VIEW_ROLES: AdminRole[] = [
+  'super_admin',
+  'editor',
+  'seo_manager',
+  'reviewer',
+  'analyst',
+];
+
+const SEO_QUALITY_RUN_ROLES: AdminRole[] = ['super_admin', 'editor', 'seo_manager'];
+
+export function canViewSeoQuality(role: string | undefined | null): boolean {
+  if (!role) return false;
+  return SEO_QUALITY_VIEW_ROLES.includes(role as AdminRole);
+}
+
+export function canRunSeoQualityCheck(role: string | undefined | null): boolean {
+  if (!role) return false;
+  return SEO_QUALITY_RUN_ROLES.includes(role as AdminRole);
+}
+
+export function assertCanViewSeoQuality(role: string | undefined | null): void {
+  if (!canViewSeoQuality(role)) {
+    throw new ForbiddenException(
+      '当前角色无权访问 SEO 质量检查（需要 super_admin / editor / seo_manager / reviewer / analyst）',
+    );
+  }
+}
+
+export function assertCanRunSeoQualityCheck(role: string | undefined | null): void {
+  if (!canRunSeoQualityCheck(role)) {
+    throw new ForbiddenException(
+      '当前角色无权运行 SEO 检查（需要 super_admin / editor / seo_manager）',
+    );
+  }
+}
+
 // Logs viewing (Phase 4D-3): Search Logs + Copy Events are visible to operational
 // and content roles. Read = super_admin, editor, seo_manager, reviewer, analyst.
 // translator is intentionally excluded (logs are operational data, not translation

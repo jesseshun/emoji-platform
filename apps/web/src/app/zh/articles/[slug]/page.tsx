@@ -5,6 +5,8 @@ import { getArticleDetail, getErrorMessage, ApiError } from '@/lib/api';
 import { buildDetailMetadata, optionalText, safeText, buildArticleJsonLd } from '@/lib/seo';
 import { Breadcrumb } from '@/components/Breadcrumb';
 import { ArticleCard } from '@/components/ArticleCard';
+import { RelatedTopics } from '@/components/RelatedTopics';
+import { RelatedEmojis } from '@/components/RelatedEmojis';
 import { ErrorState } from '@/components/ErrorState';
 import { PUBLISHER_NAME } from '@/lib/constants';
 
@@ -55,7 +57,7 @@ export default async function ZhArticleDetailPage({ params }: Props) {
 
   try {
     const result = await getArticleDetail(slug, 'zh');
-    const { article, relatedArticles } = result.data;
+    const { article, relatedArticles, relatedTopics, relatedEmojis } = result.data;
 
     const title = safeText(article.translation?.title || article.slug);
     const summary = article.translation?.summary || null;
@@ -180,6 +182,16 @@ export default async function ZhArticleDetailPage({ params }: Props) {
               ))}
             </div>
           </section>
+        )}
+
+        {/* Related topics (internal linking, Phase 5C) */}
+        {relatedTopics && relatedTopics.length > 0 && (
+          <RelatedTopics topics={relatedTopics} locale="zh" />
+        )}
+
+        {/* Related emojis (internal linking, Phase 5C) */}
+        {relatedEmojis && relatedEmojis.length > 0 && (
+          <RelatedEmojis emojis={relatedEmojis} locale="zh" />
         )}
       </div>
     );

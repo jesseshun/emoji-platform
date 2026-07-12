@@ -20,6 +20,39 @@ export class ArticlesService {
 
   constructor(private readonly prisma: PrismaService) {}
 
+  // ─── Internal-linking helpers (no AI, no Meilisearch) ─
+
+  private tokenize(text?: string | null): Set<string> {
+    const tokens = new Set<string>();
+    if (!text || typeof text !== 'string') return tokens;
+    const lower = text.toLowerCase();
+    for (const m of lower.match(/[a-z0-9]{2,}/g) ?? []) tokens.add(m);
+    for (const m of lower.match(/[一-鿿]+/g) ?? []) {
+      const run = m;
+      if (run.length === 1) tokens.add(run);
+      else for (let i = 0; i < run.length - 1; i++) tokens.add(run.slice(i, i + 2));
+    }
+    return tokens;
+  }
+
+  private overlap(a?: string | null, b?: string | null): number {
+    if (!a || !b) return 0;
+    const ta = this.tokenize(a);
+    const tb = this.tokenize(b);
+    if (ta.size === 0 || tb.size === 0) return 0;
+    let inter = 0;
+    for (const t of ta) if (tb.has(t)) inter++;
+    return inter;
+  }
+
+  private keywordsText(keywords: unknown): string {
+    if (Array.isArray(keywords)) {
+      return (keywords as unknown[]).filter((k) => typeof k === 'string').join(' ');
+    }
+    if (typeof keywords === 'string') return keywords;
+    return '';
+  }
+
   async list(query: ArticleListQuery) {
     const { locale, page, limit } = query;
 
@@ -105,6 +138,75 @@ export class ArticlesService {
       },
     });
 
+    // Internal-linking suggestions (no AI, no Meilisearch): match the current
+    // article's title/summary/keywords against other published entities.
+    const selfText = [
+      translation.title,
+      translation.summary,
+      this.keywordsText(translation.keywords),
+    ].join(' ');
+
+    // Related topics by keyword overlap
+    const topicCandidates = await this.prisma.topic.findMany({
+      where: { status: 'published' },
+      take: 100,
+      include: { translations: { where: { locale } } },
+    });
+    const relatedTopics = topicCandidates
+      .map((tp) => {
+        const ttr = tp.translations[0];
+        return {
+          score: this.overlap(selfText, [ttr?.title, ttr?.summary].join(' ')),
+          topic: tp,
+          translation: ttr,
+        };
+      })
+      .filter((x) => x.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5)
+      .map((x) => ({
+        id: x.topic.id,
+        slug: x.topic.slug,
+        coverImage: x.topic.coverImage,
+        topicType: x.topic.topicType,
+        translation: x.translation
+          ? { locale: x.translation.locale, title: x.translation.title, summary: x.translation.summary }
+          : null,
+      }));
+
+    // Related emojis by keyword overlap
+    const emojiCandidates = await this.prisma.emoji.findMany({
+      where: { status: 'published' },
+      take: 300,
+      include: { translations: { where: { locale } } },
+    });
+    const relatedEmojis = emojiCandidates
+      .map((e) => {
+        const etr = e.translations[0];
+        return {
+          score: this.overlap(selfText, [etr?.name, this.keywordsText(etr?.keywords)].join(' ')),
+          emoji: e,
+          translation: etr,
+        };
+      })
+      .filter((x) => x.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 6)
+      .map((x) => ({
+        id: x.emoji.id,
+        emojiChar: x.emoji.emojiChar,
+        slug: x.emoji.slug,
+        shortcode: x.emoji.shortcode,
+        translation: x.translation
+          ? {
+              locale: x.translation.locale,
+              name: x.translation.name,
+              shortName: x.translation.shortName,
+              oneLineMeaning: x.translation.oneLineMeaning,
+            }
+          : null,
+      }));
+
     return {
       data: {
         article: {
@@ -138,6 +240,8 @@ export class ArticlesService {
               }
             : null,
         })),
+        relatedTopics: relatedTopics.length > 0 ? relatedTopics : [],
+        relatedEmojis: relatedEmojis.length > 0 ? relatedEmojis : [],
       },
     };
   }

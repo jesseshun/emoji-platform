@@ -11,6 +11,8 @@ import { AdminTopicService } from './admin-topic.service';
 import { AdminArticleService } from './admin-article.service';
 import { AdminAssetService } from './admin-asset.service';
 import { AdminSeoService } from './admin-seo.service';
+import { AdminSeoQualityService } from './admin-seo-quality.service';
+import { AdminSeoQualityController } from './admin-seo-quality.controller';
 import { AdminLogsService } from './admin-logs.service';
 import { AdminReviewService } from './admin-review.service';
 import { AdminDashboardController } from './admin-dashboard.controller';
@@ -47,6 +49,7 @@ import { AdminReviewController } from './admin-review.controller';
     AdminArticleController,
     AdminAssetController,
     AdminSeoController,
+    AdminSeoQualityController,
     AdminSearchLogsController,
     AdminCopyEventsController,
     AdminReviewController,
@@ -60,6 +63,7 @@ import { AdminReviewController } from './admin-review.controller';
     AdminArticleService,
     AdminAssetService,
     AdminSeoService,
+    AdminSeoQualityService,
     AdminLogsService,
     AdminReviewService,
   ],

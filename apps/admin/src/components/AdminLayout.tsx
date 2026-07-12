@@ -12,6 +12,7 @@ const navItems = [
   { href: '/admin/articles', label: '文章管理' },
   { href: '/admin/assets', label: '素材管理' },
   { href: '/admin/seo', label: 'SEO 管理' },
+  { href: '/admin/seo/quality', label: 'SEO 质量检查' },
   { href: '/admin/search-logs', label: '搜索日志' },
   { href: '/admin/copy-events', label: '复制日志' },
   { href: '/admin/reviews', label: '审核管理' },

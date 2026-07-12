@@ -296,6 +296,8 @@ export interface ArticleDetailData {
     } | null;
   };
   relatedArticles: ArticleItem[];
+  relatedTopics: RelatedTopic[];
+  relatedEmojis: RelatedEmoji[];
 }
 
 // ─── Re-exports ────────────────────────────────────────
