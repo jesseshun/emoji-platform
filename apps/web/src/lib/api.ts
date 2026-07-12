@@ -1,5 +1,5 @@
 import type { ApiResponse, PaginatedResponse } from '@emoji-platform/types';
-import type { EmojiListItem, CategoryItem, TopicItem, SearchResultItem, Locale, EmojiDetail, CategoryDetailData, TopicDetailData } from './types';
+import type { EmojiListItem, CategoryItem, TopicItem, SearchResultItem, Locale, EmojiDetail, CategoryDetailData, TopicDetailData, ArticleItem, ArticleDetailData } from './types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
@@ -107,6 +107,24 @@ export async function getTopicDetail(
   locale: Locale,
 ): Promise<ApiResponse<TopicDetailData>> {
   return fetchApi<ApiResponse<TopicDetailData>>(`/topics/${encodeURIComponent(slug)}?locale=${locale}`);
+}
+
+// ─── Article Endpoints ─────────────────────────────────
+
+export async function getArticles(
+  locale: Locale,
+  page = 1,
+  limit = 30,
+): Promise<PaginatedResponse<ArticleItem>> {
+  const params = new URLSearchParams({ locale, page: String(page), limit: String(limit) });
+  return fetchApi<PaginatedResponse<ArticleItem>>(`/articles?${params}`);
+}
+
+export async function getArticleDetail(
+  slug: string,
+  locale: Locale,
+): Promise<ApiResponse<ArticleDetailData>> {
+  return fetchApi<ApiResponse<ArticleDetailData>>(`/articles/${encodeURIComponent(slug)}?locale=${locale}`);
 }
 
 // ─── Search Endpoint ───────────────────────────────────

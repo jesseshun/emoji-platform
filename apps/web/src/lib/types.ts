@@ -259,6 +259,45 @@ export interface TopicBoundEmoji {
   } | null;
 }
 
+// ─── Article (public) ──────────────────────────────────
+
+export interface ArticleItem {
+  id: string;
+  slug: string;
+  coverImage: string | null;
+  publishedAt: string | null;
+  status: string;
+  translation: {
+    locale: string;
+    title: string | null;
+    summary: string | null;
+    seoTitle: string | null;
+    seoDescription: string | null;
+  } | null;
+}
+
+export interface ArticleDetailData {
+  article: {
+    id: string;
+    slug: string;
+    coverImage: string | null;
+    publishedAt: string | null;
+    updatedAt: string | null;
+    status: string;
+    author: { name: string } | null;
+    translation: {
+      locale: string;
+      title: string | null;
+      summary: string | null;
+      content: string | null;
+      seoTitle: string | null;
+      seoDescription: string | null;
+      keywords: unknown;
+    } | null;
+  };
+  relatedArticles: ArticleItem[];
+}
+
 // ─── Re-exports ────────────────────────────────────────
 
 export type { Locale, PaginationMeta };

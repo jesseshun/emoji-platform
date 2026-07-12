@@ -17,7 +17,7 @@
 
 ## 当前阶段
 
-**Phase 4D-4** - Phase 4 Admin CMS Acceptance and Security Hardening 已完成（Phase 4 后台 CMS 全模块验收与安全加固）。
+**Phase 5B** - Public Article Pages and Content Scale 已完成（公开文章列表/详情页、Article 公共 API、文章 SEO metadata 与 JSON-LD、文章 sitemap 启用）。
 
 ## 技术栈
 
@@ -1202,11 +1202,66 @@ pnpm build
 
 **Phase 5B - Public Article Pages and Content Scale**（公开文章详情页与内容规模化）：实现文章前台详情页，启用 `/sitemaps/articles.xml` 并将其加入 sitemap index。
 
+## Phase 5B - Public Article Pages and Content Scale
+
+本阶段完成公开文章页面与内容规模化基础能力：公开文章列表页、公开文章详情页、中英文文章路由、文章 SEO metadata / canonical / hreflang、文章 JSON-LD、文章 sitemap 启用。不开发 AI 自动写文章、不批量生成低质量文章、不接入 Meilisearch、不开发复杂推荐算法、不开发 SEO 评分器、不改为纯静态站。
+
+### Public Article Pages 范围
+
+- 列表页 `/zh/articles/` 与 `/en/articles/`：展示 published 文章（标题、摘要、封面图、发布时间、阅读入口），支持分页，空状态可读，移动端可用。
+- 详情页 `/zh/articles/{slug}/` 与 `/en/articles/{slug}/`：展示标题、摘要、正文 `content`、发布时间、封面图（如有）、作者（显示名）、返回文章列表链接；不存在 / draft / archived 返回 404；缺当前语言 translation 时返回 404（不渲染空白或 undefined 页面）。
+
+### Article 公共路由
+
+| 页面 | 地址 |
+|------|------|
+| 文章列表（中） | http://localhost:3000/zh/articles/ |
+| 文章列表（英） | http://localhost:3000/en/articles/ |
+| 文章详情（中） | http://localhost:3000/zh/articles/{slug}/ |
+| 文章详情（英） | http://localhost:3000/en/articles/{slug}/ |
+
+### Article 公共 API
+
+Base URL：`http://localhost:4000/api/v1`
+
+| 方法 | 接口 | 说明 | 鉴权 |
+|------|------|------|------|
+| GET | `/api/v1/articles` | 已发布文章列表（page/limit/locale） | 不需要 |
+| GET | `/api/v1/articles/{slug}` | 已发布文章详情（含 zh/en translation、author 显示名、relatedArticles） | 不需要 |
+
+- 仅返回 `published` 文章；draft / archived 不返回、不进 sitemap。
+- 不返回后台敏感字段、不返回 `passwordHash` / `JWT_SECRET`；author 仅暴露显示 `name`。
+- `slug` 不存在或该 locale 无 translation 返回 `404`；`limit` 上限 `MAX_LIMIT`（100）。
+
+### Article SEO metadata
+
+- 列表页：中英文 `title` / `description`，正确 `canonical` 与 `hreflang`（zh / en / x-default），Open Graph 基础字段，不 `noindex`。
+- 详情页：`title` 用 `seoTitle`（缺失回退 `title`）；`description` 用 `seoDescription`（缺失回退 `summary`）；`canonical` / `hreflang` / `html lang` 正确；`openGraph` 带 `publishedTime` / `modifiedTime` / `authors`；draft / archived 不允许被索引（返回 404）。
+
+### Article JSON-LD
+
+详情页注入 `BlogPosting` 结构化数据：`headline`、`description`、`inLanguage`、`datePublished`、`dateModified`、`image`（如有）、`author`（如有）、`mainEntityOfPage`、`publisher`。不含 `undefined` / `null` 键；不编造作者信息；URL 由 `NEXT_PUBLIC_SITE_URL` 驱动，不写死生产域名。
+
+### Article sitemap 启用
+
+- `/sitemaps/articles.xml` 返回 published 文章的 `/zh/articles/{slug}/` 与 `/en/articles/{slug}/` 双语言 URL（含 hreflang、`lastmod`、`changefreq=weekly`、`priority=0.7`）。
+- `/sitemap.xml` 索引已包含 `articles` 子 sitemap。
+- `robots.txt` 不阻止文章页面；`/admin/*` 仍不进入 sitemap、仍 `noindex`。
+
+### 内容质量边界
+
+本阶段只上线页面能力，不批量生成低质量内容：
+
+- 不批量复制竞品文章；不自动生成大量空文章页。
+- 不把无正文、无标题、未发布文章收录。
+- 文章列表展示 seed 数据与后台已有 published 文章。
+- 后续内容规模化必须遵守**原创、授权、质量审核**要求：所有文章须为原创或可合规授权内容，发布前经人工质量审核，禁止抓取竞品文案/图片，禁止机器批量灌水。
+
 ## 下一阶段
 
-**Phase 5B** - Public Article Pages and Content Scale（公开文章详情页与内容规模化）。
+**Phase 5C** - SEO Quality Checker and Internal Linking（SEO 质量检查与内部链接）。
 
-> Phase 5A 边界：本阶段仅做 sitemap / robots / indexing 自动化，不开发公开文章详情页、不开发 AI 内容生成、不批量生成低质量页面、不接入 Meilisearch、不做复杂 SEO 评分、不改为纯静态站生成器。
+> Phase 5B 边界：本阶段仅做公开文章页面与内容规模化基础能力，不开发 Phase 5C 的 SEO Quality Checker、不开发复杂 Internal Linking 系统、不接入 Meilisearch、不开发 AI 自动生成内容、不批量生成低质量内容、不改为纯静态站。
 
 ## 开发规范
 

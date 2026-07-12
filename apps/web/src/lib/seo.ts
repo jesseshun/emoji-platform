@@ -138,3 +138,58 @@ export function buildFaqPage(faqs: FaqItem[]) {
     })),
   };
 }
+
+// ─── Article JSON-LD ───────────────────────────────────
+
+export interface ArticleJsonLdInput {
+  locale: Locale;
+  path: string;
+  headline: string;
+  description: string;
+  datePublished?: string | null;
+  dateModified?: string | null;
+  image?: string | null;
+  authorName?: string | null;
+  publisherName?: string;
+}
+
+/**
+ * Builds a BlogPosting JSON-LD object for article detail pages.
+ *
+ * Guarantees no `undefined` / `null` keys in the output (omitted instead),
+ * never fabricates author info, and uses NEXT_PUBLIC_SITE_URL for URLs.
+ */
+export function buildArticleJsonLd(input: ArticleJsonLdInput): Record<string, unknown> {
+  const { locale, path, headline, description, datePublished, dateModified, image, authorName, publisherName } = input;
+  const siteUrl = getSiteUrl();
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  const canonical = `${siteUrl}/${locale}${normalizedPath}`;
+
+  const jsonLd: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: headline || '',
+    description: description || '',
+    inLanguage: locale === 'zh' ? 'zh-Hans' : 'en',
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': canonical,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: publisherName,
+    },
+  };
+
+  if (datePublished) jsonLd.datePublished = datePublished;
+  if (dateModified) jsonLd.dateModified = dateModified;
+  if (image) jsonLd.image = image;
+  if (authorName) {
+    jsonLd.author = {
+      '@type': 'Person',
+      name: authorName,
+    };
+  }
+
+  return jsonLd;
+}

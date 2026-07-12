@@ -39,6 +39,41 @@
 - Updated README (Phase 5A section), PROJECT_HANDOFF.md (Phase 5A completed, next = Phase 5B), and
   this changelog.
 
+## Phase 5B
+
+- Added public article list pages `/zh/articles/` and `/en/articles/`: published-only listing with
+  title, summary, cover image, publish date, pagination, empty state, and mobile-friendly layout.
+- Added public article detail pages `/zh/articles/{slug}/` and `/en/articles/{slug}/`: title, summary,
+  `content`, cover image, author display name, publish date, and a back-to-list link; related articles;
+  `canonical` / `hreflang` (zh / en / x-default) / `html lang` correctly set; `BlogPosting` JSON-LD
+  injected (`headline`, `description`, `inLanguage`, `datePublished`, `dateModified`, `image`, `author`,
+  `mainEntityOfPage`, `publisher`) with no `undefined`/`null` keys and no fabricated author info.
+- Added Article public API in `apps/api` (`ArticlesModule`, no admin auth): `GET /api/v1/articles`
+  (list, page/limit/locale) and `GET /api/v1/articles/{slug}` (detail). Both return only `published`
+  articles with the requested-locale `translation`, author display name only (no id/email/role), and
+  `relatedArticles` (latest published, excluding current). `slug` not found or no translation for the
+  requested locale returns `404`; `limit` is capped at `MAX_LIMIT` (100). No `passwordHash`/`JWT_SECRET`
+  or admin fields are exposed.
+- Added Article SEO metadata: list pages use zh/en `title`/`description` with correct canonical/hreflang
+  and are indexable; detail pages use `seoTitle` (fallback `title`) for title and `seoDescription`
+  (fallback `summary`) for description, plus Open Graph `publishedTime`/`modifiedTime`/`authors`.
+- Enabled Article sitemap: `/sitemaps/articles.xml` now emits one `<url>` per published article with
+  zh/en detail URLs, hreflang alternates, `lastmod` (entity `updatedAt`), `changefreq=weekly`,
+  `priority=0.7`; `/sitemap.xml` index now includes the `articles` sub-sitemap. `robots.txt` does not
+  block article pages; `/admin/*` remains noindex and out of every sitemap.
+- Ensured draft and archived articles are excluded from both public pages (404) and the sitemap
+  (`status = 'published'` filter). Missing current-locale translation returns 404 instead of rendering
+  an empty/undefined page. `apps/web` still never imports Prisma and fetches all data via `apps/api`.
+- Added content quality boundary documentation in README: no AI auto-generation, no bulk low-quality
+  pages, no copying competitor articles, only published articles with real content are indexed, and all
+  future content must follow original / licensed / quality-reviewed rules.
+- Ran `pnpm install`, `pnpm db:generate`, `pnpm db:migrate`, `pnpm db:seed`, `pnpm lint`,
+  `pnpm typecheck`, and `pnpm build` — all pass with 0 errors. Did NOT develop Phase 5C SEO Quality
+  Checker, did NOT build complex internal linking, did NOT integrate Meilisearch, did NOT auto-generate
+  AI content, did NOT bulk-generate low-quality pages, did NOT convert to a pure static site.
+- Updated README (Phase 5B section, next = Phase 5C), PROJECT_HANDOFF.md (Phase 5B completed, next =
+  Phase 5C), and this changelog.
+
 ## Phase 4D-4
 
 - Completed Phase 4 Admin CMS acceptance: regression-verified all admin modules end to end
