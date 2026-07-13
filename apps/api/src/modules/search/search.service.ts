@@ -48,10 +48,17 @@ export class SearchService {
       q: query.q,
       page: query.page,
       limit: query.limit,
+      type: query.type,
     };
 
     try {
-      return await provider.search(input, userAgent);
+      const result = await provider.search(input, userAgent);
+      // Reflect the provider that actually served the result. The frontend
+      // reads `fallbackUsed` to show a gentle notice; `provider` is intentionally
+      // not surfaced as a raw technical string to end users.
+      result.meta.provider = provider.type;
+      result.meta.fallbackUsed = false;
+      return result;
     } catch (err) {
       // Transparent fallback: if Meilisearch is the active provider and fails,
       // return database results instead. The warning intentionally omits the
@@ -62,7 +69,10 @@ export class SearchService {
           `Meilisearch search failed, falling back to database provider ` +
             `(index=${this.config.meilisearch.indexName}): ${message}`,
         );
-        return await this.databaseProvider.search(input, userAgent);
+        const result = await this.databaseProvider.search(input, userAgent);
+        result.meta.provider = 'database';
+        result.meta.fallbackUsed = true;
+        return result;
       }
       throw err;
     }

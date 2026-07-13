@@ -1,30 +1,35 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { SearchBox } from '@/components/SearchBox';
-import { EmojiGrid } from '@/components/EmojiGrid';
-import { Pagination } from '@/components/Pagination';
+import { SearchResultsView } from '@/components/SearchResultsView';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { RecommendedEmojis } from '@/components/RecommendedEmojis';
-import { searchEmojis, getErrorMessage } from '@/lib/api';
+import { search, getErrorMessage } from '@/lib/api';
+import type { SearchTypeFilter } from '@/lib/types';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+const VALID_TYPES: SearchTypeFilter[] = ['all', 'emoji', 'category', 'topic', 'article'];
+
+function normalizeType(raw: string | undefined): SearchTypeFilter {
+  const t = (raw || '').toLowerCase();
+  return (VALID_TYPES as string[]).includes(t) ? (t as SearchTypeFilter) : 'all';
+}
 
 interface Props {
-  searchParams: Promise<{ q?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; page?: string; type?: string }>;
 }
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const { q } = await searchParams;
   const query = (q || '').trim();
-  const title = query ? `“${query}” 的搜索结果` : '搜索表情';
+  const title = query ? `“${query}” 的搜索结果` : '搜索';
   const description = query
-    ? `搜索与“${query}”相关的 Emoji 表情符号，支持按名称、关键词、Unicode 编码搜索与一键复制。`
-    : '搜索 Emoji 表情符号，输入关键词快速找到你需要的表情。';
+    ? `搜索与“${query}”相关的 Emoji 表情符号、分类、专题与文章，支持按名称、关键词、Unicode 编码搜索与一键复制。`
+    : '搜索 Emoji 表情符号、分类、专题与文章，输入关键词快速找到你需要的内容。';
   // The base search landing page (/zh/search) is indexable and listed in the
   // sitemap. Search *result* pages (with a ?q= query) are low-value for search
   // engines and must not be crawled in bulk (crawl budget): they are noindexed
-  // and their canonical/hreflang consolidate back to the base search page.
+  // and their canonical consolidates back to the base search page.
   const zhBase = `${siteUrl}/zh/search`;
   const enBase = `${siteUrl}/en/search`;
 
@@ -47,73 +52,56 @@ export default async function ZhSearchPage({ searchParams }: Props) {
   const params = await searchParams;
   const query = (params.q || '').trim();
   const page = Math.max(1, parseInt(params.page || '1', 10) || 1);
+  const type = normalizeType(params.type);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">搜索表情</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">搜索</h1>
         <p className="text-sm text-gray-500 mb-4">
-          输入 Emoji、关键词或 Unicode 编码进行搜索。
+          跨 Emoji、分类、专题与文章搜索，支持类型筛选与一键复制。
         </p>
         <SearchBox locale="zh" defaultValue={query} />
       </div>
 
-      {!query ? <SearchLanding /> : <SearchResults query={query} page={page} />}
+      {!query ? <SearchLanding /> : <SearchResults query={query} page={page} type={type} />}
     </div>
   );
 }
 
-async function SearchLanding() {
+function SearchLanding() {
   return (
     <>
       <EmptyState
         icon="🔍"
         title="输入关键词开始搜索"
-        description="在上方搜索框中输入 Emoji 名称、关键词或 Unicode 编码，即可查找表情符号。"
+        description="在上方搜索框中输入 Emoji 名称、关键词或 Unicode 编码，即可查找表情符号、分类、专题与文章。"
       />
       <RecommendedEmojis locale="zh" title="热门表情" viewAllHref="/zh/emojis" />
     </>
   );
 }
 
-async function SearchResults({ query, page }: { query: string; page: number }) {
+async function SearchResults({
+  query,
+  page,
+  type,
+}: {
+  query: string;
+  page: number;
+  type: SearchTypeFilter;
+}) {
   try {
-    const data = await searchEmojis('zh', query, page, 30);
-
-    if (!data.data || data.data.length === 0) {
-      return (
-        <>
-          <EmptyState
-            icon="😕"
-            title={`未找到与“${query}”相关的表情`}
-            description="请尝试使用其他关键词搜索，或浏览全部分类查找。"
-            action={
-              <Link
-                href="/zh/categories"
-                className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition"
-              >
-                浏览全部分类
-              </Link>
-            }
-          />
-          <RecommendedEmojis locale="zh" title="热门表情" viewAllHref="/zh/emojis" />
-        </>
-      );
-    }
-
+    const res = await search('zh', query, { type, page, limit: 30 });
     return (
-      <>
-        <p className="text-sm text-gray-500 mb-4">
-          找到 {data.meta.total} 个与 “{query}” 相关的结果
-        </p>
-        <EmojiGrid emojis={data.data} locale="zh" />
-        <Pagination
-          locale="zh"
-          page={page}
-          totalPages={data.meta.totalPages}
-          basePath={`/zh/search?q=${encodeURIComponent(query)}`}
-        />
-      </>
+      <SearchResultsView
+        locale="zh"
+        query={query}
+        initialType={type}
+        initialData={res.data}
+        initialMeta={res.meta}
+        initialPage={page}
+      />
     );
   } catch (error) {
     return (

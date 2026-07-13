@@ -17,7 +17,7 @@
 
 ## 当前阶段
 
-**Phase 6B** - Meilisearch Integration 已完成（在 Phase 6A 的 SearchProvider 抽象之上接入真实 Meilisearch：新增 `meilisearch` Docker 服务、环境变量、`MeilisearchSearchProvider`、统一索引 `emoji_platform_search`、后台索引重建 / 设置 / 状态 API 与页面；公开搜索在 `SEARCH_PROVIDER=meilisearch` 时走 Meilisearch，不可用时自动 fallback 到 database；仅索引 published 的 emoji / category / topic / article，不索引 Asset / draft / archived / admin 内容，未改为纯静态站）。下一阶段：Phase 6C - Advanced Search UX。
+**Phase 6C** - Advanced Search UX 已完成（在 Phase 6B 的 Meilisearch / database 搜索之上优化公开搜索体验：重构 `/zh/search` `/en/search` 为统一的 `SearchResultsView` 客户端组件，支持 emoji / category / topic / article 四类结果的**类型化展示**与 `type` 过滤；新增**安全高亮**（基于 React 文本节点切分，不使用 `dangerouslySetInnerHTML`，无 XSS 风险）；loading / empty / error / fallback 状态齐备；搜索结果卡片支持**一键复制** emoji 并正确跳转各实体详情页；保持 locale 不变、`?q=` 结果 `noindex,follow` 且 canonical 收敛到 base、Meilisearch 不可用自动 fallback 到 database、搜索日志照常记录，均未改为纯静态站）。下一阶段：Phase 6D - Discovery and Recommendation Enhancements。
 
 ## 技术栈
 
@@ -238,6 +238,48 @@ curl -f http://localhost:7700/health   # {"status":"available"}
 - 不泄露 Meilisearch API Key（API 响应与后台页面均不含密钥）。
 - 未改为纯静态站；sitemap / robots / public pages 不受影响。
 
+## 高级搜索体验（Phase 6C）
+
+Phase 6C 在 Phase 6B 的 Meilisearch / database 搜索之上，优化公开搜索 `GET /api/v1/search`、`/zh/search`、`/en/search` 的前端体验，类型化展示多类结果，不修改既有搜索后端与 fallback 行为。
+
+### 搜索页面与结果类型
+
+- `/zh/search` 与 `/en/search` 重构为统一的 `SearchResultsView`（客户端组件）：服务端组件读取 `searchParams`（`q` / `type` / `page`）做首屏 SSR，客户端负责类型过滤、翻页与 loading / empty / error / fallback 状态。
+- 搜索结果按 `type` 分为四类，分别渲染为对应的卡片：
+  - **emoji**：emoji 字符、名称 / 含义（高亮）、分类、shortcode，跳转 `/{locale}/emoji/{slug}`；卡片内置一键复制。
+  - **category**：图标、emoji 数量、名称 / 描述（高亮），跳转 `/{locale}/categories/{slug}`。
+  - **topic**：封面、标题 / 摘要（高亮），跳转 `/{locale}/topics/{slug}`。
+  - **article**：封面、标题 / 摘要（高亮）、发布时间，跳转 `/{locale}/articles/{slug}`。
+
+### 类型过滤
+
+- 顶部过滤 Tab：`all` / `emoji` / `category` / `topic` / `article`，并显示各类命中数（来自 `meta.totalByType`）。
+- 客户端切换类型 / 翻页时通过 `history.replaceState` 同步 URL（`?q=&type=&page=`），不重复触发整页请求。
+
+### Provider / fallback 行为（对用户透明）
+
+- 响应 `meta` 新增 `provider`（`database` / `meilisearch`）与 `fallbackUsed`（Meilisearch 失败后回退 database 时为 `true`）；前端据此显示提示但不暴露内部实现细节。
+- 未改变 Phase 6B 的索引范围（仅 published 的 emoji / category / topic / article）、fallback 逻辑与搜索日志（仍记录 query / locale / resultCount）。
+
+### 高亮策略（安全）
+
+- 采用 React 文本节点切分方式：对查询词做正则转义后按大小写不敏感切分，匹配片段渲染为 `<mark>`，**不使用 `dangerouslySetInnerHTML`**，无 XSS 风险。
+- 仅对名称 / 描述 / 摘要 / 含义等文本字段做高亮，emoji 字符与 slug 不高亮。
+
+### SEO / sitemap 边界（保持不变）
+
+- `/zh/search` `/en/search` 基础页可被索引；`?q=` 查询结果页 `noindex, follow`，`canonical` / `hreflang` 收敛到 base 搜索页。
+- 仍不索引 `/admin`、不泄露密钥、未改为纯静态站。
+
+### 搜索 API（兼容性）
+
+- `GET /api/v1/search` 新增可选 `type` 参数（`all` / `emoji` / `category` / `topic` / `article`，缺省 `all`；非法值回退 `all`）。
+- 兼容旧 emoji 形状（保留 `SearchResultItem`），新增 `data[]` 为 `UnifiedSearchResultItem` 联合类型，并附 `meta.totalByType` 与 `meta.provider` / `meta.fallbackUsed`。
+
+### 下一阶段
+
+**Phase 6D - Discovery and Recommendation Enhancements**：在现有搜索 / 发现能力之上增强推荐与发现（需经明确确认），保持现有 SEO 边界与动态渲染架构不变。
+
 ## 访问地址
 
 ### 前台 (Web)
@@ -296,7 +338,7 @@ curl -f http://localhost:7700/health   # {"status":"available"}
 | GET | `/api/v1/categories/:slug` | 分类详情 |
 | GET | `/api/v1/topics` | 专题列表 |
 | GET | `/api/v1/topics/:slug` | 专题详情 |
-| GET | `/api/v1/search` | 基础搜索（database 或 meilisearch，自动 fallback） |
+| GET | `/api/v1/search` | 基础搜索（database 或 meilisearch，自动 fallback；支持 `type=emoji\|category\|topic\|article` 过滤、`page`、`limit`） |
 | POST | `/api/v1/events/copy` | 记录复制事件 |
 | GET | `/api/v1/admin/search/infrastructure/status` | 搜索基础设施状态（需登录，查看角色） |
 | GET | `/api/v1/admin/search/index/status` | 索引实时状态（需登录，查看角色） |

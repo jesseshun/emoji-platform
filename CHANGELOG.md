@@ -1,5 +1,18 @@
 # Changelog
 
+## Phase 6C
+
+- Added advanced public search UX on top of the Phase 6B Meilisearch/database search: refactored `/zh/search` and `/en/search` into a unified `SearchResultsView` client component (server reads `searchParams` for first-paint SSR; client handles type filter, pagination, and loading/empty/error/fallback states).
+- Added typed search result display across emoji / category / topic / article, each rendered as a dedicated card with correct detail-page links (`/{locale}/emoji|categories|topics|articles/{slug}`).
+- Added search `type` filter (`all` / `emoji` / `category` / `topic` / `article`) with per-type counts from `meta.totalByType`; URL synced via `history.replaceState` on client filter/page change.
+- Added safe highlighting using React text-node splitting (query regex-escaped, case-insensitive); no `dangerouslySetInnerHTML`, no XSS risk.
+- Added one-click copy of emoji from search result cards.
+- Surfaced transparent provider/fallback status in response `meta` (`provider` = `database`|`meilisearch`, `fallbackUsed`); preserved Meilisearch/database fallback and search-log recording (query, locale, resultCount unchanged).
+- Added API compatibility: `GET /api/v1/search` accepts optional `type`; response `data[]` is `UnifiedSearchResultItem` union with `meta.totalByType`, while keeping the legacy emoji-shaped `SearchResultItem`.
+- Preserved SEO boundary: `/zh/search` `/en/search` base indexable; `?q=` results `noindex, follow` with canonical/hreflang consolidated to base; `/admin` still `noindex`; not converted to a pure static site.
+- Updated README / PROJECT_HANDOFF / CHANGELOG for Phase 6C.
+- Did NOT develop Phase 6D recommendation system, did NOT tune search analytics, did NOT generate AI content, did NOT bulk-generate low-quality pages, did NOT modify Prisma schema, did NOT convert to a pure static site.
+
 ## Phase 6B
 
 - Added `meilisearch` Docker service to `docker-compose.yml` (image `getmeili/meilisearch:v1.8`, container `emoji-meilisearch`, port 7700, `MEILI_ENV=development`, `MEILI_MASTER_KEY` sourced from `MEILISEARCH_API_KEY` placeholder, persisted `meilisearch_data` volume).

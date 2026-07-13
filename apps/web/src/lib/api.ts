@@ -1,5 +1,5 @@
 import type { ApiResponse, PaginatedResponse } from '@emoji-platform/types';
-import type { EmojiListItem, CategoryItem, TopicItem, SearchResultItem, Locale, EmojiDetail, CategoryDetailData, TopicDetailData, ArticleItem, ArticleDetailData } from './types';
+import type { EmojiListItem, CategoryItem, TopicItem, Locale, EmojiDetail, CategoryDetailData, TopicDetailData, ArticleItem, ArticleDetailData, SearchResponse, SearchTypeFilter } from './types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
@@ -134,9 +134,26 @@ export async function searchEmojis(
   q: string,
   page = 1,
   limit = 30,
-): Promise<PaginatedResponse<SearchResultItem>> {
-  const params = new URLSearchParams({ locale, q, page: String(page), limit: String(limit) });
-  return fetchApi<PaginatedResponse<SearchResultItem>>(`/search?${params}`);
+): Promise<SearchResponse> {
+  return search(locale, q, { type: 'emoji', page, limit });
+}
+
+/**
+ * Unified public search (Phase 6C).
+ *
+ * Supports a `type` filter (all | emoji | category | topic | article), `page`,
+ * and `limit`. Returns a typed result list plus provider / fallback metadata.
+ */
+export async function search(
+  locale: Locale,
+  q: string,
+  options: { type?: SearchTypeFilter; page?: number; limit?: number } = {},
+): Promise<SearchResponse> {
+  const params = new URLSearchParams({ locale, q });
+  if (options.type) params.set('type', options.type);
+  if (options.page && options.page > 1) params.set('page', String(options.page));
+  if (options.limit) params.set('limit', String(options.limit));
+  return fetchApi<SearchResponse>(`/search?${params}`);
 }
 
 // ─── Copy Event ────────────────────────────────────────

@@ -98,6 +98,84 @@ export interface SearchResultItem extends EmojiBase {
   } | null;
 }
 
+// ─── Unified public search (Phase 6C) ──────────────────
+
+export type SearchResultType = 'emoji' | 'category' | 'topic' | 'article';
+export type SearchTypeFilter = 'all' | SearchResultType;
+
+export interface SearchEmojiItem {
+  type: 'emoji';
+  id: string;
+  emojiChar: string;
+  slug: string;
+  unicodeCodepoint: string | null;
+  shortcode: string | null;
+  category: { id: string; slug: string; name: string | null } | null;
+  translation: {
+    name: string | null;
+    shortName: string | null;
+    oneLineMeaning: string | null;
+    keywords: string[] | null;
+  } | null;
+}
+
+export interface SearchCategoryItem {
+  type: 'category';
+  id: string;
+  slug: string;
+  iconEmoji: string | null;
+  emojiCount: number;
+  name: string | null;
+  description: string | null;
+}
+
+export interface SearchTopicItem {
+  type: 'topic';
+  id: string;
+  slug: string;
+  coverImage: string | null;
+  topicType: string | null;
+  title: string | null;
+  summary: string | null;
+}
+
+export interface SearchArticleItem {
+  type: 'article';
+  id: string;
+  slug: string;
+  coverImage: string | null;
+  publishedAt: string | null;
+  title: string | null;
+  summary: string | null;
+}
+
+export type SearchItem = SearchEmojiItem | SearchCategoryItem | SearchTopicItem | SearchArticleItem;
+
+export interface SearchTotals {
+  emoji: number;
+  category: number;
+  topic: number;
+  article: number;
+}
+
+export interface SearchMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  provider: 'database' | 'meilisearch';
+  fallbackUsed: boolean;
+  totalByType: SearchTotals;
+  type: SearchTypeFilter;
+  query: string;
+}
+
+export interface SearchResponse {
+  success: boolean;
+  data: SearchItem[];
+  meta: SearchMeta;
+}
+
 // ─── Re-exports ────────────────────────────────────────
 
 // ─── Emoji Detail ──────────────────────────────────────

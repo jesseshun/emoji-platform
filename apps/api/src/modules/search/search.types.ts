@@ -4,11 +4,19 @@
  * Phase 6A defines a provider abstraction so the current database search can be
  * kept as the default provider while a Meilisearch provider is planned for Phase 6B.
  *
+ * Phase 6B integrates a real Meilisearch provider with a transparent database
+ * fallback, preserving the public search contract.
+ *
+ * Phase 6C extends the public search with typed results (emoji / category /
+ * topic / article), a `type` filter, safe client-side highlighting support, and
+ * provider / fallback metadata. No Prisma schema change is required.
+ *
  * Runtime types (used today):
  *   - SearchProviderType
- *   - SearchEntityType
+ *   - SearchResultType / SearchTypeFilter
  *   - SearchQueryInput
- *   - SearchResult / SearchResultItem
+ *   - UnifiedSearchResultItem (discriminated union by `type`)
+ *   - SearchResult / SearchResultTotals
  *   - SearchInfrastructureStatus
  *
  * Planning types (Phase 6B, NOT used in Phase 6A runtime):
@@ -18,8 +26,22 @@
 
 export type SearchProviderType = 'database' | 'meilisearch';
 
-/** Entities planned for the future external search index (Phase 6B). */
+/** Entity types that can appear in public search results (Phase 6C). */
+export type SearchResultType = 'emoji' | 'category' | 'topic' | 'article';
+
+/** Entity types that can be indexed / rebuilt by the search engine (Phase 6B). */
 export type SearchEntityType = 'emoji' | 'category' | 'topic' | 'article';
+
+/** Public type filter accepted by ?type=. `all` returns every type. */
+export type SearchTypeFilter = 'all' | SearchResultType;
+
+export const SEARCH_TYPE_FILTERS: SearchTypeFilter[] = [
+  'all',
+  'emoji',
+  'category',
+  'topic',
+  'article',
+];
 
 /** Normalized search request consumed by a SearchProvider. */
 export interface SearchQueryInput {
@@ -27,6 +49,8 @@ export interface SearchQueryInput {
   q: string;
   page: number;
   limit: number;
+  /** Restricts results to a single entity type, or `all` for everything. */
+  type: SearchTypeFilter;
 }
 
 export interface SearchCategoryRef {
@@ -42,7 +66,16 @@ export interface SearchTranslation {
   keywords: unknown;
 }
 
-export interface SearchResultItem {
+/* ───────────────────────────────────────────────────────────────────────────
+ * Unified search result items (Phase 6C).
+ *
+ * Every result carries a `type` discriminator so the frontend can render the
+ * correct card and link to the correct public route. No admin / draft /
+ * archived / Asset content is ever returned.
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+export interface EmojiSearchResult {
+  type: 'emoji';
   id: string;
   emojiChar: string;
   slug: string;
@@ -52,15 +85,71 @@ export interface SearchResultItem {
   translation: SearchTranslation | null;
 }
 
+export interface CategorySearchResult {
+  type: 'category';
+  id: string;
+  slug: string;
+  iconEmoji: string | null;
+  emojiCount: number;
+  name: string | null;
+  description: string | null;
+}
+
+export interface TopicSearchResult {
+  type: 'topic';
+  id: string;
+  slug: string;
+  coverImage: string | null;
+  topicType: string | null;
+  title: string | null;
+  summary: string | null;
+}
+
+export interface ArticleSearchResult {
+  type: 'article';
+  id: string;
+  slug: string;
+  coverImage: string | null;
+  publishedAt: string | null;
+  title: string | null;
+  summary: string | null;
+}
+
+export type UnifiedSearchResultItem =
+  | EmojiSearchResult
+  | CategorySearchResult
+  | TopicSearchResult
+  | ArticleSearchResult;
+
+export interface SearchResultTotals {
+  emoji: number;
+  category: number;
+  topic: number;
+  article: number;
+}
+
 export interface SearchResult {
-  data: SearchResultItem[];
+  data: UnifiedSearchResultItem[];
   meta: {
     page: number;
     limit: number;
     total: number;
     totalPages: number;
+    /** Provider that actually served the result (`database` when fell back). */
+    provider: SearchProviderType;
+    /** True when the configured provider failed and we fell back to database. */
+    fallbackUsed: boolean;
+    /** Per-type result counts (ignores the active type filter). */
+    totalByType: SearchResultTotals;
+    /** Active type filter echoed back. */
+    type: SearchTypeFilter;
+    /** The original (trimmed) query string. */
+    query: string;
   };
 }
+
+/** Backwards-compatible emoji-shaped result (kept for external typings). */
+export interface SearchResultItem extends EmojiSearchResult {}
 
 /** Read-only status reported by GET /api/v1/admin/search/infrastructure/status. */
 export interface SearchInfrastructureStatus {
