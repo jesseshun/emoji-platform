@@ -36,7 +36,9 @@ services:
     ports:
       - '7700:7700'
     environment:
-      MEILI_MASTER_KEY: ${MEILISEARCH_MASTER_KEY:-change_me}
+      MEILI_MASTER_KEY: ${MEILISEARCH_API_KEY:-dev_meili_master_key}
+      MEILI_ENV: development
+      MEILI_DB_PATH: /meili_data
       MEILI_NO_ANALYTICS: 'true'
     volumes:
       - meilisearch_data:/meili_data
@@ -60,7 +62,9 @@ services:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/emoji_platform
       REDIS_URL: redis://redis:6379
       MEILISEARCH_HOST: http://meilisearch:7700
-      MEILISEARCH_MASTER_KEY: ${MEILISEARCH_MASTER_KEY:-change_me}
+      MEILISEARCH_API_KEY: ${MEILISEARCH_API_KEY:-dev_meili_master_key}
+      MEILISEARCH_INDEX_PREFIX: ${MEILISEARCH_INDEX_PREFIX:-emoji_platform}
+      SEARCH_PROVIDER: ${SEARCH_PROVIDER:-database}
       JWT_SECRET: ${JWT_SECRET:-change_me}
     depends_on:
       postgres:

@@ -17,7 +17,7 @@
 
 ## 当前阶段
 
-**Phase 6A** - Search Infrastructure Planning 已完成（建立 SearchProvider 抽象层，保留 database provider 为默认实现，规划 Meilisearch 接入边界与索引文档结构，新增后台搜索基础设施状态页与只读 API；未接入 Meilisearch、未创建真实索引、未改为纯静态站）。可进入 Phase 6B。
+**Phase 6B** - Meilisearch Integration 已完成（在 Phase 6A 的 SearchProvider 抽象之上接入真实 Meilisearch：新增 `meilisearch` Docker 服务、环境变量、`MeilisearchSearchProvider`、统一索引 `emoji_platform_search`、后台索引重建 / 设置 / 状态 API 与页面；公开搜索在 `SEARCH_PROVIDER=meilisearch` 时走 Meilisearch，不可用时自动 fallback 到 database；仅索引 published 的 emoji / category / topic / article，不索引 Asset / draft / archived / admin 内容，未改为纯静态站）。下一阶段：Phase 6C - Advanced Search UX。
 
 ## 技术栈
 
@@ -82,6 +82,9 @@ cp .env apps/api/.env
 | `DATABASE_URL` | PostgreSQL 连接 | `postgresql://postgres:postgres@localhost:5432/emoji_platform` |
 | `REDIS_URL` | Redis 连接 | `redis://localhost:6379` |
 | `MEILISEARCH_HOST` | Meilisearch 地址 | `http://localhost:7700` |
+| `MEILISEARCH_API_KEY` | Meilisearch API Key（示例值，生产请替换；绝不写入真实密钥到仓库） | `dev_meili_master_key` |
+| `MEILISEARCH_INDEX_PREFIX` | 搜索索引前缀（索引名 = `{前缀}_search`） | `emoji_platform` |
+| `SEARCH_PROVIDER` | 搜索 provider：`database`（默认）或 `meilisearch` | `database` |
 | `JWT_SECRET` | JWT 密钥 | `change_me` |
 | `NEXT_PUBLIC_API_URL` | 前端 API 地址 | `http://localhost:4000` |
 | `NEXT_PUBLIC_SITE_URL` | 站点 URL（用于 canonical/hreflang） | `http://localhost:3000` |
@@ -168,6 +171,73 @@ docker compose up postgres redis meilisearch
 
 > **注意**: 在 Docker 环境中，web/admin 使用 standalone 模式构建。由于 Next.js standalone 输出需要预构建，首次启动可能需要较长时间。如遇 Docker 构建问题，建议本地开发使用 `pnpm dev` 方式启动。
 
+## Meilisearch 搜索集成（Phase 6B）
+
+Phase 6B 在 Phase 6A 的 `SearchProvider` 抽象之上接入了真实 Meilisearch。
+
+### 本地 Docker 启动
+
+```bash
+# 启动 Meilisearch（默认 master key 来自 .env 的 MEILISEARCH_API_KEY）
+docker compose up -d meilisearch
+docker ps
+curl -f http://localhost:7700/health   # {"status":"available"}
+```
+
+### 环境变量
+
+| 变量 | 说明 | 默认 |
+|------|------|------|
+| `SEARCH_PROVIDER` | `database`（默认，保留现有数据库搜索）或 `meilisearch` | `database` |
+| `MEILISEARCH_HOST` | Meilisearch 地址 | `http://localhost:7700` |
+| `MEILISEARCH_API_KEY` | Meilisearch API Key（`.env.example` 仅为示例值，生产请替换） | `dev_meili_master_key` |
+| `MEILISEARCH_INDEX_PREFIX` | 索引前缀 | `emoji_platform` |
+
+> 索引名 = `{MEILISEARCH_INDEX_PREFIX}_search`，即 `emoji_platform_search`（单索引 + `locale` 字段区分中英文）。
+
+### Search provider 切换
+
+- `SEARCH_PROVIDER=database`（默认）：公开搜索完全走 PostgreSQL，不连接 Meilisearch。
+- `SEARCH_PROVIDER=meilisearch` 且 Meilisearch 可达：公开搜索走 Meilisearch。
+- `SEARCH_PROVIDER=meilisearch` 但 Meilisearch 不可用：自动 fallback 到 database，用户无感知，搜索日志照常记录。
+
+### 索引实体与字段
+
+统一索引 `emoji_platform_search` 包含以下 **published** 内容（单索引，`type` + `locale` 作为可过滤字段）：
+
+| 实体 | 额外字段 |
+|------|----------|
+| emoji | `emojiChar`, `unicodeCodepoint`, `shortcode`, `aliases`, `categoryNames`, `topicTitles` |
+| category | `parentId`, `parentName` |
+| topic | `topicType`, `emojiCount` |
+| article | `summary`, `publishedAt` |
+
+通用字段：`documentId`, `id`, `type`, `locale`, `slug`, `title`, `description`, `keywords`, `status`, `updatedAt`, `publicUrl`。
+
+- **不索引** Asset、`draft` / `archived`、任何 admin 内容、敏感字段（无 `passwordHash` / `JWT_SECRET` / 明文 IP）。
+- `searchableAttributes`：`emojiChar`, `shortcode`, `title`, `keywords`, `aliases`, `unicodeCodepoint`, `slug`, `description`, `categoryNames`, `topicTitles`, `summary`。
+- `filterableAttributes`：`type`, `locale`, `status`。
+- `sortableAttributes`：`updatedAt`, `publishedAt`。
+
+### 索引重建（后台）
+
+后台地址：`/admin/search/infrastructure`（需登录；查看=super_admin/editor/seo_manager/analyst，重建=super_admin/editor，设置=super_admin）。
+
+- **重建全部 / 单实体**：触达 `POST /api/v1/admin/search/index/rebuild`（`{ "entityType": "all" | "emoji" | "category" | "topic" | "article" }`），仅索引 published 内容，幂等可重复执行。
+- **应用索引设置**：`POST /api/v1/admin/search/index/settings`（super_admin）。
+- **索引状态**：`GET /api/v1/admin/search/index/status`。
+- 所有写操作记录 `audit_logs`（`search.index_rebuild` / `search.index_settings_update`），不含任何密钥或敏感 IP。
+
+### fallback 与回滚
+
+只要将 `SEARCH_PROVIDER=database`，系统即可完全回到数据库搜索；Meilisearch 容器停止、API Key 缺失都不会导致系统崩溃或公开搜索不可用。
+
+### 安全边界
+
+- 不索引 `draft` / `archived`；不索引 Asset；不索引 admin 内容。
+- 不泄露 Meilisearch API Key（API 响应与后台页面均不含密钥）。
+- 未改为纯静态站；sitemap / robots / public pages 不受影响。
+
 ## 访问地址
 
 ### 前台 (Web)
@@ -226,8 +296,12 @@ docker compose up postgres redis meilisearch
 | GET | `/api/v1/categories/:slug` | 分类详情 |
 | GET | `/api/v1/topics` | 专题列表 |
 | GET | `/api/v1/topics/:slug` | 专题详情 |
-| GET | `/api/v1/search` | 基础搜索 |
+| GET | `/api/v1/search` | 基础搜索（database 或 meilisearch，自动 fallback） |
 | POST | `/api/v1/events/copy` | 记录复制事件 |
+| GET | `/api/v1/admin/search/infrastructure/status` | 搜索基础设施状态（需登录，查看角色） |
+| GET | `/api/v1/admin/search/index/status` | 索引实时状态（需登录，查看角色） |
+| POST | `/api/v1/admin/search/index/rebuild` | 重建索引（需登录，super_admin/editor；body `{"entityType":"all"|"emoji"|"category"|"topic"|"article"}`） |
+| POST | `/api/v1/admin/search/index/settings` | 应用索引设置（需登录，super_admin） |
 
 ### 示例请求
 

@@ -1,5 +1,22 @@
 # Changelog
 
+## Phase 6B
+
+- Added `meilisearch` Docker service to `docker-compose.yml` (image `getmeili/meilisearch:v1.8`, container `emoji-meilisearch`, port 7700, `MEILI_ENV=development`, `MEILI_MASTER_KEY` sourced from `MEILISEARCH_API_KEY` placeholder, persisted `meilisearch_data` volume).
+- Added `meilisearch` SDK dependency to `apps/api`.
+- Implemented real `MeilisearchSearchProvider` implementing the `SearchProvider` interface: supports `q` / `locale` / `limit`; filters public search to `type = 'emoji'` (compatible response shape with `/api/v1/search`); records `search_logs` exactly once; throws a recognizable error on Meilisearch failure.
+- `SearchService` selects the active provider and transparently falls back to the database provider when Meilisearch fails; fallback logging never prints the API key or secret.
+- Implemented `SearchIndexService` with `rebuildAll` / `rebuildEntity` / `indexDocument` / `deleteDocument` / `getIndexStatus` / `configureIndexSettings`; indexes only `published` emoji / category / topic / article into the single index `emoji_platform_search` (composite `documentId` = `{type}:{locale}:{id}`); never indexes Asset, draft / archived, or admin content; no sensitive fields; safe to re-run; does not mutate the database.
+- Configured Meilisearch settings: `searchableAttributes` (emojiChar, shortcode, title, keywords, aliases, unicodeCodepoint, slug, description, categoryNames, topicTitles, summary), `filterableAttributes` (type, locale, status), `sortableAttributes` (updatedAt, publishedAt), default ranking rules.
+- Unified Meilisearch env naming: `.env.example` uses `MEILISEARCH_API_KEY` / `MEILISEARCH_INDEX_PREFIX` / `SEARCH_PROVIDER`; `docker-compose.yml` passes `MEILISEARCH_API_KEY` to both the meilisearch and api services; empty/missing Meilisearch vars do not crash startup and fall back to database.
+- Extended `GET /api/v1/admin/search/infrastructure/status` with real Meilisearch status (`meilisearchReachable`, `indexName`, `indexReady`, `documentCount`).
+- Added admin search index APIs: `POST /api/v1/admin/search/index/rebuild` (`{"entityType":"all"|"emoji"|"category"|"topic"|"article"}`), `GET /api/v1/admin/search/index/status`, `POST /api/v1/admin/search/index/settings`.
+- Added role checks via `role.util.ts`: `canViewSearchInfrastructure` (super_admin/editor/seo_manager/analyst), `canManageSearchIndex` (super_admin/editor), `canManageSearchSettings` (super_admin); 401 when unauthenticated, 403 when insufficient role.
+- Added audit logs for search index operations: `search.index_rebuild` and `search.index_settings_update` (entityType=`search`, entityId=indexName, no API key / passwordHash / JWT_SECRET / plaintext IP).
+- Updated `/admin/search/infrastructure` page: live index status, rebuild-all / per-entity buttons, apply-settings button, last-result table, error display, and security-boundary notes; no API key shown.
+- Updated README / PROJECT_HANDOFF / CHANGELOG for Phase 6B.
+- Did NOT develop advanced search UX, did NOT develop recommendation/autocomplete, did NOT develop search analytics tuning, did NOT generate AI content, did NOT bulk-generate pages, did NOT index Asset, did NOT modify Prisma schema, did NOT convert to a pure static site.
+
 ## Phase 6A
 
 - Added search provider abstraction (`apps/api/src/modules/search/`): `SearchProvider` interface, `search.types.ts`, `search.config.ts`.

@@ -26,6 +26,8 @@ import { AdminSearchLogsController, AdminCopyEventsController } from './admin-lo
 import { AdminReviewController } from './admin-review.controller';
 import { AdminSearchInfrastructureController } from './admin-search-infrastructure.controller';
 import { AdminSearchInfrastructureService } from './admin-search-infrastructure.service';
+import { AdminSearchIndexController } from './admin-search-index.controller';
+import { AdminSearchIndexService } from './admin-search-index.service';
 import { SearchModule } from '../search/search.module';
 
 @Module({
@@ -58,6 +60,7 @@ import { SearchModule } from '../search/search.module';
     AdminCopyEventsController,
     AdminReviewController,
     AdminSearchInfrastructureController,
+    AdminSearchIndexController,
   ],
   providers: [
     AdminAuthService,
@@ -72,6 +75,7 @@ import { SearchModule } from '../search/search.module';
     AdminLogsService,
     AdminReviewService,
     AdminSearchInfrastructureService,
+    AdminSearchIndexService,
   ],
   exports: [AdminAuthService],
 })

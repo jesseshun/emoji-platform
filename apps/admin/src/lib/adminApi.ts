@@ -1535,7 +1535,7 @@ export async function getInternalLinkSuggestions(
   );
 }
 
-// ─── Search Infrastructure (Phase 6A) ──────────────────
+// ─── Search Infrastructure (Phase 6A / 6B) ────────────
 
 export type SearchInfraProviderType = 'database' | 'meilisearch';
 export type SearchInfraEntityType = 'emoji' | 'category' | 'topic' | 'article';
@@ -1545,12 +1545,71 @@ export interface SearchInfrastructureStatus {
   fallbackProvider: SearchInfraProviderType;
   meilisearchConfigured: boolean;
   meilisearchEnabled: boolean;
-  indexEntitiesPlanned: SearchInfraEntityType[];
+  meilisearchReachable: boolean;
+  indexName: string;
   indexReady: boolean;
+  documentCount: number;
   lastIndexedAt: string | null;
+  plannedEntities: SearchInfraEntityType[];
   notes: string;
+}
+
+export interface SearchIndexStatus {
+  indexName: string;
+  exists: boolean;
+  documentCount: number;
+  settingsConfigured: boolean;
+  searchableAttributes: string[];
+  filterableAttributes: string[];
+  sortableAttributes: string[];
+  lastCheckedAt: string;
+}
+
+export interface SearchIndexRebuildEntityResult {
+  type: SearchInfraEntityType;
+  indexed: number;
+  skipped: number;
+}
+
+export interface SearchIndexRebuildResult {
+  entityType: 'all' | SearchInfraEntityType;
+  provider: SearchInfraProviderType;
+  indexName: string;
+  totalIndexed: number;
+  perEntity: SearchIndexRebuildEntityResult[];
+  durationMs: number;
+  finishedAt: string;
+}
+
+export interface SearchIndexSettingsResult {
+  indexName: string;
+  applied: boolean;
+  searchableAttributes: string[];
+  filterableAttributes: string[];
+  sortableAttributes: string[];
+  rankingRules: string[];
+  finishedAt: string;
 }
 
 export async function getSearchInfrastructureStatus(): Promise<SearchInfrastructureStatus> {
   return adminFetch<SearchInfrastructureStatus>('/admin/search/infrastructure/status');
+}
+
+export async function getSearchIndexStatus(): Promise<SearchIndexStatus> {
+  return adminFetch<SearchIndexStatus>('/admin/search/index/status');
+}
+
+export async function postSearchIndexRebuild(
+  entityType: 'all' | SearchInfraEntityType,
+): Promise<SearchIndexRebuildResult> {
+  return adminFetch<SearchIndexRebuildResult>('/admin/search/index/rebuild', {
+    method: 'POST',
+    body: JSON.stringify({ entityType }),
+  });
+}
+
+export async function postSearchIndexSettings(): Promise<SearchIndexSettingsResult> {
+  return adminFetch<SearchIndexSettingsResult>('/admin/search/index/settings', {
+    method: 'POST',
+  });
 }

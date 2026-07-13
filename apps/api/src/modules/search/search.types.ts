@@ -68,10 +68,54 @@ export interface SearchInfrastructureStatus {
   fallbackProvider: SearchProviderType;
   meilisearchConfigured: boolean;
   meilisearchEnabled: boolean;
-  indexEntitiesPlanned: SearchEntityType[];
+  meilisearchReachable: boolean;
+  indexName: string;
   indexReady: boolean;
+  documentCount: number;
   lastIndexedAt: string | null;
+  plannedEntities: SearchEntityType[];
   notes: string;
+}
+
+/** Read-only index status reported by GET /api/v1/admin/search/index/status. */
+export interface SearchIndexStatus {
+  indexName: string;
+  exists: boolean;
+  documentCount: number;
+  settingsConfigured: boolean;
+  searchableAttributes: string[];
+  filterableAttributes: string[];
+  sortableAttributes: string[];
+  lastCheckedAt: string;
+}
+
+/** Entity-level statistics returned by a rebuild operation. */
+export interface SearchIndexRebuildEntityResult {
+  type: SearchEntityType;
+  indexed: number;
+  skipped: number;
+}
+
+/** Result returned by POST /api/v1/admin/search/index/rebuild. */
+export interface SearchIndexRebuildResult {
+  entityType: 'all' | SearchEntityType;
+  provider: SearchProviderType;
+  indexName: string;
+  totalIndexed: number;
+  perEntity: SearchIndexRebuildEntityResult[];
+  durationMs: number;
+  finishedAt: string;
+}
+
+/** Result returned by POST /api/v1/admin/search/index/settings. */
+export interface SearchIndexSettingsResult {
+  indexName: string;
+  applied: boolean;
+  searchableAttributes: string[];
+  filterableAttributes: string[];
+  sortableAttributes: string[];
+  rankingRules: string[];
+  finishedAt: string;
 }
 
 /* ───────────────────────────────────────────────────────────────────────────

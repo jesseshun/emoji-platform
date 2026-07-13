@@ -309,3 +309,56 @@ export function assertCanManageReview(role: string | undefined | null): void {
     throw new ForbiddenException('当前角色无权审核（需要 super_admin 或 reviewer）');
   }
 }
+
+// Search infrastructure & index management (Phase 6B).
+//   - Viewing status / infrastructure page: super_admin, editor, seo_manager, analyst.
+//   - Rebuilding the index: super_admin, editor.
+//   - Applying index settings (schema change): super_admin only.
+// Read = super_admin, editor, seo_manager, analyst (operational + content roles).
+// Rebuild = super_admin, editor.
+// Settings = super_admin only.
+const SEARCH_INFRA_VIEW_ROLES: AdminRole[] = [
+  'super_admin',
+  'editor',
+  'seo_manager',
+  'analyst',
+];
+
+const SEARCH_INDEX_MANAGE_ROLES: AdminRole[] = ['super_admin', 'editor'];
+
+const SEARCH_SETTINGS_MANAGE_ROLES: AdminRole[] = ['super_admin'];
+
+export function canViewSearchInfrastructure(role: string | undefined | null): boolean {
+  if (!role) return false;
+  return SEARCH_INFRA_VIEW_ROLES.includes(role as AdminRole);
+}
+
+export function canManageSearchIndex(role: string | undefined | null): boolean {
+  if (!role) return false;
+  return SEARCH_INDEX_MANAGE_ROLES.includes(role as AdminRole);
+}
+
+export function canManageSearchSettings(role: string | undefined | null): boolean {
+  if (!role) return false;
+  return SEARCH_SETTINGS_MANAGE_ROLES.includes(role as AdminRole);
+}
+
+export function assertCanViewSearchInfrastructure(role: string | undefined | null): void {
+  if (!canViewSearchInfrastructure(role)) {
+    throw new ForbiddenException(
+      '当前角色无权访问搜索基础设施（需要 super_admin / editor / seo_manager / analyst）',
+    );
+  }
+}
+
+export function assertCanManageSearchIndex(role: string | undefined | null): void {
+  if (!canManageSearchIndex(role)) {
+    throw new ForbiddenException('当前角色无权重建搜索索引（需要 super_admin 或 editor）');
+  }
+}
+
+export function assertCanManageSearchSettings(role: string | undefined | null): void {
+  if (!canManageSearchSettings(role)) {
+    throw new ForbiddenException('当前角色无权更新搜索索引设置（需要 super_admin）');
+  }
+}

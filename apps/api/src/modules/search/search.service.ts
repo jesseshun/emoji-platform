@@ -3,6 +3,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { SearchProvider } from './search-provider.interface';
 import { DatabaseSearchProvider } from './database-search.provider';
 import { MeilisearchSearchProvider } from './meilisearch-search.provider';
+import { SearchIndexService } from './search-index.service';
 import { loadSearchConfig, SearchConfig } from './search.config';
 import {
   SearchQueryInput,
@@ -13,12 +14,13 @@ import {
 import { SearchQuery } from './dto/search-query.dto';
 
 /**
- * Phase 6A SearchService.
+ * Phase 6B SearchService.
  *
- * Selects the active search provider (default: database) and exposes a
- * read-only infrastructure status for the admin panel. The public `search`
- * signature is preserved so the existing controller and web frontend are
- * unaffected.
+ * Selects the active search provider (default: database; meilisearch when
+ * SEARCH_PROVIDER=meilisearch and reachable). On a Meilisearch failure it
+ * transparently falls back to the database provider so public search never
+ * breaks. The public `search` signature is preserved for the controller and
+ * web frontend.
  */
 @Injectable()
 export class SearchService {
@@ -27,10 +29,16 @@ export class SearchService {
   private readonly databaseProvider: DatabaseSearchProvider;
   private readonly meilisearchProvider: MeilisearchSearchProvider;
 
-  constructor(prisma: PrismaService) {
+  constructor(
+    prisma: PrismaService,
+    private readonly searchIndexService: SearchIndexService,
+  ) {
     this.config = loadSearchConfig();
     this.databaseProvider = new DatabaseSearchProvider(prisma);
-    this.meilisearchProvider = new MeilisearchSearchProvider();
+    this.meilisearchProvider = new MeilisearchSearchProvider(
+      prisma,
+      this.config.meilisearch,
+    );
   }
 
   async search(query: SearchQuery, userAgent?: string): Promise<SearchResult> {
@@ -41,36 +49,44 @@ export class SearchService {
       page: query.page,
       limit: query.limit,
     };
-    return provider.search(input, userAgent);
+
+    try {
+      return await provider.search(input, userAgent);
+    } catch (err) {
+      // Transparent fallback: if Meilisearch is the active provider and fails,
+      // return database results instead. The warning intentionally omits the
+      // API key / secret.
+      if (provider.type === 'meilisearch') {
+        const message = err instanceof Error ? err.message : String(err);
+        this.logger.warn(
+          `Meilisearch search failed, falling back to database provider ` +
+            `(index=${this.config.meilisearch.indexName}): ${message}`,
+        );
+        return await this.databaseProvider.search(input, userAgent);
+      }
+      throw err;
+    }
   }
 
-  /**
-   * Resolves the provider to use. In Phase 6A the Meilisearch provider is a
-   * non-available stub, so any `meilisearch` configuration safely falls back
-   * to the database provider.
-   */
   private resolveProvider(): SearchProvider {
-    if (this.config.provider === 'meilisearch') {
-      if (this.meilisearchProvider.isAvailable()) {
-        return this.meilisearchProvider;
-      }
-      this.logger.warn(
-        'SEARCH_PROVIDER=meilisearch but Meilisearch is unavailable in Phase 6A; falling back to database provider',
-      );
-      return this.databaseProvider;
+    if (this.config.provider === 'meilisearch' && this.meilisearchProvider.isAvailable()) {
+      return this.meilisearchProvider;
     }
     return this.databaseProvider;
   }
 
-  /** Read-only infrastructure status for the admin search infrastructure page. */
-  getInfrastructureStatus(): SearchInfrastructureStatus {
+  /** Real infrastructure status for the admin search infrastructure page. */
+  async getInfrastructureStatus(): Promise<SearchInfrastructureStatus> {
     const usingMeili = this.config.provider === 'meilisearch';
-    const meiliConfigured =
-      usingMeili &&
-      Boolean(this.config.meilisearch.host) &&
-      Boolean(this.config.meilisearch.apiKey);
+    const meiliConfigured = this.meilisearchProvider.isAvailable();
+    const meiliReachable = meiliConfigured
+      ? await this.meilisearchProvider.isReachable()
+      : false;
 
-    const indexEntitiesPlanned: SearchEntityType[] = [
+    const indexStatus = await this.searchIndexService.getIndexStatus();
+    const indexReady = indexStatus.exists && indexStatus.settingsConfigured;
+
+    const plannedEntities: SearchEntityType[] = [
       'emoji',
       'category',
       'topic',
@@ -81,14 +97,18 @@ export class SearchService {
       currentProvider: this.config.provider,
       fallbackProvider: this.config.fallback,
       meilisearchConfigured: meiliConfigured,
-      meilisearchEnabled: false,
-      indexEntitiesPlanned,
-      indexReady: false,
+      meilisearchEnabled: usingMeili && meiliReachable,
+      meilisearchReachable: meiliReachable,
+      indexName: this.config.meilisearch.indexName,
+      indexReady,
+      documentCount: indexStatus.documentCount,
       lastIndexedAt: null,
+      plannedEntities,
       notes:
-        'Phase 6A：搜索基础设施规划已就绪。当前使用 database provider 保留现有数据库搜索行为；' +
-        'Meilisearch 计划在 Phase 6B 接入，本阶段未启用、未创建真实索引。' +
-        'Asset 暂不纳入索引（避免版权 / 授权 / 重复内容风险）。',
+        'Phase 6B：Meilisearch 已接入。索引包含 emoji / category / topic / article 的 published 内容（单索引 ' +
+        `${this.config.meilisearch.indexName}，locale 字段区分中英文）。` +
+        '公开搜索在 SEARCH_PROVIDER=meilisearch 时走 Meilisearch，不可用时自动 fallback 到 database。' +
+        'Asset 不纳入索引（避免版权 / 授权 / 重复内容风险）。',
     };
   }
 }
