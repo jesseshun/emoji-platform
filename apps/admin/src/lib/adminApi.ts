@@ -1534,3 +1534,23 @@ export async function getInternalLinkSuggestions(
     `/admin/seo/internal-links/suggestions?${qs.toString()}`,
   );
 }
+
+// ─── Search Infrastructure (Phase 6A) ──────────────────
+
+export type SearchInfraProviderType = 'database' | 'meilisearch';
+export type SearchInfraEntityType = 'emoji' | 'category' | 'topic' | 'article';
+
+export interface SearchInfrastructureStatus {
+  currentProvider: SearchInfraProviderType;
+  fallbackProvider: SearchInfraProviderType;
+  meilisearchConfigured: boolean;
+  meilisearchEnabled: boolean;
+  indexEntitiesPlanned: SearchInfraEntityType[];
+  indexReady: boolean;
+  lastIndexedAt: string | null;
+  notes: string;
+}
+
+export async function getSearchInfrastructureStatus(): Promise<SearchInfrastructureStatus> {
+  return adminFetch<SearchInfrastructureStatus>('/admin/search/infrastructure/status');
+}

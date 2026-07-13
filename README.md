@@ -17,7 +17,7 @@
 
 ## 当前阶段
 
-**Phase 5E** - Phase 5 Final Acceptance 已完成（对 Phase 5A–5D 的 sitemap / robots / indexing、公开文章页、SEO Quality Checker、内部链接、结构化数据与 crawl budget 做最终验收与收尾，命令验收 lint / typecheck / build 全绿，确认可进入 Phase 6）。
+**Phase 6A** - Search Infrastructure Planning 已完成（建立 SearchProvider 抽象层，保留 database provider 为默认实现，规划 Meilisearch 接入边界与索引文档结构，新增后台搜索基础设施状态页与只读 API；未接入 Meilisearch、未创建真实索引、未改为纯静态站）。可进入 Phase 6B。
 
 ## 技术栈
 
@@ -1400,6 +1400,68 @@ Phase 5 完整覆盖：sitemap / robots / indexing 自动化（5A）、公开文
 ### Phase 6 预留说明
 
 下一阶段 **Phase 6 - Search Infrastructure and Advanced Discovery**（详见 [ROADMAP.md](./ROADMAP.md)）：在保持现有动态渲染架构与 SEO 边界的前提下，规划搜索基础设施与高级发现能力（如可选的搜索体验增强与索引优化）。本阶段**未接入 Meilisearch**、**未生成 AI 内容**、**未批量生成低质量内容**、**未改为纯静态站**，这些约束在 Phase 6 仍应遵守，除非经明确确认。部署与长期维护（Docker / Nginx / HTTPS / 备份 / 监控 / Search Console / CDN）作为后续基础设施工作另行安排。
+
+## Phase 6A - Search Infrastructure Planning
+
+**Phase 6A**（已完成）是搜索基础设施**规划与抽象层准备**阶段，为 Phase 6B（Meilisearch Integration）打基础。本阶段**不接入 Meilisearch、不安装 SDK、不创建真实索引、不改为纯静态站、不生成 AI 内容**。
+
+### Search Provider 抽象
+
+- `apps/api/src/modules/search/` 新增抽象层：
+  - `search-provider.interface.ts`：`SearchProvider` 接口（至少含 `search()`）。
+  - `search.types.ts`：Provider 类型、查询/结果类型、规划用索引文档类型（Emoji/Category/Topic/Article）。
+  - `search.config.ts`：从环境变量加载 `SearchConfig`（默认 `database`，含 `fallback`）。
+  - `database-search.provider.ts`：默认 provider，复用现有数据库搜索逻辑（locale 感知、published-only、分页、search_log 记录）。
+  - `meilisearch-search.provider.ts`：Phase 6B 预留 stub（`isAvailable()` 恒为 false，不连接）。
+  - `search.service.ts`：按 config 选择 provider；提供只读 `getInfrastructureStatus()`。
+- `SearchService.search()` 签名保持不变，公开搜索 API `GET /api/v1/search` 与 `/zh/search` `/en/search` 行为不变。
+
+### Database Provider 作为默认 Fallback
+
+- `SEARCH_PROVIDER` 缺省为 `database`。
+- 若配置为 `meilisearch` 但 6A 未连接，自动 fallback 到 `database` 并记录 warn。
+
+### 后台搜索基础设施状态
+
+- API：`GET /api/v1/admin/search/infrastructure/status`（需 admin auth，只读，不泄露密钥）。
+- 页面：`/admin/search/infrastructure`（继承 admin 根布局 `noindex, nofollow`）。
+- 返回：`currentProvider / fallbackProvider / meilisearchConfigured / meilisearchEnabled / indexEntitiesPlanned / indexReady / lastIndexedAt / notes`。
+
+### Meilisearch 作为 Phase 6B 目标
+
+- Meilisearch 在 6A 仅是规划与 stub；真实接入在 Phase 6B，需经明确确认。
+- docker-compose 中已预留 meilisearch 服务；6A 不修改 docker-compose、不启动。
+
+### 索引实体范围
+
+规划进入外部索引（Phase 6B）：**Emoji / Category / Topic / Article**。**Asset 暂不纳入**（版权 / 授权 / 重复内容风险）。仅 `published` 进入索引。
+
+### 字段 / 多语言 / 排序规划（详见 [docs/search-infrastructure-plan.md](./docs/search-infrastructure-plan.md)）
+
+- 字段：每类实体规划 `id / type / locale / slug / name|title / keywords / status / updatedAt / publicUrl` 等（见规划文档）。
+- 多语言：单索引 + locale 字段；`/zh` 默认 `zh`、`/en` 默认 `en`；emojiChar / unicodeCodepoint / shortcode exact match 优先；跨语言 fallback 默认不启用。
+- 排序：emojiChar → unicodeCodepoint → shortcode → name/title → slug → prefix → keyword → category/topic relevance →（6E）copy/search 信号 → updatedAt/publishedAt tie-breaker。6A 不实现复杂评分。
+
+### 安全与索引边界
+
+- 不返回 `passwordHash` / `JWT_SECRET` / Meilisearch API Key / 明文敏感 IP。
+- 不索引 draft / archived、不索引 `/admin` 与 admin-only 字段。
+- `apps/web` 与 `apps/admin` 不直接访问 Prisma；不破坏 `/admin/*` noindex、sitemap / robots。
+
+### 环境变量（规划）
+
+```
+SEARCH_PROVIDER=database
+MEILISEARCH_HOST=
+MEILISEARCH_API_KEY=
+MEILISEARCH_INDEX_PREFIX=emoji_platform
+```
+
+默认 `database`；`MEILISEARCH_*` 为空时不导致启动失败；不写真实密钥。
+
+### 下一阶段
+
+**Phase 6B - Meilisearch Integration**：基于本阶段抽象接入 Meilisearch，实现 Emoji / Category / Topic / Article 的外部索引与高级发现；保持现有 SEO 边界不变。接入需经明确确认。
 
 ## 开发规范
 

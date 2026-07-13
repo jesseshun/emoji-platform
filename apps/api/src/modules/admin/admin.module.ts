@@ -24,9 +24,13 @@ import { AdminAssetController } from './admin-asset.controller';
 import { AdminSeoController } from './admin-seo.controller';
 import { AdminSearchLogsController, AdminCopyEventsController } from './admin-logs.controller';
 import { AdminReviewController } from './admin-review.controller';
+import { AdminSearchInfrastructureController } from './admin-search-infrastructure.controller';
+import { AdminSearchInfrastructureService } from './admin-search-infrastructure.service';
+import { SearchModule } from '../search/search.module';
 
 @Module({
   imports: [
+    SearchModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
@@ -53,6 +57,7 @@ import { AdminReviewController } from './admin-review.controller';
     AdminSearchLogsController,
     AdminCopyEventsController,
     AdminReviewController,
+    AdminSearchInfrastructureController,
   ],
   providers: [
     AdminAuthService,
@@ -66,6 +71,7 @@ import { AdminReviewController } from './admin-review.controller';
     AdminSeoQualityService,
     AdminLogsService,
     AdminReviewService,
+    AdminSearchInfrastructureService,
   ],
   exports: [AdminAuthService],
 })

@@ -1,5 +1,18 @@
 # Changelog
 
+## Phase 6A
+
+- Added search provider abstraction (`apps/api/src/modules/search/`): `SearchProvider` interface, `search.types.ts`, `search.config.ts`.
+- Added `DatabaseSearchProvider` as the default provider, preserving existing database search behavior (locale-aware, published-only, paginated, search-log recording).
+- Added `MeilisearchSearchProvider` as a Phase 6B stub (`isAvailable()` returns false, no SDK, no connection, no real index).
+- `SearchService` now selects the provider from config and falls back to database when Meilisearch is unavailable; public `search()` signature unchanged.
+- Added search infrastructure status API `GET /api/v1/admin/search/infrastructure/status` (admin-auth-guarded, read-only, no secret leakage).
+- Added search infrastructure admin page `/admin/search/infrastructure` (inherits admin `noindex, nofollow`).
+- Added search index planning documentation `docs/search-infrastructure-plan.md` (entities, fields, multilingual strategy, ranking strategy, fallback, Phase 6B boundary).
+- Added Meilisearch configuration placeholders to `.env.example` (`SEARCH_PROVIDER=database`, `MEILISEARCH_API_KEY`, `MEILISEARCH_INDEX_PREFIX`); empty Meilisearch vars do not cause startup failure.
+- Preserved existing database search behavior; public `/zh/search` and `/en/search` unaffected.
+- Did NOT integrate Meilisearch, did NOT install Meilisearch SDK, did NOT start Meilisearch container, did NOT create real search indexes, did NOT build advanced search UI, did NOT build recommendation algorithms, did NOT modify Prisma schema, did NOT refactor the whole frontend search, did NOT break Admin CMS / sitemap / robots / indexing, did NOT generate AI content, did NOT bulk-generate pages, did NOT convert to a pure static site.
+
 ## Phase 5E
 
 - Completed Phase 5 final acceptance (verified Phase 5A–5D outcomes end-to-end).
