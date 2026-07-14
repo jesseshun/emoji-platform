@@ -1,13 +1,15 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getCategoryDetail, getErrorMessage, ApiError } from '@/lib/api';
+import { getCategoryDetail, getRecommendations, getErrorMessage, ApiError } from '@/lib/api';
 import { buildDetailMetadata, optionalText, safeText } from '@/lib/seo';
 import { Breadcrumb } from '@/components/Breadcrumb';
 import { EmojiGrid } from '@/components/EmojiGrid';
 import { Pagination } from '@/components/Pagination';
 import { RelatedTopics } from '@/components/RelatedTopics';
+import { RelatedCategories } from '@/components/RelatedCategories';
+import { ArticleCard } from '@/components/ArticleCard';
 import { ErrorState } from '@/components/ErrorState';
-import type { EmojiBase, CategoryEmoji } from '@/lib/types';
+import type { EmojiBase, CategoryEmoji, RecommendationData } from '@/lib/types';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -51,6 +53,16 @@ export default async function EnCategoryDetailPage({ params, searchParams }: Pro
     const name = safeText(category.translation?.name);
     const description = category.translation?.description || null;
     const icon = category.iconEmoji || '📁';
+
+    // Phase 6D: content-based recommendations (related categories / topics / articles).
+    let rec: RecommendationData | null = null;
+    try {
+      rec = (await getRecommendations('category', slug, 'en', 4)).data;
+    } catch {
+      rec = null;
+    }
+    const recCategories = rec?.relatedCategories ?? [];
+    const recArticles = rec?.relatedArticles ?? [];
 
     const emojiList: EmojiBase[] = emojis.map((e: CategoryEmoji) => ({
       id: e.id,
@@ -113,6 +125,21 @@ export default async function EnCategoryDetailPage({ params, searchParams }: Pro
 
         {relatedTopics && relatedTopics.length > 0 && (
           <RelatedTopics topics={relatedTopics} locale="en" />
+        )}
+
+        {/* Phase 6D: related categories (children / siblings) */}
+        <RelatedCategories categories={recCategories} locale="en" />
+
+        {/* Phase 6D: related articles (keyword overlap) */}
+        {recArticles && recArticles.length > 0 && (
+          <section className="mt-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Related Articles</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {recArticles.map((a) => (
+                <ArticleCard key={a.id} article={a} locale="en" />
+              ))}
+            </div>
+          </section>
         )}
       </div>
     );

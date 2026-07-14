@@ -1,5 +1,5 @@
 import type { ApiResponse, PaginatedResponse } from '@emoji-platform/types';
-import type { EmojiListItem, CategoryItem, TopicItem, Locale, EmojiDetail, CategoryDetailData, TopicDetailData, ArticleItem, ArticleDetailData, SearchResponse, SearchTypeFilter } from './types';
+import type { EmojiListItem, CategoryItem, TopicItem, Locale, EmojiDetail, CategoryDetailData, TopicDetailData, ArticleItem, ArticleDetailData, SearchResponse, SearchTypeFilter, DiscoveryHomeData, RecommendationData, RecommendationEntityType } from './types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
@@ -154,6 +154,35 @@ export async function search(
   if (options.page && options.page > 1) params.set('page', String(options.page));
   if (options.limit) params.set('limit', String(options.limit));
   return fetchApi<SearchResponse>(`/search?${params}`);
+}
+
+// ─── Discovery (Phase 6D) ──────────────────────────────
+
+/**
+ * Public homepage discovery module (Phase 6D).
+ *
+ * Returns featured emojis, featured categories, featured topics, and latest
+ * articles — all published, no auth required.
+ */
+export async function getDiscovery(locale: Locale): Promise<ApiResponse<DiscoveryHomeData>> {
+  return fetchApi<ApiResponse<DiscoveryHomeData>>(`/discovery/home?locale=${locale}`);
+}
+
+/**
+ * Public content-based recommendations (Phase 6D).
+ *
+ * Lightweight, explainable recommendations by entity type + slug. No AI, no
+ * personalization. Returns related emojis / categories / topics / articles
+ * (each array may be empty when not applicable to the entity type).
+ */
+export async function getRecommendations(
+  entityType: RecommendationEntityType,
+  slug: string,
+  locale: Locale,
+  limit = 8,
+): Promise<ApiResponse<RecommendationData>> {
+  const params = new URLSearchParams({ entityType, slug, locale, limit: String(limit) });
+  return fetchApi<ApiResponse<RecommendationData>>(`/recommendations?${params}`);
 }
 
 // ─── Copy Event ────────────────────────────────────────

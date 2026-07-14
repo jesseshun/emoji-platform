@@ -1,5 +1,25 @@
 # Changelog
 
+## Phase 6D
+
+- Added public read-only discovery API `GET /api/v1/discovery/home` returning `featuredEmojis` / `featuredCategories` / `featuredTopics` / `latestArticles` (all `published`-only, no admin fields, no `passwordHash` / `JWT_SECRET` / plaintext IP).
+- Added public read-only recommendation API `GET /api/v1/recommendations` with `entityType` (`emoji` / `category` / `topic` / `article`), `slug`, `locale`, and `limit`:
+  - Invalid `entityType` → `400`; missing / non-existent `slug` → `404`; invalid / missing `locale` → graceful fallback to default (`en`); `limit` default `8`, capped at `20`.
+  - Returns `relatedEmojis` / `relatedCategories` / `relatedTopics` / `relatedArticles` (inapplicable types return empty arrays).
+- Recommendation rules (simple, explainable, no AI): emoji → same-category + same-topic + keyword-near emojis (exclude self, 8–12); category → child/sibling categories + related topics + keyword-related articles; topic → bound emojis + shared-emoji topics + keyword-related articles; article → keyword-related articles + topics + emojis. Only `published` content, never `draft` / `archived`.
+- Recommendation logic is **database-only** (pure Prisma, keyword-overlap token scoring). Meilisearch is NOT a hard dependency: recommendations keep working when Meilisearch is down, and public pages never crash on recommendation failure (frontend silently degrades to empty).
+- Added `DiscoveryModule` and `RecommendationModule` (new `@Controller('discovery')` / `@Controller('recommendations')`, public, no admin guard) and registered them in `AppModule`.
+- Frontend: added `DiscoverySection` + `RelatedCategories` components; added `getDiscovery()` / `getRecommendations()` API wrappers and `DiscoveryHomeData` / `RecommendationData` types.
+- Homepage (`/zh/`, `/en/`) now renders the discovery module (featured emojis / categories / topics / latest articles) via `DiscoverySection`.
+- Category detail pages (`/zh/categories/[slug]`, `/en/categories/[slug]`) show related categories (children / siblings) and related articles from the recommendation API.
+- Topic detail pages (`/zh/topics/[slug]`, `/en/topics/[slug]`) show related articles from the recommendation API.
+- Emoji / article detail pages keep their existing related modules (Phase 6C / 5C); recommendations API is available for all four entity types.
+- Added read-only admin page `/admin/discovery` (auth-guarded via `(admin)` group, `noindex` via root layout) showing discovery / recommendation API status, supported entity types, current recommendation rules, and Meilisearch assist / fallback status (reuses `/api/v1/admin/search/infrastructure/status`).
+- Preserved SEO / sitemap boundaries: recommendations are page-content only; no new sitemap / robots entries; recommendation result pages are not indexed; `/admin/*` remains `noindex`.
+- Preserved Phase 6B Meilisearch provider / database fallback, Phase 6C Advanced Search UX, and Phase 5 sitemap / robots / indexing; did not modify Prisma schema.
+- `lint` / `typecheck` / `build` green.
+- Did NOT develop Phase 6E search analytics, did NOT tune search analytics, did NOT generate AI content, did NOT develop personalized recommendations, did NOT develop user profiling, did NOT bulk-generate low-quality pages, did NOT convert to a pure static site, did NOT modify Prisma schema.
+
 ## Phase 6C
 
 - Added advanced public search UX on top of the Phase 6B Meilisearch/database search: refactored `/zh/search` and `/en/search` into a unified `SearchResultsView` client component (server reads `searchParams` for first-paint SSR; client handles type filter, pagination, and loading/empty/error/fallback states).

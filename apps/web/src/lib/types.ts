@@ -378,6 +378,28 @@ export interface ArticleDetailData {
   relatedEmojis: RelatedEmoji[];
 }
 
+// ─── Discovery (Phase 6D) ──────────────────────────────
+
+export interface DiscoveryHomeData {
+  featuredEmojis: EmojiListItem[];
+  featuredCategories: CategoryItem[];
+  featuredTopics: TopicItem[];
+  latestArticles: ArticleItem[];
+}
+
+export type RecommendationEntityType = 'emoji' | 'category' | 'topic' | 'article';
+
+export interface RecommendationData {
+  entityType: RecommendationEntityType;
+  id: string;
+  slug: string;
+  locale: Locale;
+  relatedEmojis: RelatedEmoji[];
+  relatedCategories: CategoryItem[];
+  relatedTopics: RelatedTopic[];
+  relatedArticles: ArticleItem[];
+}
+
 // ─── Re-exports ────────────────────────────────────────
 
 export type { Locale, PaginationMeta };

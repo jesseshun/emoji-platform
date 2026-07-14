@@ -1,14 +1,15 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getTopicDetail, getErrorMessage, ApiError } from '@/lib/api';
+import { getTopicDetail, getRecommendations, getErrorMessage, ApiError } from '@/lib/api';
 import { buildDetailMetadata, optionalText, safeText } from '@/lib/seo';
 import type { FaqItem } from '@/lib/seo';
 import { Breadcrumb } from '@/components/Breadcrumb';
 import { EmojiGrid } from '@/components/EmojiGrid';
 import { RelatedTopics } from '@/components/RelatedTopics';
+import { ArticleCard } from '@/components/ArticleCard';
 import { FaqBlock } from '@/components/FaqBlock';
 import { ErrorState } from '@/components/ErrorState';
-import type { EmojiBase, TopicBoundEmoji } from '@/lib/types';
+import type { EmojiBase, TopicBoundEmoji, RecommendationData } from '@/lib/types';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -53,6 +54,15 @@ export default async function EnTopicDetailPage({ params }: Props) {
   try {
     const result = await getTopicDetail(slug, 'en');
     const { topic, emojis, relatedTopics } = result.data;
+
+    // Phase 6D: content-based recommendations (related topics / emojis / articles).
+    let rec: RecommendationData | null = null;
+    try {
+      rec = (await getRecommendations('topic', slug, 'en', 4)).data;
+    } catch {
+      rec = null;
+    }
+    const recArticles = rec?.relatedArticles ?? [];
 
     const title = safeText(topic.translation?.title);
     const summary = topic.translation?.summary || null;
@@ -143,6 +153,18 @@ export default async function EnTopicDetailPage({ params }: Props) {
         {/* Related Topics */}
         {relatedTopics && relatedTopics.length > 0 && (
           <RelatedTopics topics={relatedTopics} locale="en" />
+        )}
+
+        {/* Phase 6D: related articles (keyword overlap) */}
+        {recArticles && recArticles.length > 0 && (
+          <section className="mt-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Related Articles</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {recArticles.map((a) => (
+                <ArticleCard key={a.id} article={a} locale="en" />
+              ))}
+            </div>
+          </section>
         )}
       </div>
     );

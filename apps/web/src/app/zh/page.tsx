@@ -3,12 +3,10 @@ import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 import { SearchBox } from '@/components/SearchBox';
-import { EmojiGrid } from '@/components/EmojiGrid';
-import { CategoryCard } from '@/components/CategoryCard';
-import { TopicCard } from '@/components/TopicCard';
 import { ToolCard } from '@/components/ToolCard';
+import { DiscoverySection } from '@/components/DiscoverySection';
 import { ErrorState } from '@/components/ErrorState';
-import { getEmojis, getCategories, getTopics, getErrorMessage } from '@/lib/api';
+import { getDiscovery, getErrorMessage } from '@/lib/api';
 
 export const metadata: Metadata = {
   title: 'Emoji 平台 - 发现每一个表情符号',
@@ -39,16 +37,11 @@ const tools = [
 ];
 
 export default async function ZhHomePage() {
-  let emojiData;
-  let categoryData;
-  let topicData;
+  let discovery;
 
   try {
-    [emojiData, categoryData, topicData] = await Promise.all([
-      getEmojis('zh', 1, 12),
-      getCategories('zh'),
-      getTopics('zh', 1, 3),
-    ]);
+    const res = await getDiscovery('zh');
+    discovery = res.data;
   } catch (error) {
     return <ErrorState message={getErrorMessage(error)} />;
   }
@@ -68,61 +61,8 @@ export default async function ZhHomePage() {
         </div>
       </section>
 
-      {/* Recommended Emojis */}
-      {emojiData && emojiData.data && emojiData.data.length > 0 && (
-        <section className="max-w-6xl mx-auto px-4 py-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">推荐表情</h2>
-            <Link
-              href="/zh/emojis"
-              className="text-sm text-blue-600 hover:text-blue-700 transition"
-            >
-              查看全部 →
-            </Link>
-          </div>
-          <EmojiGrid emojis={emojiData.data} locale="zh" />
-        </section>
-      )}
-
-      {/* Category Entry */}
-      {categoryData && categoryData.data && categoryData.data.length > 0 && (
-        <section className="max-w-6xl mx-auto px-4 py-12 bg-white">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">表情分类</h2>
-            <Link
-              href="/zh/categories"
-              className="text-sm text-blue-600 hover:text-blue-700 transition"
-            >
-              查看全部分类 →
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {categoryData.data.slice(0, 6).map((cat: typeof categoryData.data[number]) => (
-              <CategoryCard key={cat.id} category={cat} locale="zh" />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Topic Entry */}
-      {topicData && topicData.data && topicData.data.length > 0 && (
-        <section className="max-w-6xl mx-auto px-4 py-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">精选专题</h2>
-            <Link
-              href="/zh/topics"
-              className="text-sm text-blue-600 hover:text-blue-700 transition"
-            >
-              查看全部专题 →
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {topicData.data.map((topic: typeof topicData.data[number]) => (
-              <TopicCard key={topic.id} topic={topic} locale="zh" />
-            ))}
-          </div>
-        </section>
-      )}
+      {/* Discovery module (Phase 6D) */}
+      <DiscoverySection data={discovery} locale="zh" />
 
       {/* Tool Entry */}
       <section className="max-w-6xl mx-auto px-4 py-12 bg-white">
