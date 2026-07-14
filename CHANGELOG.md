@@ -1,5 +1,19 @@
 # Changelog
 
+## Phase 6F
+
+- Completed Phase 6 final acceptance
+- Verified Phase 6A search infrastructure planning (SearchProvider interface, DatabaseSearchProvider, MeilisearchSearchProvider, SearchService DI+fallback, infrastructure status API/page)
+- Verified Phase 6B Meilisearch integration (Docker service, SDK, SearchIndexService, index rebuild/settings/status APIs, audit_logs, published-only indexing)
+- Verified Phase 6C advanced search UX (SearchResultsView, typed results, type filter, safe highlighting, loading/empty/error/fallback states, copy, result links, locale/SEO boundary)
+- Verified Phase 6D discovery and recommendations (Discovery API, Recommendation API with 400/404, published-only, keyword-overlap, DiscoverySection/RelatedCategories, homepage integration)
+- Verified Phase 6E search analytics and tuning (admin analytics page, overview/queries/no-results/provider-health APIs, rule-based tuning, 401/403 auth, noindex)
+- Verified database fallback (Meilisearch stop → search works via database)
+- Verified sitemap and robots boundaries (no /admin, no /api/v1/admin, robots blocks admin)
+- Verified security boundaries (no passwordHash/JWT_SECRET/Meilisearch API key/plaintext IP in any API response)
+- pnpm install/db:generate/db:migrate/db:seed/lint/typecheck/build all green
+- No AI content generated, no personalized recommendations, no user profiling, no pure static site conversion
+
 ## Phase 6E
 
 - Added admin Search Analytics module (Phase 6E) under `admin/search/analytics`, read-only aggregations over `search_logs` (no writes, no AI):

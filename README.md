@@ -17,7 +17,7 @@
 
 ## 当前阶段
 
-**Phase 6E** - Search Analytics and Tuning 已完成（在 Phase 6B / 6C / 6D 的搜索、索引、发现与推荐能力之上，新增后台搜索分析：基于 `search_logs` 的只读聚合——总搜索 / 今日搜索 / 零结果率 / 语言分布 / 热门搜索词 / 热门零结果词 / 最近搜索（不展示明文 IP）/ 按关键词+语言聚合的搜索词分析 / 零结果词分析与建议动作 / Meilisearch provider 健康与 fallback 状态 / 规则化调优建议（不使用 AI）；新增后台页面 `/admin/search/analytics`（noindex）与 5 个分析 API；保守调优设置应用仅限 super_admin，复用 Phase 6B 既定设置并写 audit_logs。未接入 AI 自动调优、未改为纯静态站、未破坏既有搜索 / 索引 / fallback / 发现 / 推荐）。下一阶段：Phase 6F - Phase 6 Final Acceptance。
+**Phase 6F** - Phase 6 Final Acceptance 已完成（Phase 6 最终验收：回归 Phase 6A–6E 全部模块；HTTP 实测验证搜索 / 发现 / 推荐 / 分析 / 基础设施 / 索引 / 降级全部通过；sitemap/robots 边界确认（无 /admin 泄漏）；安全边界复查（无 passwordHash/JWT_SECRET/Meilisearch key/明文 IP 泄露）；pnpm install/db:generate/db:migrate/db:seed/lint/typecheck/build 全绿；未生成 AI 内容、未开发个性化推荐、未开发用户画像、未改为纯静态站）。下一阶段：Phase 7 - Deployment, Production Readiness, and Operations。
 
 ## 技术栈
 
@@ -1694,13 +1694,13 @@ MEILISEARCH_INDEX_PREFIX=emoji_platform
 
 Phase 6B 接入真实 Meilisearch（provider 抽象 + database fallback + 索引服务 + 后台索引管理 / 状态页）；Phase 6C 优化公开搜索 UX（类型化结果、`type` 过滤、安全高亮、一键复制、fallback 状态）；Phase 6D 新增轻量、可解释、无 AI 的发现与推荐（discovery / recommendations API + 前台模块 + 只读后台状态页）。三阶段均保持 SEO 边界与动态渲染架构不变，未改为纯静态站、未接入 AI 自动生成、未批量生成低质量内容。详见上文「Meilisearch 搜索集成（Phase 6B）」「高级搜索体验（Phase 6C）」「发现与推荐增强（Phase 6D）」。
 
-## Phase 6E - Search Analytics and Tuning（已完成）
+## Phase 6F - Phase 6 Final Acceptance（已完成）
 
-Phase 6E 新增后台搜索分析与基础调优：基于 `search_logs` 的只读聚合（总搜索 / 今日 / 零结果率 / 语言分布 / 热门词 / 零结果词 / 最近搜索不展示明文 IP / 按关键词+语言聚合的搜索词分析 / 零结果词分析与建议动作）、Meilisearch provider 健康与 fallback 状态、规则化调优建议（不使用 AI）；新增 `/admin/search/analytics`（noindex）与 5 个分析 API（含仅 `super_admin` 的保守调优设置应用，写 `audit_logs`）。未接入 AI 自动调优、未改为纯静态站、未破坏 Phase 6B/6C/6D 既有能力与 Phase 5 sitemap / robots / indexing。详见上文「搜索分析与调优（Phase 6E）」。
+Phase 6 最终验收完成。回归 Phase 6A 搜索基础设施规划（SearchProvider 接口、DatabaseSearchProvider、MeilisearchSearchProvider、SearchService DI+fallback、infrastructure status API/page）、Phase 6B Meilisearch 集成（Docker 服务、SDK、SearchIndexService、索引重建/设置/状态 API、audit_logs、published-only 索引）、Phase 6C 高级搜索 UX（SearchResultsView、类型化展示、类型过滤器、安全高亮、状态处理、复制、结果链接、locale/SEO 边界）、Phase 6D 发现与推荐（Discovery API、Recommendation API 含 400/404 校验、published-only、关键词重叠算法、DiscoverySection/RelatedCategories 组件、首页集成）、Phase 6E 搜索分析与调优（admin 分析页面、overview/queries/no-results/provider-health API、规则化调优、401/403 认证、noindex）。HTTP 实测验证：公共搜索 API（中英文）、发现首页（中英文）、推荐（合法/非法/缺失参数）、管理员登录、搜索基础设施/索引/分析 API、搜索日志、sitemap/robots 边界（无 /admin 泄漏）。Meilisearch 降级验证：停止 Meilisearch 后搜索自动回退到数据库。安全审计通过：所有 API 响应不含 passwordHash/JWT_SECRET/Meilisearch API key/明文 IP。pnpm install/db:generate/db:migrate/db:seed/lint/typecheck/build 全绿。未生成 AI 内容、未开发个性化推荐、未开发用户画像、未改为纯静态站。
 
 ### 下一阶段
 
-**Phase 6F - Phase 6 Final Acceptance**：Phase 6 的最终验收与收尾（需经明确确认），回归 Phase 6A–6E 全部能力，复查安全与 SEO 边界，确认可进入部署与长期维护（Phase 7）。
+**Phase 7 - Deployment, Production Readiness, and Operations**：部署与长期维护（需经明确确认），包括生产环境 Docker、Nginx、HTTPS、备份、监控、Search Console、CDN 等。
 
 ## 开发规范
 
