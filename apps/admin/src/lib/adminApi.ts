@@ -1613,3 +1613,196 @@ export async function postSearchIndexSettings(): Promise<SearchIndexSettingsResu
     method: 'POST',
   });
 }
+
+// ─── Search Analytics (Phase 6E) ──────────────────────
+
+export type SearchAnalyticsProviderType = 'database' | 'meilisearch';
+
+export interface SearchAnalyticsSearchesByLocale {
+  zh: number;
+  en: number;
+  other: number;
+}
+
+export type SearchAnalyticsSearchesByProvider =
+  | { supported: true; database: number; meilisearch: number }
+  | { supported: false; note: string };
+
+export type SearchAnalyticsTopCopiedAfterSearch =
+  | { supported: true; emojis: { emojiId: string; emojiChar: string | null; emojiSlug: string | null; count: number }[] }
+  | { supported: false; note: string };
+
+export interface SearchAnalyticsTuningSuggestion {
+  priority: 'high' | 'medium' | 'low';
+  category: string;
+  title: string;
+  detail: string;
+  suggestedAction: string;
+}
+
+export interface SearchAnalyticsProviderHealth {
+  currentProvider: SearchAnalyticsProviderType;
+  fallbackProvider: SearchAnalyticsProviderType;
+  meilisearchConfigured: boolean;
+  meilisearchReachable: boolean;
+  indexReady: boolean;
+  documentCount: number;
+  lastIndexedAt: string | null;
+  fallbackRecommended: boolean;
+  notes: string[];
+}
+
+export interface SearchAnalyticsRecentSearch {
+  id: string;
+  query: string | null;
+  locale: string | null;
+  resultCount: number | null;
+  country: string | null;
+  createdAt: string;
+}
+
+export interface SearchAnalyticsOverview {
+  totalSearches: number;
+  todaySearches: number;
+  zeroResultSearches: number;
+  zeroResultRate: number;
+  searchesByLocale: SearchAnalyticsSearchesByLocale;
+  searchesByProvider: SearchAnalyticsSearchesByProvider;
+  topQueries: { query: string; count: number }[];
+  topZeroResultQueries: { query: string; count: number }[];
+  topCopiedAfterSearch: SearchAnalyticsTopCopiedAfterSearch;
+  recentSearches: SearchAnalyticsRecentSearch[];
+  tuningSuggestions: SearchAnalyticsTuningSuggestion[];
+  providerStatus: SearchAnalyticsProviderHealth;
+}
+
+export interface SearchAnalyticsQueryItem {
+  query: string | null;
+  locale: string | null;
+  count: number;
+  avgResultCount: number | null;
+  zeroResultCount: number;
+  lastSearchedAt: string | null;
+}
+
+export interface SearchAnalyticsNoResultItem {
+  query: string | null;
+  locale: string | null;
+  count: number;
+  lastSearchedAt: string | null;
+  suggestedAction: string;
+}
+
+export interface SearchAnalyticsPaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface SearchTuningApplyResult {
+  available: boolean;
+  applied: boolean;
+  message: string;
+  indexName?: string;
+  searchableAttributes?: string[];
+  filterableAttributes?: string[];
+  sortableAttributes?: string[];
+  rankingRules?: string[];
+  finishedAt?: string;
+}
+
+export interface SearchAnalyticsQueriesQuery {
+  page?: number;
+  limit?: number;
+  q?: string;
+  locale?: 'zh' | 'en' | 'all';
+  hasResults?: 'true' | 'false';
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+export interface SearchAnalyticsNoResultsQuery {
+  page?: number;
+  limit?: number;
+  locale?: 'zh' | 'en' | 'all';
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+function buildQueryString(params: Record<string, unknown | undefined>): string {
+  const qs = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === null || value === '') continue;
+    qs.set(key, String(value));
+  }
+  const query = qs.toString();
+  return query ? `?${query}` : '';
+}
+
+export async function getSearchAnalyticsOverview(): Promise<SearchAnalyticsOverview> {
+  return adminFetch<SearchAnalyticsOverview>('/admin/search/analytics/overview');
+}
+
+export async function getSearchAnalyticsQueries(
+  params: SearchAnalyticsQueriesQuery = {},
+): Promise<{ data: SearchAnalyticsQueryItem[]; meta: SearchAnalyticsPaginationMeta }> {
+  const query = buildQueryString({
+    page: params.page,
+    limit: params.limit,
+    q: params.q,
+    locale: params.locale,
+    hasResults: params.hasResults,
+    dateFrom: params.dateFrom,
+    dateTo: params.dateTo,
+  });
+  const body = await adminFetchEnvelope<SearchAnalyticsQueryItem[]>(
+    `/admin/search/analytics/queries${query}`,
+  );
+  return {
+    data: body.data,
+    meta:
+      (body.meta as unknown as SearchAnalyticsPaginationMeta) ?? {
+        page: 1,
+        limit: 30,
+        total: 0,
+        totalPages: 1,
+      },
+  };
+}
+
+export async function getSearchAnalyticsNoResults(
+  params: SearchAnalyticsNoResultsQuery = {},
+): Promise<{ data: SearchAnalyticsNoResultItem[]; meta: SearchAnalyticsPaginationMeta }> {
+  const query = buildQueryString({
+    page: params.page,
+    limit: params.limit,
+    locale: params.locale,
+    dateFrom: params.dateFrom,
+    dateTo: params.dateTo,
+  });
+  const body = await adminFetchEnvelope<SearchAnalyticsNoResultItem[]>(
+    `/admin/search/analytics/no-results${query}`,
+  );
+  return {
+    data: body.data,
+    meta:
+      (body.meta as unknown as SearchAnalyticsPaginationMeta) ?? {
+        page: 1,
+        limit: 30,
+        total: 0,
+        totalPages: 1,
+      },
+  };
+}
+
+export async function getSearchAnalyticsProviderHealth(): Promise<SearchAnalyticsProviderHealth> {
+  return adminFetch<SearchAnalyticsProviderHealth>('/admin/search/analytics/provider-health');
+}
+
+export async function postSearchTuningApply(): Promise<SearchTuningApplyResult> {
+  return adminFetch<SearchTuningApplyResult>('/admin/search/analytics/tuning/apply-settings', {
+    method: 'POST',
+    body: JSON.stringify({}),
+  });
+}

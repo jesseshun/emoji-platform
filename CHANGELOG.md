@@ -1,5 +1,21 @@
 # Changelog
 
+## Phase 6E
+
+- Added admin Search Analytics module (Phase 6E) under `admin/search/analytics`, read-only aggregations over `search_logs` (no writes, no AI):
+  - `GET /api/v1/admin/search/analytics/overview` — totalSearches / todaySearches / zeroResultSearches / zeroResultRate / searchesByLocale / topQueries / topZeroResultQueries / recentSearches / providerStatus / rule-based tuningSuggestions.
+  - `GET /api/v1/admin/search/analytics/queries` — query-level analytics grouped by (query, locale) with count / avgResultCount / zeroResultCount / lastSearchedAt; filters page / limit / locale / q / hasResults / dateFrom / dateTo.
+  - `GET /api/v1/admin/search/analytics/no-results` — zero-result analytics grouped by (query, locale) with count / lastSearchedAt / suggestedAction; filters page / limit / locale / dateFrom / dateTo.
+  - `GET /api/v1/admin/search/analytics/provider-health` — live Meilisearch / database fallback snapshot (currentProvider / fallbackProvider / meilisearchConfigured / meilisearchReachable / indexReady / documentCount / fallbackRecommended / notes), reusing SearchService + SearchIndexService. No API key leaked.
+- Added rule-based `tuningSuggestions` (no AI, no ML, no content auto-generation): high zero-result rate, frequent zero-result queries, zh/en zero-result imbalance, Meilisearch unreachable, index not ready.
+- Added conservative `POST /api/v1/admin/search/analytics/tuning/apply-settings` (super_admin only) that re-applies the Phase 6B settings via SearchIndexService and writes `audit_logs` `search.tuning_settings_update`; returns `available:false` when Meilisearch is not configured. No core ranking logic changed, no content auto-rewritten.
+- Added admin page `/admin/search/analytics` (noindex, inherits admin root layout): overview cards, locale distribution, provider-support note, top queries / zero-result queries, recent searches (no plaintext IP / ipHash / userAgent), query analytics table, no-result analytics table, provider-health summary, tuning suggestions, and (super_admin only) a conservative tuning-apply button.
+- Added role helpers `canViewSearchAnalytics` (super_admin / editor / seo_manager / analyst) and `canManageSearchTuning` (super_admin); all analytics endpoints are admin-auth-guarded (401 when unauthenticated, 403 when insufficient role).
+- Security: no plaintext IP, no passwordHash, no JWT_SECRET, no Meilisearch API key in any analytics response; `searchesByProvider` and `topCopiedAfterSearch` are explicitly reported as unsupported (no per-request provider recorded; no session linkage between search and copy events).
+- Preserved Phase 6B Meilisearch provider / database fallback, Phase 6C Advanced Search UX, Phase 6D Discovery / Recommendation, and Phase 5 sitemap / robots / indexing; `/admin/search/analytics` remains noindex and is not in any sitemap; did not modify Prisma schema.
+- `lint` / `typecheck` / `build` green.
+- Did NOT develop AI auto-tuning, did NOT develop personalized recommendations, did NOT develop user profiling, did NOT bulk-generate low-quality pages, did NOT change core ranking logic, did NOT convert to a pure static site.
+
 ## Phase 6D
 
 - Added public read-only discovery API `GET /api/v1/discovery/home` returning `featuredEmojis` / `featuredCategories` / `featuredTopics` / `latestArticles` (all `published`-only, no admin fields, no `passwordHash` / `JWT_SECRET` / plaintext IP).

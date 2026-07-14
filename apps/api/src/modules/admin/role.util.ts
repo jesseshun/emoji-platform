@@ -362,3 +362,43 @@ export function assertCanManageSearchSettings(role: string | undefined | null): 
     throw new ForbiddenException('当前角色无权更新搜索索引设置（需要 super_admin）');
   }
 }
+
+// Search Analytics (Phase 6E).
+//   - Viewing analytics (overview / queries / no-results / provider-health):
+//     super_admin, editor, seo_manager, analyst — same operational + content
+//     roles as the other search read endpoints.
+//   - Applying tuning settings (conservative Meilisearch settings re-apply):
+//     super_admin only.
+// Kept as clearly named helpers distinct from the search-index helpers.
+const SEARCH_ANALYTICS_VIEW_ROLES: AdminRole[] = [
+  'super_admin',
+  'editor',
+  'seo_manager',
+  'analyst',
+];
+
+const SEARCH_TUNING_MANAGE_ROLES: AdminRole[] = ['super_admin'];
+
+export function canViewSearchAnalytics(role: string | undefined | null): boolean {
+  if (!role) return false;
+  return SEARCH_ANALYTICS_VIEW_ROLES.includes(role as AdminRole);
+}
+
+export function canManageSearchTuning(role: string | undefined | null): boolean {
+  if (!role) return false;
+  return SEARCH_TUNING_MANAGE_ROLES.includes(role as AdminRole);
+}
+
+export function assertCanViewSearchAnalytics(role: string | undefined | null): void {
+  if (!canViewSearchAnalytics(role)) {
+    throw new ForbiddenException(
+      '当前角色无权访问搜索分析（需要 super_admin / editor / seo_manager / analyst）',
+    );
+  }
+}
+
+export function assertCanManageSearchTuning(role: string | undefined | null): void {
+  if (!canManageSearchTuning(role)) {
+    throw new ForbiddenException('当前角色无权应用搜索调优设置（需要 super_admin）');
+  }
+}

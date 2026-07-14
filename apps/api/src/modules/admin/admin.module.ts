@@ -28,6 +28,8 @@ import { AdminSearchInfrastructureController } from './admin-search-infrastructu
 import { AdminSearchInfrastructureService } from './admin-search-infrastructure.service';
 import { AdminSearchIndexController } from './admin-search-index.controller';
 import { AdminSearchIndexService } from './admin-search-index.service';
+import { AdminSearchAnalyticsController } from './admin-search-analytics.controller';
+import { AdminSearchAnalyticsService } from './admin-search-analytics.service';
 import { SearchModule } from '../search/search.module';
 
 @Module({
@@ -61,6 +63,7 @@ import { SearchModule } from '../search/search.module';
     AdminReviewController,
     AdminSearchInfrastructureController,
     AdminSearchIndexController,
+    AdminSearchAnalyticsController,
   ],
   providers: [
     AdminAuthService,
@@ -76,6 +79,7 @@ import { SearchModule } from '../search/search.module';
     AdminReviewService,
     AdminSearchInfrastructureService,
     AdminSearchIndexService,
+    AdminSearchAnalyticsService,
   ],
   exports: [AdminAuthService],
 })
