@@ -17,7 +17,11 @@
 
 ## 当前阶段
 
-**Phase 7A** - Preview Deployment Architecture and Production Path 已完成（预览部署架构与后续正式上线方案规划：定义 preview = Preview/Staging/Internal-Test，非正式 production；规划腾讯云国内小服务器预览方案、未备案域名 ICP 风险、IP+端口 / preview 子域 / SSH Tunnel 三种访问方式、web/admin/api 子域路由（推荐）、Docker Compose preview 规划、preview 环境变量策略、数据库与备份规划、安全边界与 SEO 策略（noindex / 不接国内 CDN / 不做正式 SEO 提交）、后续海外（路线 A）与国内备案（路线 B）两条正式上线路线；新增 docs/deployment/ 规划文档与占位模板 .env.preview.example / docker-compose.preview.yml / nginx/preview.conf.example；确认当前 API CORS 硬编码 localhost 需 Phase 7B 改为 CORS_ORIGIN 环境变量驱动；未真实部署、未连接真实服务器、未写真实密钥/IP）。下一阶段：**Phase 7B - Preview Environment, Secrets, and Config Hardening**。
+**Phase 7B** - Preview Environment, Secrets, and Config Hardening 已完成（CORS/Cookie/JWT 环境变量驱动、弱密钥 fail-fast、`.gitignore` 强化忽略所有真实 `.env*`、noindex/robots 策略文档化；未真实部署、未连接真实服务器、未写真实密钥/IP）。
+
+**Phase 7C-1** - Preview Docker Deployment 仓库产物与本地校验 已完成（将 docker-compose.preview.yml、web/admin/api Dockerfile、.dockerignore、Nginx 模板、scripts/preview/* 运维脚本从模板变为可执行产物，并完成本地 Docker 校验：compose config / 三镜像构建 / up / health / migrate / seed / Web+Admin+API 冒烟 / X-Robots-Tag noindex / Postgres 与 Meilisearch 不暴露公网 / 可选 Meilisearch profile / Meili 停用数据库兜底 / 密钥不泄露扫描，全部通过）。**Phase 7C-2（真实腾讯云部署）待单独授权，本轮未连接真实服务器、未写真实 IP/密码/密钥**。
+
+下一阶段：**Phase 7C-2 - Preview Deployment on Tencent Cloud**（真实小服务器：安全组、访问方式、`.env.preview` 强随机密钥、`git push`、上线与冒烟；完成后打 `phase-7c-complete` 标签并标记 HANDOFF 为 Phase 7C 完成）。
 
 ## 技术栈
 

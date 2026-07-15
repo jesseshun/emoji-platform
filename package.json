@@ -15,7 +15,16 @@
     "db:migrate": "pnpm --filter @emoji-platform/api prisma:migrate",
     "db:seed": "pnpm --filter @emoji-platform/api prisma:seed",
     "db:studio": "pnpm --filter @emoji-platform/api prisma:studio",
-    "import:emoji": "tsx scripts/import-unicode-data/import-emojis.ts"
+    "import:emoji": "tsx scripts/import-unicode-data/import-emojis.ts",
+    "preview:validate": "bash scripts/preview/validate-env.sh",
+    "preview:config": "docker compose -f docker-compose.preview.yml -p emoji-platform-preview config",
+    "preview:build": "bash scripts/preview/build.sh",
+    "preview:up": "bash scripts/preview/up.sh",
+    "preview:down": "bash scripts/preview/down.sh",
+    "preview:status": "bash scripts/preview/status.sh",
+    "preview:logs": "bash scripts/preview/logs.sh",
+    "preview:migrate": "bash scripts/preview/migrate.sh",
+    "preview:seed": "bash scripts/preview/seed.sh"
   },
   "engines": {
     "node": ">=18.0.0",

@@ -1,0 +1,60 @@
+# ─── VCS & CI ─────────────────────────────────────────────────────────────
+.git
+.github
+.gitignore
+
+# ─── Dependencies (reinstalled inside the image) ─────────────────────────
+node_modules
+**/node_modules
+
+# ─── Build output (regenerated inside the image) ─────────────────────────
+.next
+**/.next
+dist
+**/dist
+out
+**/out
+build
+**/build
+.turbo
+
+# ─── Coverage & reports ───────────────────────────────────────────────────
+coverage
+**/coverage
+*.tsbuildinfo
+**/*.tsbuildinfo
+
+# ─── Logs & temp ──────────────────────────────────────────────────────────
+*.log
+**/*.log
+npm-debug.log*
+.pnpm-debug.log*
+tmp
+**/tmp
+.cache
+**/.cache
+.DS_Store
+.idea
+.vscode
+
+# ─── Secrets & environment files (NEVER send real env to build context) ───
+.env
+.env.*
+!.env.example
+!.env.preview.example
+!.env.production.example
+
+# ─── Local data / services data ───────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+postgres_data
+meilisearch_data
+**/meili_data
+backups
+**/backups
+
+# ─── Misc repo hygiene ────────────────────────────────────────────────────
+.codebuddy
+**/.codebuddy
+scripts/preview/*.env

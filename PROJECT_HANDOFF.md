@@ -4,6 +4,12 @@
 
 Phase 7B completed.
 
+> Note (Phase 7C-1): Repository deployment artifacts prepared and local Docker validation passed —
+> executable `docker-compose.preview.yml`, `web`/`admin`/`api` Dockerfiles, `.dockerignore`, Nginx
+> envsubst template, `scripts/preview/*` ops scripts, and `docs/deployment/phase-7c-*.md`. Remote
+> Tencent Cloud deployment (Phase 7C-2) is **pending** and requires separate authorization. No real
+> server connected; no real IP / password / token / JWT / Meili key / GitHub PAT written.
+
 ## Project Goal
 
 Build a long-term maintainable global Emoji dictionary, copy, meaning, search, topic, CMS, and multilingual SEO platform.

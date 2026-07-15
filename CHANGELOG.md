@@ -1,5 +1,20 @@
 # Changelog
 
+## Phase 7C (preparation — 7C-1 only)
+
+- Turned `docker-compose.preview.yml` from a template into an **executable** compose: `nginx`/`web`/`admin`/`api`/`postgres` always up, `meilisearch` behind the optional `search` profile; three-port Nginx access (`:80` web, `:8081` admin, `:8082` api); required-var guards (`${VAR:?...}`), `service_healthy` ordering, healthchecks, json-file log rotation, named volumes.
+- `apps/api/Dockerfile`: multi-stage NestJS build that compiles the `types`→`shared`→`api` workspace `dist` it imports at runtime; non-root `appuser`; regenerates the Prisma client; runs `prisma`/`tsx` via direct binaries (no pnpm workspace deps-check); no `.env`/secrets in image.
+- `apps/web/Dockerfile` & `apps/admin/Dockerfile`: Next.js `standalone` multi-stage builds; bake `NEXT_PUBLIC_*` (public only) at build time; non-root `nextjs` user; build the `shared`/`types` `dist` they consume.
+- Added `typescript` as `devDependency` to `packages/types`, `packages/shared`, `packages/ui` so workspace builds resolve `tsc` self-contained.
+- Added `.dockerignore` (excludes `.git`, `node_modules`, `.next`, `dist`, logs, all real `.env*`, local DB/Meili data; keeps `*.example`).
+- `nginx/preview.conf.template`: official envsubst template; three server blocks, `server_tokens off`, WebSocket upgrade, `X-Forwarded-*`, `client_max_body_size 20m`, `X-Robots-Tag: noindex, nofollow, noarchive` on every port; `server_name _`; no HTTPS/cert; no PG/Meili exposure.
+- `scripts/preview/*`: `validate-env`, `config`, `build`, `up`, `down`, `status`, `logs`, `migrate`, `seed` — `set -euo pipefail`, no secret output, check `.env.preview` + required vars, use `docker compose -f docker-compose.preview.yml -p <project>`, `prisma migrate deploy`, explicit idempotent seed; `down` preserves volumes.
+- `package.json`: added `preview:validate/config/build/up/down/status/logs/migrate/seed` wrappers (existing scripts untouched).
+- `nginx/preview.conf.example` rewritten as a reference doc pointing to the template.
+- Local Docker validation passed with a throwaway project + random test credentials: `compose config`; build `web`/`admin`/`api`; `up`/`ps`/health; `migrate` (`prisma migrate deploy`) + `seed`; Web (`/`, `/zh/`, `/en/`, `/zh/search?q=开心`, `/en/search?q=happy`, `/robots.txt`, `/sitemap.xml`); Admin (login redirect, `/admin/search/infrastructure`, `/admin/search/analytics`); API (`/health`, `/status` → `database:connected`, `/search` provider `database`, `/discovery/home`, `/recommendations`, admin endpoints 401); `X-Robots-Tag` noindex on all three ports; Postgres/Meilisearch not on host ports; optional Meilisearch profile config-valid + boots healthy; DB fallback (`SEARCH_PROVIDER=meilisearch` with Meili down → `fallbackUsed:true`); secret scan clean (no test creds in repo, `.env.*` gitignored, no secrets in images, no DB URL in logs).
+- Docs: added `docs/deployment/phase-7c-preview-docker-deployment.md` and `docs/deployment/tencent-cloud-preview-server-checklist.md` (placeholders only).
+- **Phase 7C-2 (real Tencent Cloud deployment) NOT performed**: no real server connected, no SSH, no security-group change, no DNS, no real IP/domain/password/JWT/Meili-key/PAT, no real `.env.preview`, no `phase-7c-complete` tag, HANDOFF remains Phase 7B completed.
+
 ## Phase 7B
 
 - Replaced `apps/api/src/main.ts` hardcoded localhost CORS with env-driven `buildAllowedCorsOrigins()` (reads `CORS_ORIGIN` / `ADMIN_ALLOWED_ORIGINS` / `WEB_BASE_URL` / `ADMIN_BASE_URL`)

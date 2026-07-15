@@ -1,25 +1,41 @@
 # ============================================================================
-# Emoji Platform — Preview Docker Compose (TEMPLATE ONLY)
+# Emoji Platform — Preview Docker Compose (EXECUTABLE)
 # ----------------------------------------------------------------------------
-# 单台国内腾讯云小服务器的 Preview / Staging 部署模板。仅模板，不部署。
-# 所有值通过 .env.preview 注入（见 .env.preview.example），本文件不含真实值。
-# 预览期：db/meili/redis 仅内部网络，不映射公网端口；仅 nginx 暴露 80/443。
-# 后台(admin)/api 建议仅经 SSH Tunnel / Tailscale 内网访问，不暴露公网。
+# 单台服务器的 Preview / Staging 部署。所有敏感值通过 .env.preview 注入
+# （见 .env.preview.example），本文件不写任何真实密码 / IP / 域名 / token。
+#
+# 访问架构（默认，仅公网 IP + 端口，不依赖未备案域名）：
+#   Nginx :80    -> web   (container :3000)
+#   Nginx :8081  -> admin (container :3001)
+#   Nginx :8082  -> api   (container :4000)
+# 只有 Nginx 暴露公网；web/admin/api/postgres/meilisearch 仅内部网络。
+#
+# 默认仅启动 web / admin / api / postgres（database 搜索）。
+# Meilisearch 为可选 profile，按需启用：
+#   docker compose -f docker-compose.preview.yml --profile search up -d
+#
+# 使用独立 project name 避免误伤其他项目：脚本统一带 -p emoji-platform-preview
 # ============================================================================
 
 services:
-  # ─── 入口：仅 nginx 暴露公网 ────────────────────────────────────────────
+  # ─── 入口：唯一公网入口 ───────────────────────────────────────────────────
   nginx:
     image: nginx:1.27-alpine
     container_name: emoji-preview-nginx
     restart: unless-stopped
     ports:
-      - '80:80'
-      - '443:443'
+      - '${NGINX_LISTEN_WEB:-80}:80'
+      - '${NGINX_LISTEN_ADMIN:-8081}:8081'
+      - '${NGINX_LISTEN_API:-8082}:8082'
     volumes:
-      - ./nginx/preview.conf.example:/etc/nginx/conf.d/default.conf:ro
-      # 证书挂载（预览期可选；IP 场景可免或用自签/隧道 TLS）
-      # - ./certs:/etc/nginx/certs:ro
+      # 官方 Nginx 镜像会在启动时用 envsubst 渲染 templates/*.template。
+      - ./nginx/preview.conf.template:/etc/nginx/templates/default.conf.template:ro
+    environment:
+      NGINX_LISTEN_WEB: '${NGINX_LISTEN_WEB:-80}'
+      NGINX_LISTEN_ADMIN: '${NGINX_LISTEN_ADMIN:-8081}'
+      NGINX_LISTEN_API: '${NGINX_LISTEN_API:-8082}'
+      # 仅替换我们定义的变量，nginx 自身 $host/$proxy_* 等保持原样。
+      ENVSUBST_VARS: 'NGINX_LISTEN_WEB NGINX_LISTEN_ADMIN NGINX_LISTEN_API'
     depends_on:
       - web
       - admin
@@ -27,38 +43,49 @@ services:
     networks:
       - preview
     logging:
+      driver: json-file
       options:
         max-size: '10m'
         max-file: '3'
 
-  # ─── Web (Next.js standalone) ───────────────────────────────────────────
+  # ─── Web (Next.js standalone) ────────────────────────────────────────────
   web:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: '${NEXT_PUBLIC_API_URL:-http://localhost:8082}'
+        NEXT_PUBLIC_SITE_URL: '${NEXT_PUBLIC_SITE_URL:-http://localhost}'
+        NEXT_PUBLIC_ADMIN_URL: '${NEXT_PUBLIC_ADMIN_URL:-http://localhost:8081}'
+    image: emoji-platform-preview-web
     container_name: emoji-preview-web
     restart: unless-stopped
     expose:
       - '3000'
     environment:
       NODE_ENV: production
+      # 服务端 SSR 拉取 API 用内部地址。
       API_URL: http://api:4000
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
-      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
     depends_on:
       - api
     networks:
       - preview
     logging:
+      driver: json-file
       options:
         max-size: '10m'
         max-file: '3'
 
-  # ─── Admin (Next.js standalone) — 仅内网/隧道，不映射公网 ─────────────────
+  # ─── Admin (Next.js standalone) ──────────────────────────────────────────
   admin:
     build:
       context: .
       dockerfile: apps/admin/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: '${NEXT_PUBLIC_API_URL:-http://localhost:8082}'
+        NEXT_PUBLIC_SITE_URL: '${NEXT_PUBLIC_SITE_URL:-http://localhost}'
+        NEXT_PUBLIC_ADMIN_URL: '${NEXT_PUBLIC_ADMIN_URL:-http://localhost:8081}'
+    image: emoji-platform-preview-admin
     container_name: emoji-preview-admin
     restart: unless-stopped
     expose:
@@ -66,51 +93,71 @@ services:
     environment:
       NODE_ENV: production
       API_URL: http://api:4000
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
-      NEXT_PUBLIC_ADMIN_URL: ${NEXT_PUBLIC_ADMIN_URL:-http://localhost:3001}
     depends_on:
       - api
     networks:
       - preview
     logging:
+      driver: json-file
       options:
         max-size: '10m'
         max-file: '3'
 
-  # ─── API (NestJS) — 仅内网/隧道，不映射公网 ─────────────────────────────
+  # ─── API (NestJS) ────────────────────────────────────────────────────────
   api:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
+    image: emoji-platform-preview-api
     container_name: emoji-preview-api
     restart: unless-stopped
     expose:
       - '4000'
     environment:
       NODE_ENV: production
+      APP_ENV: preview
       API_PORT: '4000'
-      DATABASE_URL: ${DATABASE_URL}
-      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
-      JWT_SECRET: ${JWT_SECRET}
+      # 必填（缺失则 compose 报错，避免在缺密钥时启动）。
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required (preview)}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required (preview)}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      # 可选：database provider 下不连接 Meilisearch。
       MEILISEARCH_HOST: ${MEILISEARCH_HOST:-http://meilisearch:7700}
-      MEILISEARCH_API_KEY: ${MEILISEARCH_API_KEY}
+      MEILISEARCH_API_KEY: ${MEILISEARCH_API_KEY:-}
       MEILISEARCH_INDEX_PREFIX: ${MEILISEARCH_INDEX_PREFIX:-emoji_platform_preview}
       SEARCH_PROVIDER: ${SEARCH_PROVIDER:-database}
-      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000,http://localhost:3001}
-      WEB_BASE_URL: ${WEB_BASE_URL:-http://localhost:3000}
-      ADMIN_BASE_URL: ${ADMIN_BASE_URL:-http://localhost:3001}
+      # CORS / Cookie（来自 Phase 7B 环境变量驱动逻辑）。
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost,http://localhost:8081}
+      WEB_BASE_URL: ${WEB_BASE_URL:-http://localhost}
+      ADMIN_BASE_URL: ${ADMIN_BASE_URL:-http://localhost:8081}
+      ADMIN_ALLOWED_ORIGINS: ${ADMIN_ALLOWED_ORIGINS:-http://localhost:8081}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      COOKIE_DOMAIN: ${COOKIE_DOMAIN:-}
+      RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-false}
+      PREVIEW_NOINDEX: ${PREVIEW_NOINDEX:-true}
     depends_on:
       postgres:
         condition: service_healthy
     networks:
       - preview
+    healthcheck:
+      # 同时验证进程存活与数据库连接（/status 返回 database:connected）。
+      test:
+        - CMD-SHELL
+        - >-
+          wget -q -O - http://localhost:4000/api/v1/status
+          | grep -q '"database":"connected"'
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
     logging:
+      driver: json-file
       options:
         max-size: '10m'
         max-file: '3'
 
-  # ─── PostgreSQL — 仅内部网络 ────────────────────────────────────────────
+  # ─── PostgreSQL（仅内部网络，不暴露公网） ────────────────────────────────
   postgres:
     image: postgres:16-alpine
     container_name: emoji-preview-postgres
@@ -118,32 +165,35 @@ services:
     expose:
       - '5432'
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-emoji_preview}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB:-emoji_platform_preview}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required (preview)}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required (preview)}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required (preview)}
     volumes:
       - postgres_preview_data:/var/lib/postgresql/data
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-emoji_preview}']
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
     networks:
       - preview
     logging:
+      driver: json-file
       options:
         max-size: '10m'
         max-file: '3'
 
-  # ─── Meilisearch — 仅内部网络；低配预览可注释掉并用 DB fallback ──────────
+  # ─── Meilisearch（可选 profile，默认不启动） ─────────────────────────────
   meilisearch:
     image: getmeili/meilisearch:v1.8
     container_name: emoji-preview-meilisearch
     restart: unless-stopped
     expose:
       - '7700'
+    profiles:
+      - search
     environment:
-      MEILI_MASTER_KEY: ${MEILISEARCH_API_KEY}
+      MEILI_MASTER_KEY: ${MEILISEARCH_API_KEY:-}
       MEILI_ENV: development
       MEILI_DB_PATH: /meili_data
       MEILI_NO_ANALYTICS: 'true'
@@ -153,29 +203,11 @@ services:
       test: ['CMD', 'curl', '-f', 'http://localhost:7700/health']
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
     networks:
       - preview
     logging:
-      options:
-        max-size: '10m'
-        max-file: '3'
-
-  # ─── Redis（如被依赖；低配可评估移除） ──────────────────────────────────
-  redis:
-    image: redis:7-alpine
-    container_name: emoji-preview-redis
-    restart: unless-stopped
-    expose:
-      - '6379'
-    healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    networks:
-      - preview
-    logging:
+      driver: json-file
       options:
         max-size: '10m'
         max-file: '3'
