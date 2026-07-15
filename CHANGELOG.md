@@ -1,5 +1,22 @@
 # Changelog
 
+## Phase 7A
+
+- Added preview deployment architecture plan (docs/deployment/phase-7a-preview-architecture.md)
+- Added Tencent Cloud domestic small-server preview deployment strategy
+- Added unfiled-domain and ICP risk notes for domestic-server preview
+- Added preview Docker Compose plan (docs/deployment/preview-docker-plan.md + docker-compose.preview.yml template)
+- Added preview environment variable strategy (.env.preview.example template + preview-environment-strategy.md)
+- Added preview security and SEO strategy (preview-security-and-seo.md): noindex, no domestic CDN, no SEO submission, admin not public
+- Added overseas and domestic production path options (production-path-options.md): Route A (overseas/no-ICP) and Route B (domestic/ICP+CDN)
+- Compared three preview access modes: IP+port, preview subdomain, SSH tunnel/internal
+- Compared web/admin/api routing modes (subdomain recommended vs single-domain path)
+- Documented resource sizing: 1C2G close Meilisearch (DB fallback), 2C4G full stack, swap, container memory limits
+- Confirmed API CORS is hardcoded to localhost and must be env-driven (CORS_ORIGIN) in Phase 7B
+- All templates use placeholders only — no real IP/password/token/JWT/Meili-key/PAT written
+- Did NOT deploy, did NOT connect real servers, did NOT modify business code or Prisma schema, did NOT convert to pure static site
+- pnpm install/db:generate/lint/typecheck/build all green
+
 ## Phase 6F
 
 - Completed Phase 6 final acceptance

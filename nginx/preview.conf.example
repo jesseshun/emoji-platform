@@ -1,0 +1,104 @@
+# ============================================================================
+# Emoji Platform — Nginx Preview Config (EXAMPLE ONLY)
+# ----------------------------------------------------------------------------
+# 预览 Nginx 反代模板。仅模板，不部署。不含真实 IP / 域名 / 证书路径（用占位）。
+# 方式 A（子域，推荐）：preview / admin-preview / api-preview 三个子域反代。
+# 方式 B（单域路径）仅作注释示例，需 Phase 7B 改 next.config basePath 后才可用。
+# 后台(admin)/api 建议仅经 SSH Tunnel / Tailscale 内网访问（见下方内网 server 注释）。
+# ============================================================================
+
+# ─── 方式 A：子域路由（推荐） ─────────────────────────────────────────────
+
+# Web
+server {
+    listen 80;
+    server_name preview.example.com;  # 占位：替换为 preview 子域
+
+    # 预览期防误收录双保险
+    add_header X-Robots-Tag "noindex, nofollow" always;
+
+    location / {
+        proxy_pass http://web:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# Admin（建议仅内网/隧道；此处为子域形态示例）
+server {
+    listen 80;
+    server_name admin-preview.example.com;  # 占位
+
+    add_header X-Robots-Tag "noindex, nofollow" always;
+
+    location / {
+        proxy_pass http://admin:3001;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# API
+server {
+    listen 80;
+    server_name api-preview.example.com;  # 占位
+
+    add_header X-Robots-Tag "noindex, nofollow" always;
+
+    location / {
+        proxy_pass http://api:4000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# ─── 方式 B：单域路径（仅规划，需 Phase 7B 改 basePath 后启用） ───────────────
+# 注意：admin 作为独立 Next 应用经 /admin 提供需 next.config basePath:'/admin'，
+# 且静态资源前缀需同步；API 需 Nginx 把 /api 反代到 api 容器。
+# 示例如下（默认注释，避免误用）：
+#
+# server {
+#     listen 80;
+#     server_name preview.example.com;
+#     add_header X-Robots-Tag "noindex, nofollow" always;
+#
+#     location /admin/ {
+#         proxy_pass http://admin:3001/;   # 需 admin basePath=/admin 才正确
+#         # ...
+#     }
+#     location /api/ {
+#         proxy_pass http://api:4000/;
+#         # ...
+#     }
+#     location / {
+#         proxy_pass http://web:3000;
+#         # ...
+#     }
+# }
+
+# ─── 内网/隧道访问（推荐用于 admin & api） ─────────────────────────────────
+# 若仅经 SSH Tunnel / Tailscale 访问，可不暴露 admin/api 公网子域，
+# 改为在服务器本机监听，由隧道映射到本地。示例：
+#
+# server {
+#     listen 127.0.0.1:3001;   # 仅本机/内网
+#     server_name _;
+#     location / {
+#         proxy_pass http://admin:3001;
+#         # ...
+#     }
+# }
+# server {
+#     listen 127.0.0.1:4000;
+#     server_name _;
+#     location / {
+#         proxy_pass http://api:4000;
+#         # ...
+#     }
+# }

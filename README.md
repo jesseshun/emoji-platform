@@ -17,7 +17,7 @@
 
 ## 当前阶段
 
-**Phase 6F** - Phase 6 Final Acceptance 已完成（Phase 6 最终验收：回归 Phase 6A–6E 全部模块；HTTP 实测验证搜索 / 发现 / 推荐 / 分析 / 基础设施 / 索引 / 降级全部通过；sitemap/robots 边界确认（无 /admin 泄漏）；安全边界复查（无 passwordHash/JWT_SECRET/Meilisearch key/明文 IP 泄露）；pnpm install/db:generate/db:migrate/db:seed/lint/typecheck/build 全绿；未生成 AI 内容、未开发个性化推荐、未开发用户画像、未改为纯静态站）。下一阶段：Phase 7 - Deployment, Production Readiness, and Operations。
+**Phase 7A** - Preview Deployment Architecture and Production Path 已完成（预览部署架构与后续正式上线方案规划：定义 preview = Preview/Staging/Internal-Test，非正式 production；规划腾讯云国内小服务器预览方案、未备案域名 ICP 风险、IP+端口 / preview 子域 / SSH Tunnel 三种访问方式、web/admin/api 子域路由（推荐）、Docker Compose preview 规划、preview 环境变量策略、数据库与备份规划、安全边界与 SEO 策略（noindex / 不接国内 CDN / 不做正式 SEO 提交）、后续海外（路线 A）与国内备案（路线 B）两条正式上线路线；新增 docs/deployment/ 规划文档与占位模板 .env.preview.example / docker-compose.preview.yml / nginx/preview.conf.example；确认当前 API CORS 硬编码 localhost 需 Phase 7B 改为 CORS_ORIGIN 环境变量驱动；未真实部署、未连接真实服务器、未写真实密钥/IP）。下一阶段：**Phase 7B - Preview Environment, Secrets, and Config Hardening**。
 
 ## 技术栈
 
@@ -57,8 +57,20 @@ emoji-platform/
 │   └── seeders/      # 种子数据
 ├── scripts/
 │   └── import-unicode-data/  # Emoji 导入脚本
-├── docker-compose.yml
+├── docker-compose.yml          # 开发用 Compose
+├── docker-compose.preview.yml   # 预览部署 Compose 模板（占位，无真实值）
+├── nginx/
+│   └── preview.conf.example     # 预览 Nginx 反代模板（占位）
+├── docs/
+│   ├── search-infrastructure-plan.md
+│   └── deployment/              # 部署规划（Phase 7A 起）
+│       ├── phase-7a-preview-architecture.md
+│       ├── preview-environment-strategy.md
+│       ├── preview-docker-plan.md
+│       ├── preview-security-and-seo.md
+│       └── production-path-options.md
 ├── .env.example
+├── .env.preview.example         # 预览环境变量模板（占位，可提交；真实 .env.preview 不提交）
 ├── pnpm-workspace.yaml
 └── package.json
 ```
@@ -1700,7 +1712,26 @@ Phase 6 最终验收完成。回归 Phase 6A 搜索基础设施规划（SearchPr
 
 ### 下一阶段
 
-**Phase 7 - Deployment, Production Readiness, and Operations**：部署与长期维护（需经明确确认），包括生产环境 Docker、Nginx、HTTPS、备份、监控、Search Console、CDN 等。
+**Phase 7 - Deployment, Production Readiness, and Operations**：部署与长期维护（需经明确确认），包括生产环境 Docker、Nginx、HTTPS、备份、监控、Search Console、CDN 等。Phase 7 已拆为 7A（架构规划）与 7B（环境/密钥/配置硬化）等子阶段推进。
+
+## Phase 7A - Preview Deployment Architecture and Production Path（已完成）
+
+Phase 7A 完成**预览部署架构设计与后续正式上线方案规划**（仅文档 + 占位模板，未真实部署、未连接真实服务器、未写真实密钥/IP）。核心结论：
+
+- **预览定位**：当前腾讯云国内小服务器上的部署仅作为 Preview / Staging / Internal-Test 环境，**不是**正式 production、不是正式中国大陆网站、不做正式 SEO 提交、不接国内 CDN。详见 [docs/deployment/phase-7a-preview-architecture.md](./docs/deployment/phase-7a-preview-architecture.md)。
+- **未备案域名风险**：未备案域名解析到中国大陆服务器可能被拦截/阻断，不保证长期稳定访问；一旦被拦截应切回 IP+端口或 SSH Tunnel / 海外服务器方案。
+- **三种预览访问方式**：① 公网 IP + 端口（最快速、与当前硬编码 CORS 兼容性最好）；② preview 子域（体验接近正式，但受备案风险制约，且需 Phase 7B 把 CORS 改为 `CORS_ORIGIN` 环境变量驱动）；③ SSH Tunnel / Tailscale / Cloudflare Tunnel 等内网访问（最安全，适合内部测试）。推荐组合：联调取 IP+端口或隧道，少量场景叠加 preview 子域并预期可能拦截。
+- **web/admin/api 路由**：推荐**子域**方式（`preview.example.com` / `admin-preview.example.com` / `api-preview.example.com`），与正式多子域架构一致，且避免改动 `next.config` 的 `basePath`；路径方式（单域 `/admin`、`/api`）需 Phase 7B 改 basePath/全局前缀，仅作规划。
+- **资源占用**：1 核 2G 仅适合轻量预览（关 Meilisearch 用 DB fallback、加 swap、限容器内存、只跑必要服务）；2 核 4G 可跑完整栈。PostgreSQL 与 Meilisearch 同机即可，Meilisearch 资源不足可关闭，索引可从数据库重建故无需单独备份。
+- **Docker Compose preview 规划**：新增 `docker-compose.preview.yml` 与 `nginx/preview.conf.example` 模板（均为占位、无真实值），db/meili/redis 仅内部网络、仅 nginx 暴露 80/443、admin/api 经隧道/内网访问；含 healthcheck、restart policy、日志限制。预览数据库独立 + seed（少量、无敏感生产数据）、定期 `pg_dump` 备份、migrate 失败可重置预览库。
+- **Preview 环境变量策略**：新增 `.env.preview.example`（占位模板，可提交；真实 `.env.preview` 不提交，已在 `.gitignore` 忽略）。分组：通用 / API / PostgreSQL / Meilisearch / Preview 安全。preview 与 production 使用不同强随机密钥，绝不写真实值。
+- **Preview 安全与 SEO 边界**：Admin 不公开传播、强密码、JWT_SECRET 随机强密钥（不入库）、Meilisearch key 不暴露前端、PostgreSQL/Meilisearch 不开放公网、安全组最小开放、不提交 `.env`/IP/token/PAT、`/admin/*` noindex；预览全站 `noindex`、`robots` 禁止抓取、不向搜索引擎提交 sitemap、不接国内 CDN、不做站长验证。详见 [docs/deployment/preview-security-and-seo.md](./docs/deployment/preview-security-and-seo.md)。
+- **后续正式上线两条路线**：路线 A（香港/海外服务器，无需 ICP 备案，上线快、适合海外 SEO）；路线 B（完成国内 ICP 备案后用国内服务器 + 国内 CDN，国内访问稳定、国内生态友好）。两条路线共享同一套 Docker Compose + Nginx 架构，差异在地域/备案/CDN/SEO 开启时机。详见 [docs/deployment/production-path-options.md](./docs/deployment/production-path-options.md)。
+- **关键代码发现**：当前 `apps/api/src/main.ts` 的 CORS **硬编码**为 `['http://localhost:3000','http://localhost:3001']`，不读取 `CORS_ORIGIN`；`web`/`admin` 的 `next.config` 未设 `basePath`。因此子域/preview 正式可用需 Phase 7B 将 CORS 改为环境变量驱动（并视情况处理 basePath）。本阶段未修改这些代码。
+
+### 下一阶段
+
+**Phase 7B - Preview Environment, Secrets, and Config Hardening**：将 Phase 7A 规划落地为可运行的预览配置——引入并接入 `CORS_ORIGIN`（替换硬编码）、`COOKIE_SECURE` / `COOKIE_DOMAIN` / `ADMIN_ALLOWED_ORIGINS` / `RATE_LIMIT_ENABLED` 等预览安全变量、生成真实（不提交）`.env.preview`、完成单台服务器预览部署与 HTTPS/证书策略。
 
 ## 开发规范
 
