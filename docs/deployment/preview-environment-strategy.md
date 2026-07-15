@@ -53,7 +53,7 @@
 - **Meilisearch**：`SEARCH_PROVIDER`、`MEILISEARCH_HOST`、`MEILISEARCH_API_KEY`、`MEILISEARCH_INDEX_PREFIX`
 - **Preview 安全**：`COOKIE_SECURE`、`COOKIE_DOMAIN`、`ADMIN_ALLOWED_ORIGINS`（如支持）、`RATE_LIMIT_ENABLED`（如支持）
 
-> 注意：当前代码 `main.ts` 的 CORS 为硬编码 localhost，上述 `CORS_ORIGIN` 等**尚未被读取**，需 Phase 7B 落地。本文件仅规划其存在与用途。
+> 说明：上述 `CORS_ORIGIN` / `ADMIN_ALLOWED_ORIGINS` / `WEB_BASE_URL` / `ADMIN_BASE_URL` / `COOKIE_*` 等变量**已在 Phase 7B 落地**——`apps/api/src/main.ts` 与 `admin-auth.controller.ts` 现已读取这些变量（详见 `phase-7b-preview-config-hardening.md`）。本文件记录其策略与用途。
 
 ---
 

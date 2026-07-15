@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Phase 7A completed.
+Phase 7B completed.
 
 ## Project Goal
 
@@ -63,7 +63,8 @@ Build a long-term maintainable global Emoji dictionary, copy, meaning, search, t
 - Phase 6E: Search analytics and tuning (admin Search Analytics module: read-only aggregations over search_logs; query-level/no-results/provider-health APIs; rule-based tuningSuggestions (no AI); conservative tuning apply-settings (super_admin only); admin /admin/search/analytics page; role-based access; 401/403 auth; no sensitive data leakage; lint/typecheck/build green)
 - Phase 6F: Phase 6 final acceptance (regressed Phase 6A–6E all modules; HTTP-verified public search/discovery/recommendations/admin APIs; Meilisearch fallback verified; sitemap/robots boundaries verified; security audit clean; pnpm install/db:generate/db:migrate/db:seed/lint/typecheck/build all green; no AI content, no personalized recommendations, no user profiling, no pure static site conversion)
 - Phase 7A: Preview deployment architecture and production path (added `docs/deployment/` plan set: phase-7a-preview-architecture.md, preview-environment-strategy.md, preview-docker-plan.md, preview-security-and-seo.md, production-path-options.md; added `.env.preview.example` template; added `docker-compose.preview.yml` and `nginx/preview.conf.example` templates — all placeholders, no real secrets/IP; defined preview = Preview/Staging/Internal-Test only, NOT production; documented Tencent Cloud domestic small-server preview plan, unfiled-domain ICP risk, three access modes (IP+port / preview subdomain / SSH tunnel), web/admin/api routing comparison (subdomain recommended), resource sizing (1C2G close Meilisearch via DB fallback, 2C4G full stack), preview env vars, DB/backup plan, security & SEO boundaries (noindex, no CDN, no SEO submission); documented two production routes (A: overseas/no-ICP, B: domestic/ICP+CDN); confirmed current API CORS is hardcoded localhost and must be env-driven in Phase 7B; did NOT deploy, did NOT connect real servers, did NOT write real IP/password/token/JWT/Meili-key/PAT, did NOT submit .env, did NOT modify business code/Prisma schema, did NOT convert to pure static site)
+- Phase 7B: Preview environment, secrets, and config hardening (replaced `main.ts` hardcoded localhost CORS with env-driven `buildAllowedCorsOrigins()` reading `CORS_ORIGIN`/`ADMIN_ALLOWED_ORIGINS`/`WEB_BASE_URL`/`ADMIN_BASE_URL`, multi-origin comma-split/trim/ignore-empty, localhost fallback when empty, no `*`+credentials; moved cookie `secure`/`domain` to `resolveCookieSecure()`/`resolveCookieDomain()` from `COOKIE_SECURE`/`COOKIE_DOMAIN` env; removed weak JWT_SECRET `'change_me'` default — fail-fast in production/preview when missing, dev-only warned placeholder otherwise; added `apps/api/src/common/security-config.ts` helper; updated `.env.example` with Phase 7B vars; updated `.env.preview.example` (marked implemented); added `.env.production.example` (placeholders only); hardened `.gitignore` to ignore all real `.env*` variants while keeping the three `.example` templates committable; documented noindex/robots via `PREVIEW_NOINDEX` + Nginx `X-Robots-Tag` + `robots.txt`; added `docs/deployment/phase-7b-preview-config-hardening.md`; updated README/CHANGELOG/HANDOFF; did NOT deploy, did NOT connect real servers, did NOT write real IP/password/token/JWT/Meili-key/PAT, did NOT submit `.env`/`.env.preview`/`.env.production`, did NOT modify business functionality, did NOT modify Prisma schema, did NOT convert to pure static site)
 
 ## Next Phase
 
-Phase 7B - Preview Environment, Secrets, and Config Hardening
+Phase 7C - Preview Docker Deployment and Server Setup

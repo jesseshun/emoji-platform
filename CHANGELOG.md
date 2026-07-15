@@ -1,5 +1,23 @@
 # Changelog
 
+## Phase 7B
+
+- Replaced `apps/api/src/main.ts` hardcoded localhost CORS with env-driven `buildAllowedCorsOrigins()` (reads `CORS_ORIGIN` / `ADMIN_ALLOWED_ORIGINS` / `WEB_BASE_URL` / `ADMIN_BASE_URL`)
+- Multi-origin support: comma-separated, auto trim, ignore empty values, dedupe; falls back to `localhost:3000/3001` when all empty (local dev works out of the box)
+- No `*` with credentials: non-allowlisted origins rejected, allowlisted origins echoed explicitly
+- Moved cookie `secure`/`domain` to `resolveCookieSecure()` / `resolveCookieDomain()` reading `COOKIE_SECURE` / `COOKIE_DOMAIN` (explicit priority; default true in production/preview, false in local dev; empty domain → browser default)
+- Removed weak JWT_SECRET `'change_me'` default in `admin.module.ts`: fail-fast in production/preview when missing, dev-only warned placeholder otherwise
+- Added `apps/api/src/common/security-config.ts` config helper (no sensitive value logged)
+- Updated `.env.example` with Phase 7B variables (`CORS_ORIGIN`, `ADMIN_ALLOWED_ORIGINS`, `WEB_BASE_URL`, `ADMIN_BASE_URL`, `API_BASE_URL`, `COOKIE_SECURE`, `COOKIE_DOMAIN`, `RATE_LIMIT_ENABLED`, `PREVIEW_NOINDEX`)
+- Updated `.env.preview.example` (marked Phase 7B implemented; `APP_ENV=preview`, `API_BASE_URL`, `PREVIEW_NOINDEX` added)
+- Added `.env.production.example` template (placeholders only, not committed)
+- Hardened `.gitignore` to ignore all real `.env*` variants (`.env`, `.env.local`, `.env.preview`, `.env.production`, `.env.development`, `.env.staging`, `.env.*.local`) while keeping `.env.example` / `.env.preview.example` / `.env.production.example` committable
+- Documented preview noindex/robots strategy via `PREVIEW_NOINDEX=true` + Nginx `X-Robots-Tag: noindex` + `robots.txt` Disallow (no SEO submission, no domestic CDN)
+- Added docs/deployment/phase-7b-preview-config-hardening.md
+- Updated docs/deployment/preview-environment-strategy.md and phase-7a-preview-architecture.md (Phase 7B items marked landed)
+- Did NOT deploy, did NOT connect real servers, did NOT write real IP/password/token/JWT/Meili-key/PAT, did NOT submit `.env`/`.env.preview`/`.env.production`, did NOT modify business functionality, did NOT modify Prisma schema, did NOT convert to pure static site
+- pnpm install/db:generate/lint/typecheck/build all green
+
 ## Phase 7A
 
 - Added preview deployment architecture plan (docs/deployment/phase-7a-preview-architecture.md)

@@ -187,12 +187,14 @@ preview.example.com/api    → api
 
 ## 7. 后续步骤（交给 Phase 7B）
 
+> **状态**：Phase 7B 已完成（见 `phase-7b-preview-config-hardening.md`）。CORS / Cookie / JWT_SECRET 已改为环境变量驱动，env 模板与文档已补齐。以下原规划项均已落地为可运行配置（不含真实部署）。
+
 本阶段只规划，以下为 Phase 7B 落地项（明确列出，便于衔接）：
 
-- 将 API CORS 改为读取 `CORS_ORIGIN`（逗号分隔多 origin），替换 `main.ts` 硬编码白名单。
-- 引入 `COOKIE_SECURE` / `COOKIE_DOMAIN` / `ADMIN_ALLOWED_ORIGINS` / `RATE_LIMIT_ENABLED`（如项目支持）等预览安全变量。
-- 提供真实可调的 `.env.preview`（不提交）与 Nginx preview 配置，完成单台服务器预览部署。
-- 确定 preview 域名 / IP / 证书策略并落地。
+- 将 API CORS 改为读取 `CORS_ORIGIN`（逗号分隔多 origin），替换 `main.ts` 硬编码白名单。✅ 已落地
+- 引入 `COOKIE_SECURE` / `COOKIE_DOMAIN` / `ADMIN_ALLOWED_ORIGINS` / `RATE_LIMIT_ENABLED`（如项目支持）等预览安全变量。✅ 已落地
+- 提供真实可调的 `.env.preview`（不提交）与 Nginx preview 配置，完成单台服务器预览部署。➡️ 交给 Phase 7C
+- 确定 preview 域名 / IP / 证书策略并落地。➡️ 交给 Phase 7C
 
 ---
 

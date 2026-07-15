@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, Logger } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { AdminAuthController } from './admin-auth.controller';
@@ -37,14 +37,34 @@ import { SearchModule } from '../search/search.module';
     SearchModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        secret: config.get<string>('JWT_SECRET') || 'change_me',
-        // jsonwebtoken's expiresIn accepts a time-string (e.g. "7d"); the
-        // branded StringValue type is not exported, so we assert here.
-        signOptions: {
-          expiresIn: (config.get<string>('JWT_EXPIRES_IN') || '7d') as any, // eslint-disable-line @typescript-eslint/no-explicit-any
-        },
-      }),
+      useFactory: (config: ConfigService) => {
+        const secret = config.get<string>('JWT_SECRET');
+        const nodeEnv = config.get<string>('NODE_ENV');
+        const appEnv = config.get<string>('APP_ENV');
+        const isProdLike = nodeEnv === 'production' || appEnv === 'preview';
+        const expiresIn = (config.get<string>('JWT_EXPIRES_IN') || '7d') as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+
+        // 不允许在 production / preview 使用弱默认 JWT_SECRET。
+        // 缺失时：production/preview 直接启动失败（fail-fast）；本地开发使用告警占位值，避免误用于预览/生产。
+        if (!secret || secret.length === 0) {
+          if (isProdLike) {
+            throw new Error(
+              'FATAL: JWT_SECRET is not configured. Refusing to start in production/preview. ' +
+                'Set a strong random JWT_SECRET (e.g. `openssl rand -base64 32`).',
+            );
+          }
+          new Logger('JwtModule').warn(
+            'JWT_SECRET is not set; using an INSECURE development placeholder. ' +
+              'DO NOT use this configuration in preview or production.',
+          );
+          return {
+            secret: 'dev_insecure_jwt_secret_change_me_do_not_ship',
+            signOptions: { expiresIn },
+          };
+        }
+
+        return { secret, signOptions: { expiresIn } };
+      },
     }),
   ],
   controllers: [

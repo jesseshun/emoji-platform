@@ -1,8 +1,14 @@
 node_modules
+
+# ─── Secrets & Environment files (NEVER commit real env) ──────────────────
+# 真实环境文件（含任意前缀变体）一律忽略：.env / .env.local / .env.preview /
+# .env.production / .env.development / .env.staging / .env.*.local 等。
 .env
-.env.local
-.env.preview
-.env.production
+.env.*
+# 例外：可提交的占位模板（不含真实值）显式保留。
+!.env.example
+!.env.preview.example
+!.env.production.example
 dist
 build
 .next
