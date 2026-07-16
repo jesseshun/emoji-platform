@@ -55,6 +55,13 @@ COPY --from=builder /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
 
+# Next.js standalone server runs as the unprivileged `nextjs` user, but at
+# runtime it writes the incremental/prerender cache to
+# /app/apps/web/.next/cache. Create that directory and grant ownership to
+# nextjs so SSR cache writes don't fail with EACCES (which surfaced as a
+# 502 Bad Gateway from nginx on the first external request in prod).
+RUN mkdir -p /app/apps/web/.next/cache && chown -R nextjs:nodejs /app/apps/web/.next
+
 USER nextjs
 
 EXPOSE 3000
