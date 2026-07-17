@@ -32,7 +32,9 @@ COPY packages/shared ./packages/shared
 COPY packages/types ./packages/types
 COPY packages/ui ./packages/ui
 # Public API origin baked into the client bundle at build time.
-ARG NEXT_PUBLIC_API_URL=http://localhost:4000
+# Default "/" => the browser calls the API through the SAME origin (nginx proxies
+# /api -> api:4000), avoiding cross-origin CORS and keeping the API internal.
+ARG NEXT_PUBLIC_API_URL=/
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 ENV NEXT_TELEMETRY_DISABLED=1
 # Build the workspace deps whose RUNTIME dist the web app consumes. `ui` is

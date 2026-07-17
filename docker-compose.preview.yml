@@ -5,10 +5,10 @@
 # （见 .env.preview.example），本文件不写任何真实密码 / IP / 域名 / token。
 #
 # 访问架构（默认，仅公网 IP + 端口，不依赖未备案域名）：
-#   Nginx :80    -> web   (container :3000)
-#   Nginx :8081  -> admin (container :3001)
-#   Nginx :8082  -> api   (container :4000)
-# 只有 Nginx 暴露公网；web/admin/api/postgres/meilisearch 仅内部网络。
+#   Nginx :80    -> web   (container :3000)，并同源代理 /api -> api:4000
+#   Nginx :8081  -> admin (container :3001)，并同源代理 /api -> api:4000
+#   API 不再单独对公网暴露（8082 不映射），浏览器经同源 /api 访问，无跨域。
+# 只有 Nginx :80 / :8081 暴露公网；api/postgres/meilisearch 仅内部网络。
 #
 # 默认仅启动 web / admin / api / postgres（database 搜索）。
 # Meilisearch 为可选 profile，按需启用：
@@ -26,7 +26,9 @@ services:
     ports:
       - '${NGINX_LISTEN_WEB:-80}:80'
       - '${NGINX_LISTEN_ADMIN:-8081}:8081'
-      - '${NGINX_LISTEN_API:-8082}:8082'
+      # API 不再单独对公网暴露：web/admin 经 nginx 同源 /api 代理访问，
+      # 浏览器永不跨域，8082 无需在云防火墙放行。临时调试可手动加回该行：
+      #   - '${NGINX_LISTEN_API:-8082}:8082'
     volumes:
       # 官方 Nginx 镜像会在启动时用 envsubst 渲染 templates/*.template。
       - ./nginx/preview.conf.template:/etc/nginx/templates/default.conf.template:ro
@@ -54,7 +56,7 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: '${NEXT_PUBLIC_API_URL:-http://localhost:8082}'
+        NEXT_PUBLIC_API_URL: '${NEXT_PUBLIC_API_URL:-/}'
         NEXT_PUBLIC_SITE_URL: '${NEXT_PUBLIC_SITE_URL:-http://localhost}'
         NEXT_PUBLIC_ADMIN_URL: '${NEXT_PUBLIC_ADMIN_URL:-http://localhost:8081}'
     image: emoji-platform-preview-web
@@ -82,7 +84,7 @@ services:
       context: .
       dockerfile: apps/admin/Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: '${NEXT_PUBLIC_API_URL:-http://localhost:8082}'
+        NEXT_PUBLIC_API_URL: '${NEXT_PUBLIC_API_URL:-/}'
         NEXT_PUBLIC_SITE_URL: '${NEXT_PUBLIC_SITE_URL:-http://localhost}'
         NEXT_PUBLIC_ADMIN_URL: '${NEXT_PUBLIC_ADMIN_URL:-http://localhost:8081}'
     image: emoji-platform-preview-admin

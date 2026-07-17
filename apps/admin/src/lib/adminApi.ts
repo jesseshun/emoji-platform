@@ -166,7 +166,13 @@ export class AdminApiError extends Error {
   }
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+// SSR (server-side render): use internal API_URL (e.g. http://api:4000 inside Docker).
+// CSR (client-side browser): fall back to NEXT_PUBLIC_API_URL (public-facing URL).
+// NEXT_PUBLIC_API_URL may be a same-origin root path (e.g. "/") so the browser talks
+// to the API through the SAME origin (nginx proxies /api -> api:4000). This avoids
+// cross-origin CORS entirely and keeps the API off the public internet. Trailing
+// slashes are stripped so we never build a "//api/..." protocol-relative URL.
+const API_BASE = (process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000').replace(/\/+$/, '');
 
 interface ApiEnvelope<T> {
   success: boolean;
