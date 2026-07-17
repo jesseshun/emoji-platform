@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import './globals.css';
-import { ToastContainer } from '@/components/Toast';
+import { ToastContainer } from '@/components/ui/Toast';
 import { HtmlLang } from '@/components/HtmlLang';
 
 export const metadata: Metadata = {

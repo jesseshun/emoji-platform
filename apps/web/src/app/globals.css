@@ -1,3 +1,148 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --color-bg: #F6F7F9;
+  --color-bg-subtle: #FAFAFB;
+  --color-bg-muted: #F0F1F3;
+  --color-surface: #FFFFFF;
+  --color-surface-elevated: #FFFFFF;
+  --color-surface-overlay: rgba(255, 255, 255, 0.78);
+  --color-surface-overlay-strong: rgba(255, 255, 255, 0.92);
+  --color-text-primary: #171719;
+  --color-text-secondary: #6E6E73;
+  --color-text-muted: #8E8E93;
+  --color-text-inverse: #FFFFFF;
+  --color-text-inverse-secondary: rgba(255, 255, 255, 0.72);
+  --color-text-link: #0066CC;
+  --color-text-link-hover: #004999;
+  --color-border-subtle: rgba(20, 20, 25, 0.06);
+  --color-border: rgba(20, 20, 25, 0.10);
+  --color-border-strong: rgba(20, 20, 25, 0.16);
+  --color-border-focus: rgba(0, 102, 204, 0.50);
+  --color-accent: #007AFF;
+  --color-accent-hover: #0066CC;
+  --color-accent-subtle: rgba(0, 122, 255, 0.08);
+  --color-accent-muted: rgba(0, 122, 255, 0.12);
+  --color-success: #34C759;
+  --color-success-subtle: rgba(52, 199, 89, 0.10);
+  --color-warning: #FF9F0A;
+  --color-warning-subtle: rgba(255, 159, 10, 0.10);
+  --color-danger: #FF3B30;
+  --color-danger-subtle: rgba(255, 59, 48, 0.10);
+  --shadow-color: rgba(0, 0, 0, 0.06);
+  --shadow-color-subtle: rgba(0, 0, 0, 0.03);
+  --header-bg: rgba(250, 250, 251, 0.76);
+  --header-border-color: var(--color-border-subtle);
+  --max-content-width: 1120px;
+}
+
+.dark {
+  --color-bg: #111214;
+  --color-bg-subtle: #16171A;
+  --color-bg-muted: #1C1C1F;
+  --color-surface: #1C1C1F;
+  --color-surface-elevated: #222225;
+  --color-surface-overlay: rgba(28, 28, 31, 0.80);
+  --color-surface-overlay-strong: rgba(28, 28, 31, 0.92);
+  --color-text-primary: #F5F5F7;
+  --color-text-secondary: #98989D;
+  --color-text-muted: #636366;
+  --color-text-inverse: #171719;
+  --color-text-inverse-secondary: rgba(23, 23, 25, 0.72);
+  --color-text-link: #409CFF;
+  --color-text-link-hover: #66B0FF;
+  --color-border-subtle: rgba(255, 255, 255, 0.06);
+  --color-border: rgba(255, 255, 255, 0.10);
+  --color-border-strong: rgba(255, 255, 255, 0.16);
+  --color-border-focus: rgba(64, 156, 255, 0.50);
+  --color-accent: #409CFF;
+  --color-accent-hover: #66B0FF;
+  --color-accent-subtle: rgba(64, 156, 255, 0.12);
+  --color-accent-muted: rgba(64, 156, 255, 0.18);
+  --color-success: #30D158;
+  --color-success-subtle: rgba(48, 209, 88, 0.12);
+  --color-warning: #FFD60A;
+  --color-warning-subtle: rgba(255, 214, 10, 0.12);
+  --color-danger: #FF453A;
+  --color-danger-subtle: rgba(255, 69, 58, 0.12);
+  --shadow-color: rgba(0, 0, 0, 0.24);
+  --shadow-color-subtle: rgba(0, 0, 0, 0.12);
+  --header-bg: rgba(22, 23, 26, 0.80);
+  --header-border-color: var(--color-border-subtle);
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    border-color: var(--color-border);
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+      "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue",
+      Helvetica, Arial, sans-serif;
+    color: var(--color-text-primary);
+    background-color: var(--color-bg);
+    line-height: 1.5;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  ::selection {
+    background-color: var(--color-accent-muted);
+    color: var(--color-text-primary);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .skip-link {
+    position: absolute;
+    top: -100%;
+    left: 16px;
+    z-index: 1000;
+    padding: 8px 16px;
+    background: var(--color-accent);
+    color: white;
+    border-radius: 8px;
+    font-size: 14px;
+    text-decoration: none;
+    transition: top 120ms ease-out;
+  }
+
+  .skip-link:focus {
+    top: 8px;
+  }
+
+  .page-enter {
+    animation: fadeIn 180ms ease-out;
+  }
+}

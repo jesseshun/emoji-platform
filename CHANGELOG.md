@@ -1,5 +1,26 @@
 # Changelog
 
+## UI Redesign — Batch 1: Design System & Global Shell
+
+- **Design Tokens**: Established complete CSS variable system with 20+ tokens covering background, surface, text hierarchy, borders, semantic colors (accent/success/warning/danger), shadows, header surface; full light + dark mode token sets.
+- **Tailwind Config** (`apps/web/tailwind.config.js`): Extended with custom colors (bg/surface/text/border/accent), border-radius scale (10–24px + pill), shadow levels (xs–glow + card-hover), blur levels (header/popover/modal), transition durations (fast/normal/slow), animation keyframes (fadeIn/Out, slideUp/Down, scaleIn, toastIn/Out, slideRight/LeftIn), z-index layers, font-size scale (2xs–5xl), max-width tokens, system font stack. `darkMode: 'class'` enabled for future dark mode support.
+- **Tailwind Config** (`apps/admin/tailwind.config.js`): Extended with admin-specific tokens (admin-bg/admin-sidebar colors), matching radius/shadow/font scales, and utility component classes (admin-card/admin-input/admin-btn-*/admin-badge-*/admin-table*).
+- **Global CSS** (`apps/web/src/app/globals.css`): Complete rewrite with CSS variable definitions (light + dark), base layer (font smoothing, focus-visible, selection color, reduced-motion, skip-to-content), component layer placeholder.
+- **Admin Global CSS** (`apps/admin/src/app/globals.css`): Extended with base layer styles and reusable utility classes for cards, inputs, buttons, badges, tables.
+- **Header** (`apps/web/src/components/Header.tsx`): Full redesign — macOS-style semi-transparent backdrop-blur header with scroll shadow detection; clear navigation active state with bottom indicator pill; desktop search button with ⌘K shortcut hint; responsive mobile hamburger menu with slide-out drawer panel; Escape key to close mobile menu; language switcher integrated; all original link addresses preserved; client component with proper accessibility.
+- **Footer** (`apps/web/src/components/Footer.tsx`): Full redesign — clean grouped layout (Browse/Search/About/Language); subtle top border; proper link hover states; language toggle showing current locale; copyright and Unicode attribution preserved; no fake social accounts or features added.
+- **Base Component Library** (`apps/web/src/components/ui/`): Created 22 components:
+  - Layout: `PageContainer`, `SectionHeader`, `SurfaceCard`
+  - Buttons: `PrimaryButton`, `SecondaryButton`, `GhostButton`, `IconButton`
+  - Input: `SearchField`, `FilterChip`, `SegmentedControl`
+  - Display: `Badge`, `StatusBadge`, `Tooltip`
+  - Feedback: `ToastContainer/showToast` (with variant support: default/success/warning/error), `Dialog` (focus trap + Escape close), `Drawer` (slide animation)
+  - State: `LoadingSkeleton` (+ Card/List/Table patterns)
+- **Upgraded Components**: `EmptyState`, `ErrorState` (new button styling), `Pagination` (new selected state with solid bg), `Breadcrumb` (new text tokens).
+- **Admin Framework**: Upgraded root layout (antialiased body, refined bg); redesigned AdminLayout with refined sidebar (subtle borders, better active state), new topbar (backdrop blur, page title indicator), consistent spacing.
+- **Documentation**: Created comprehensive `docs/ui/UI_DESIGN_SYSTEM.md` covering design philosophy, all tokens, radius/shadow/type/spacing/motion specs, dark mode rules, accessibility requirements, component catalog, z-index layers, responsive breakpoints, prohibited patterns, and future batch reuse guide.
+- **No API changes**, **no Prisma schema changes**, **no database changes**, **no route modifications**, **no deployment**.
+
 ## Phase 7C (preparation — 7C-1 only)
 
 - Turned `docker-compose.preview.yml` from a template into an **executable** compose: `nginx`/`web`/`admin`/`api`/`postgres` always up, `meilisearch` behind the optional `search` profile; three-port Nginx access (`:80` web, `:8081` admin, `:8082` api); required-var guards (`${VAR:?...}`), `service_healthy` ordering, healthchecks, json-file log rotation, named volumes.
