@@ -4,11 +4,15 @@ import { EmojiGrid } from '@/components/EmojiGrid';
 import { CategoryCard } from '@/components/CategoryCard';
 import { TopicCard } from '@/components/TopicCard';
 import { ArticleCard } from '@/components/ArticleCard';
+import { SectionHeader } from '@/components/ui/SectionHeader';
 
 interface DiscoverySectionProps {
   data: DiscoveryHomeData;
   locale: Locale;
 }
+
+const VIEW_ALL_CLASS =
+  'text-sm font-medium text-text-link hover:text-text-link-hover transition-colors duration-fast';
 
 /**
  * Phase 6D homepage discovery module.
@@ -32,33 +36,31 @@ export function DiscoverySection({ data, locale }: DiscoverySectionProps) {
   };
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-14">
       {featuredEmojis && featuredEmojis.length > 0 && (
-        <section className="max-w-6xl mx-auto px-4">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">{labels.emojis}</h2>
-            <Link
-              href={`/${locale}/emojis`}
-              className="text-sm text-blue-600 hover:text-blue-700 transition"
-            >
-              {labels.allEmojis}
-            </Link>
-          </div>
+        <section className="max-w-content-wide mx-auto px-4 sm:px-6">
+          <SectionHeader
+            title={labels.emojis}
+            action={
+              <Link href={`/${locale}/emojis`} className={VIEW_ALL_CLASS}>
+                {labels.allEmojis}
+              </Link>
+            }
+          />
           <EmojiGrid emojis={featuredEmojis} locale={locale} />
         </section>
       )}
 
       {featuredCategories && featuredCategories.length > 0 && (
-        <section className="max-w-6xl mx-auto px-4">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">{labels.categories}</h2>
-            <Link
-              href={`/${locale}/categories`}
-              className="text-sm text-blue-600 hover:text-blue-700 transition"
-            >
-              {labels.allCategories}
-            </Link>
-          </div>
+        <section className="max-w-content-wide mx-auto px-4 sm:px-6">
+          <SectionHeader
+            title={labels.categories}
+            action={
+              <Link href={`/${locale}/categories`} className={VIEW_ALL_CLASS}>
+                {labels.allCategories}
+              </Link>
+            }
+          />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {featuredCategories.map((cat) => (
               <CategoryCard key={cat.id} category={cat} locale={locale} />
@@ -68,16 +70,15 @@ export function DiscoverySection({ data, locale }: DiscoverySectionProps) {
       )}
 
       {featuredTopics && featuredTopics.length > 0 && (
-        <section className="max-w-6xl mx-auto px-4">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">{labels.topics}</h2>
-            <Link
-              href={`/${locale}/topics`}
-              className="text-sm text-blue-600 hover:text-blue-700 transition"
-            >
-              {labels.allTopics}
-            </Link>
-          </div>
+        <section className="max-w-content-wide mx-auto px-4 sm:px-6">
+          <SectionHeader
+            title={labels.topics}
+            action={
+              <Link href={`/${locale}/topics`} className={VIEW_ALL_CLASS}>
+                {labels.allTopics}
+              </Link>
+            }
+          />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {featuredTopics.map((topic) => (
               <TopicCard key={topic.id} topic={topic} locale={locale} />
@@ -87,16 +88,15 @@ export function DiscoverySection({ data, locale }: DiscoverySectionProps) {
       )}
 
       {latestArticles && latestArticles.length > 0 && (
-        <section className="max-w-6xl mx-auto px-4">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">{labels.articles}</h2>
-            <Link
-              href={`/${locale}/articles`}
-              className="text-sm text-blue-600 hover:text-blue-700 transition"
-            >
-              {labels.allArticles}
-            </Link>
-          </div>
+        <section className="max-w-content-wide mx-auto px-4 sm:px-6">
+          <SectionHeader
+            title={labels.articles}
+            action={
+              <Link href={`/${locale}/articles`} className={VIEW_ALL_CLASS}>
+                {labels.allArticles}
+              </Link>
+            }
+          />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {latestArticles.map((article) => (
               <ArticleCard key={article.id} article={article} locale={locale} />

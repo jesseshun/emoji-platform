@@ -18,12 +18,15 @@ export function CopyButton({ emojiChar, emojiId, locale }: CopyButtonProps) {
   const handleCopy = useCallback(async () => {
     const ok = await copyText(emojiChar);
     if (!ok) {
-      showToast(locale === 'zh' ? '复制失败，请重试' : 'Copy failed, please try again');
+      showToast(locale === 'zh' ? '复制失败，请重试' : 'Copy failed, please try again', 'error');
       return;
     }
 
     setCopied(true);
-    showToast(locale === 'zh' ? `已复制 ${emojiChar}` : `Copied! ${emojiChar}`);
+    showToast(
+      locale === 'zh' ? `已复制 ${emojiChar}` : `Copied! ${emojiChar}`,
+      'success',
+    );
 
     // Fire-and-forget copy event. A recording failure must never block the
     // copy UX, so we swallow errors silently.
@@ -41,10 +44,10 @@ export function CopyButton({ emojiChar, emojiId, locale }: CopyButtonProps) {
       type="button"
       onClick={handleCopy}
       aria-label={locale === 'zh' ? '复制 Emoji' : 'Copy emoji'}
-      className={`inline-flex items-center justify-center min-h-[36px] min-w-[44px] text-xs px-2.5 py-1 rounded-md border transition ${
+      className={`inline-flex items-center justify-center min-h-[36px] min-w-[44px] text-xs px-2.5 py-1 rounded-md border transition-all duration-fast ${
         copied
-          ? 'bg-green-50 border-green-300 text-green-700'
-          : 'bg-white border-gray-200 text-gray-500 hover:border-gray-400 hover:text-gray-700'
+          ? 'bg-success-subtle border-transparent text-success'
+          : 'bg-surface border-border text-text-secondary hover:border-border-strong hover:text-text-primary'
       }`}
     >
       {copied ? `✓ ${locale === 'zh' ? '已复制' : 'Copied'}` : `📋 ${locale === 'zh' ? '复制' : 'Copy'}`}

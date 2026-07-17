@@ -86,54 +86,66 @@ feat(ui): establish design system, theme tokens, and base components
 
 ---
 
-## Batch 2：首页、导航、页脚和全局搜索
+## Batch 2：首页、导航细节与全局搜索改版 ✅ 已完成（2026-07-17）
+
+> 实际范围严格限定为「前台首页 + Header 导航细节 + 移动端导航 + 全局搜索入口 + Command Palette + 首页相关共享组件 + 首页桌面/移动适配」。
+> Footer、LanguageSwitcher、全局布局已在 Batch 1 完成，本轮不再触碰。未改动任何详情页、Admin、API、Prisma、路由、SEO 逻辑。
 
 ### 修改范围
 
-- 重构 `Header`：macOS 风格顶栏、搜索入口、语言切换、移动端汉堡菜单/抽屉。
-- 重构 `Footer`：更简洁的链接分组、版权、社交链接预留。
-- 重构 `SearchBox`：Raycast 风格输入框、⌘K 快捷键、清空按钮、聚焦态。
-- 重构 `ZhHomePage` / `EnHomePage`：Hero 区、搜索、Discovery 模块、工具入口、CTA。
-- 引入全局搜索浮层（可选，可在首页/Header 触发）。
-- 更新 `/` 根入口页视觉。
+- 重构 `HomeHero`：macOS/Raycast 风格主搜索框（聚焦光环、清空按钮、⌘K 提示）、次级"打开命令面板"按钮、真实浏览入口 chips（/emojis、/categories、/topics、/articles）。
+- 重构 `ZhHomePage` / `EnHomePage`：Hero + DiscoverySection + CTA，移除伪造的"即将上线"工具区，保留 `getDiscovery()` 与 ErrorState 降级。
+- 升级 `DiscoverySection`：使用 `SectionHeader` + 设计 token 链接，区块 `space-y-14`、容器 `max-w-content-wide`。
+- 升级卡片视觉（设计 token 统一）：`EmojiCard`、`CategoryCard`、`TopicCard`（使用 `Badge`）、`ArticleCard`、Homepage `CopyButton`。
+- 升级 `Header` 导航细节：桌面搜索按钮与移动端搜索图标均改为触发 Command Palette（保留真实链接与 aria-label）。
+- 新增 `CommandPalette`：Raycast 式全局搜索浮层，复用现有 `search()` API，⌘K/Ctrl+K 全局监听、焦点还原、键盘导航、防抖、Skeleton/Empty/Error 状态、emoji 复制 toast。
+- 全局 Toast 统一：旧 `components/Toast.tsx` 改为委托 `ui/Toast`（保留 `CopyArea`/`CopyValueButton` 等详情页调用点不受影响）。
 
-### 预计文件
+### 涉及文件
 
-| 修改 | 路径 |
+| 操作 | 路径 |
 |------|------|
-| 修改 | `apps/web/src/components/Header.tsx` |
-| 修改 | `apps/web/src/components/Footer.tsx` |
-| 修改 | `apps/web/src/components/SearchBox.tsx` |
-| 修改 | `apps/web/src/components/LanguageSwitcher.tsx` |
-| 修改 | `apps/web/src/app/page.tsx` |
+| 新增 | `apps/web/src/components/CommandPalette.tsx` |
+| 新增 | `apps/web/src/components/HomeHero.tsx` |
+| 修改 | `apps/web/src/app/layout.tsx`（接入 `CommandPaletteProvider`） |
 | 修改 | `apps/web/src/app/zh/page.tsx` |
 | 修改 | `apps/web/src/app/en/page.tsx` |
-| 新增 | `apps/web/src/components/GlobalSearch.tsx`（可选） |
-| 新增 | `apps/web/src/components/MobileMenu.tsx` |
-| 新增 | `apps/web/src/hooks/useKeyboardShortcut.ts` |
+| 修改 | `apps/web/src/components/Header.tsx`（搜索入口改触发 Palette） |
+| 修改 | `apps/web/src/components/DiscoverySection.tsx` |
+| 修改 | `apps/web/src/components/EmojiCard.tsx` |
+| 修改 | `apps/web/src/components/CategoryCard.tsx` |
+| 修改 | `apps/web/src/components/TopicCard.tsx` |
+| 修改 | `apps/web/src/components/ArticleCard.tsx` |
+| 修改 | `apps/web/src/components/CopyButton.tsx`（token 对齐 + success toast） |
+| 修改 | `apps/web/src/components/Toast.tsx`（委托至 `ui/Toast`） |
 
-### 保留的业务逻辑
+### 保留的业务逻辑（零改动）
 
-- 搜索提交行为、跳转路由、复制事件、Discovery API 调用不变。
-- 语言切换逻辑不变。
+- `search()` / `recordCopyEvent()` / `getDiscovery()` API 调用与签名不变。
+- 搜索参数、搜索日志、分析、复制事件、发现、推荐、Meilisearch/DB 回退逻辑不变。
+- 多语言路由、canonical/hreflang/JSON-LD/metadata/sitemap/robots/noindex 不变。
+- Auth/RBAC、Preview Docker 配置不变。
 
-### 风险点
+### 风险点与对策
 
-- 移动端菜单可访问性。
-- ⌘K 快捷键与浏览器默认快捷键冲突。
-- Header  sticky 行为与 z-index。
+- **⌘K 与浏览器默认快捷键冲突**：使用 `preventDefault` + `stopPropagation`，且首次按键即注册为 passive=false 的 keydown 监听。
+- **焦点陷阱 / 关闭后焦点还原**：`CommandPaletteProvider` 记录触发元素（`triggerRef`），关闭时 `focus()` 还原，避免焦点丢失到 body。
+- **移动端菜单可访问性**：沿用 Batch 1 的 Drawer + Escape 关闭 + aria 属性，本轮仅改搜索入口触发点。
+- **重复 Toast 容器**：旧 `Toast.tsx` 不再自实现，统一委托 `ui/Toast`，避免双容器。
 
 ### 验收标准
 
-- Header 在桌面/移动端正常展示，导航链接可用。
-- 搜索框 ⌘K / Ctrl+K 可聚焦，回车提交。
-- 首页 Hero、Discovery、工具区视觉符合设计方向。
-- `pnpm lint/typecheck/build` 通过。
+- `pnpm lint / typecheck / build`（web）全部通过。
+- 首页 Hero、Discovery、CTA 视觉符合设计方向，深浅模式均可用。
+- Header 桌面/移动端导航链接可用；搜索按钮/图标打开 Command Palette。
+- ⌘K/Ctrl+K 唤起浮层，↑/↓/Enter/Esc 可用，跳转保留原搜索/详情路由。
+- 卡片 hover 边框 + focus-visible 光环，复制触发 success toast，复制事件不重复。
+- 375/430/768/1024/1440px 无横向溢出；无 hydration / console 错误；SEO 完整。
 
-### 建议 commit
+### 实际 commit
 
 ```
-feat(ui): redesign header, footer, homepage and global search box
+feat: redesign global shell homepage and search
 ```
 
 ---

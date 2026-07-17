@@ -1,40 +1,15 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
-
-export const dynamic = 'force-dynamic';
-import { SearchBox } from '@/components/SearchBox';
-import { ToolCard } from '@/components/ToolCard';
+import { HomeHero } from '@/components/HomeHero';
 import { DiscoverySection } from '@/components/DiscoverySection';
 import { ErrorState } from '@/components/ErrorState';
 import { getDiscovery, getErrorMessage } from '@/lib/api';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Emoji Platform - Discover Every Emoji',
   description: 'Search, copy, and understand every emoji. Find emoji meanings, Unicode codes, usage examples, and more.',
 };
-
-const tools = [
-  {
-    icon: '📋',
-    title: 'Emoji Copy Tool',
-    description: 'Quickly browse and copy popular emoji characters',
-  },
-  {
-    icon: '🔍',
-    title: 'Unicode Lookup',
-    description: 'Find Unicode codepoints and version info for any emoji',
-  },
-  {
-    icon: '🎨',
-    title: 'Emoji Combiner',
-    description: 'Combine multiple emojis into creative expressions',
-  },
-  {
-    icon: '✍️',
-    title: 'Emoji Caption Generator',
-    description: 'Generate social media captions with emojis for any occasion',
-  },
-];
 
 export default async function EnHomePage() {
   let discovery;
@@ -47,57 +22,47 @@ export default async function EnHomePage() {
   }
 
   return (
-    <div>
-      {/* Hero Section */}
-      <section className="bg-gradient-to-b from-blue-50 to-white py-16 px-4">
-        <div className="max-w-6xl mx-auto text-center">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-            Search, copy, and understand every emoji
-          </h1>
-          <p className="text-base sm:text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-            Find emoji meanings, Unicode codes, usage examples, and social media combinations.
-          </p>
-          <SearchBox locale="en" />
-        </div>
-      </section>
+    <div className="min-h-screen">
+      {/* Hero + main search */}
+      <HomeHero locale="en" />
 
-      {/* Discovery module (Phase 6D) */}
+      {/* Discovery: popular emojis, categories, topics, articles */}
       <DiscoverySection data={discovery} locale="en" />
 
-      {/* Tool Entry */}
-      <section className="max-w-6xl mx-auto px-4 py-12 bg-white">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-900">Tools</h2>
-          <Link
-            href="/en/tools"
-            className="text-sm text-blue-600 hover:text-blue-700 transition"
-          >
-            View all tools →
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {tools.map((tool) => (
-            <ToolCard
-              key={tool.title}
-              icon={tool.icon}
-              title={tool.title}
-              description={tool.description}
-              badge="Coming soon"
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* Intro Section */}
-      <section className="max-w-6xl mx-auto px-4 py-12">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">About Emoji Platform</h2>
-          <p className="text-sm text-gray-600 leading-relaxed">
-            Emoji Platform is a free emoji dictionary and search tool dedicated to helping users
-            quickly find, understand, and use emoji characters. We offer bilingual support in
-            Chinese and English, category browsing, keyword search, and one-click copy.
-            All emoji characters are based on the Unicode Standard, and content is continuously updated.
-          </p>
+      {/* Call to action */}
+      <section className="mx-auto max-w-content px-4 sm:px-6 py-16">
+        <div className="relative overflow-hidden rounded-2xl bg-surface border border-border-subtle px-6 py-12 sm:px-12 text-center">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 opacity-50
+                       bg-[radial-gradient(80%_120%_at_50%_120%,rgba(0,122,255,0.07),transparent_70%)]"
+          />
+          <div className="relative">
+            <h2 className="text-2xl sm:text-3xl font-semibold text-text-primary mb-3">
+              Start exploring the world of emoji
+            </h2>
+            <p className="text-text-secondary max-w-xl mx-auto mb-6">
+              Browse by category, search by keyword, or copy your favorite emoji in one click.
+              Everything is based on the Unicode Standard and continuously updated.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <a
+                href="/en/emojis"
+                className="inline-flex items-center px-5 py-2.5 text-sm font-medium rounded-xl
+                           bg-accent text-white hover:bg-accent-hover transition-colors duration-fast"
+              >
+                Browse all emojis
+              </a>
+              <a
+                href="/en/categories"
+                className="inline-flex items-center px-5 py-2.5 text-sm font-medium rounded-xl
+                           bg-surface border border-border-subtle text-text-primary
+                           hover:border-border transition-colors duration-fast"
+              >
+                Browse by category
+              </a>
+            </div>
+          </div>
         </div>
       </section>
     </div>

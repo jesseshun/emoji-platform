@@ -301,7 +301,20 @@ font-family:
 | `Breadcrumb` | 新 text tokens + 分隔符颜色 |
 | `Header` | 完全重写（macOS 风格） |
 | `Footer` | 完全重写（简洁分组） |
-| `Toast` (旧) | 迁移至 `ui/Toast.tsx`，增强变体支持 |
+| `Toast` (旧 `components/Toast.tsx`) | 改为委托 `ui/Toast.tsx` 的兼容 shim，避免双容器 |
+| `EmojiCard` | token 化：`bg-surface`/`border-border-subtle`/`hover:border-border`/`focus-visible` 光环 |
+| `CategoryCard` | token 化 + `group-hover:text-accent` |
+| `TopicCard` | token 化 + `Badge` 类型标签 |
+| `ArticleCard` | token 化 + `from-accent-subtle to-bg-muted` 封面占位 |
+| `CopyButton` | token 化 + 复制成功 `showToast(..., 'success')` |
+
+### 10.4 首页与搜索组件（Batch 2 新增）
+
+| 组件 | 文件 | 类型 | 描述 |
+|------|------|------|------|
+| `CommandPalette` | `components/CommandPalette.tsx` | Client | Raycast 式全局搜索浮层（Provider + `useCommandPalette()` + 浮层） |
+| `HomeHero` | `components/HomeHero.tsx` | Client | 首页主搜索 Hero（聚焦光环、清空、⌘K 提示、浏览 chips） |
+| `DiscoverySection` | `components/DiscoverySection.tsx` | Server | 首页发现模块，使用 `SectionHeader` + token 链接 |
 
 ### 10.3 Admin 基础组件类
 
@@ -371,11 +384,13 @@ font-family:
 ### Batch 2（首页改版）应直接使用
 
 - `PageContainer` 包裹首页各模块
-- `SectionHeader` 作为每个区块的标题
-- `SurfaceCard` 作为 Emoji/分类/专题/文章卡片基底
-- `SearchField` 替换当前 `SearchBox` 的输入部分
+- `SectionHeader` 作为每个区块的标题（含 `action` 操作区）
+- `SurfaceCard` / token 类（`bg-surface border-border-subtle hover:border-border`）作为卡片基底
+- `Badge` 作为类型/状态徽章（如专题类型）
+- `CommandPalette`（`useCommandPalette()` hook）作为任何"搜索入口"按钮的统一触发点——Header 搜索按钮、移动端搜索图标、Hero 次级按钮均已接入
 - `FilterChip` 用于分类筛选
 - Header/Footer 已完成，无需再次修改
+- 全局搜索浮层复用现有 `search(locale, q, {type, limit})` API，禁止新增搜索后端或伪造数据
 
 ### Batch 3–6 应继续沿用
 

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { Locale } from '@/lib/types';
+import { useCommandPalette } from './CommandPalette';
 
 interface HeaderProps {
   locale: Locale;
@@ -20,6 +21,7 @@ const navItems: { key: string; href: string; zh: string; en: string }[] = [
 export function Header({ locale }: HeaderProps) {
   const prefix = `/${locale}`;
   const pathname = usePathname();
+  const { open: openPalette } = useCommandPalette();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -113,15 +115,17 @@ export function Header({ locale }: HeaderProps) {
 
             {/* Right Actions */}
             <div className="flex items-center gap-1 sm:gap-2">
-              {/* Search button */}
-              <Link
-                href={`${prefix}/search`}
+              {/* Search entry — opens Command Palette (Raycast-style) */}
+              <button
+                type="button"
+                onClick={openPalette}
                 className="
                   flex items-center gap-1.5 px-3 py-1.5 text-sm text-text-secondary
                   rounded-lg border border-border-subtle
                   hover:text-text-primary hover:border-border transition-all duration-fast
                   max-sm:hidden
                 "
+                aria-label={locale === 'zh' ? '打开搜索 (⌘K)' : 'Open search (⌘K)'}
               >
                 <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                   <path
@@ -140,11 +144,12 @@ export function Header({ locale }: HeaderProps) {
                 >
                   ⌘K
                 </kbd>
-              </Link>
+              </button>
 
-              {/* Mobile search icon */}
-              <Link
-                href={`${prefix}/search`}
+              {/* Mobile search icon — opens Command Palette */}
+              <button
+                type="button"
+                onClick={openPalette}
                 className="md:hidden p-2 -mr-1 text-text-secondary hover:text-text-primary rounded-lg transition-colors duration-fast"
                 aria-label={locale === 'zh' ? '搜索' : 'Search'}
               >
@@ -157,7 +162,7 @@ export function Header({ locale }: HeaderProps) {
                     strokeLinejoin="round"
                   />
                 </svg>
-              </Link>
+              </button>
 
               {/* Language Switcher */}
               <LanguageSwitcher locale={locale} />

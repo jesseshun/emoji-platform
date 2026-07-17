@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Badge } from '@/components/ui/Badge';
 import type { TopicItem, Locale } from '@/lib/types';
 
 interface TopicCardProps {
@@ -23,20 +24,16 @@ export function TopicCard({ topic, locale }: TopicCardProps) {
   return (
     <Link
       href={`/${locale}/topics/${topic.slug}`}
-      className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow group block"
+      className="bg-surface rounded-lg border border-border-subtle p-5 hover:border-border hover:shadow-sm transition-all duration-fast group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]"
     >
       <div className="flex items-start justify-between gap-2 mb-2">
-        <h3 className="text-base font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
+        <h3 className="text-base font-semibold text-text-primary group-hover:text-accent transition-colors duration-fast">
           {title}
         </h3>
-        {typeLabel && (
-          <span className="text-xs px-2 py-0.5 rounded-full bg-purple-50 text-purple-600 whitespace-nowrap">
-            {typeLabel}
-          </span>
-        )}
+        {typeLabel && <Badge variant="default">{typeLabel}</Badge>}
       </div>
       {summary && (
-        <p className="text-sm text-gray-500 line-clamp-2">{summary}</p>
+        <p className="text-sm text-text-secondary line-clamp-2">{summary}</p>
       )}
     </Link>
   );
