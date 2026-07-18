@@ -30,7 +30,7 @@ export function Pagination({ locale, page, totalPages, basePath }: PaginationPro
   const nextLabel = locale === 'zh' ? '下一页' : 'Next';
 
   return (
-    <nav className="flex items-center justify-center gap-1 mt-8" aria-label="Pagination">
+    <nav className="mt-8 flex flex-wrap items-center justify-center gap-1" aria-label={locale === 'zh' ? '分页' : 'Pagination'}>
       {/* Prev */}
       {page > 1 ? (
         <Link
@@ -38,14 +38,14 @@ export function Pagination({ locale, page, totalPages, basePath }: PaginationPro
           className="
             inline-flex items-center justify-center min-w-[36px] h-9 px-3
             text-sm text-text-secondary hover:text-text-primary
-            rounded-lg border border-transparent
-            hover:bg-bg-subtle transition-all duration-fast
+            rounded-[8px] border border-transparent
+            hover:bg-bg-subtle transition-all duration-fast focus-visible:outline-none
           "
         >
           {prevLabel}
         </Link>
       ) : (
-        <span className="inline-flex items-center justify-center min-w-[36px] h-9 px-3 text-sm text-text-muted rounded-lg cursor-not-allowed">
+        <span className="inline-flex h-9 min-w-[36px] cursor-not-allowed items-center justify-center rounded-[8px] px-3 text-sm text-text-muted" aria-disabled="true">
           {prevLabel}
         </span>
       )}
@@ -62,8 +62,8 @@ export function Pagination({ locale, page, totalPages, basePath }: PaginationPro
             href={buildUrl(p)}
             className={`
               inline-flex items-center justify-center min-w-[36px] h-9 px-2.5
-              text-sm font-medium rounded-lg
-              transition-all duration-fast
+              text-sm font-medium rounded-[8px]
+              transition-all duration-fast focus-visible:outline-none
               ${
                 p === page
                   ? 'bg-text-primary text-white shadow-xs'
@@ -84,14 +84,14 @@ export function Pagination({ locale, page, totalPages, basePath }: PaginationPro
           className="
             inline-flex items-center justify-center min-w-[36px] h-9 px-3
             text-sm text-text-secondary hover:text-text-primary
-            rounded-lg border border-transparent
-            hover:bg-bg-subtle transition-all duration-fast
+            rounded-[8px] border border-transparent
+            hover:bg-bg-subtle transition-all duration-fast focus-visible:outline-none
           "
         >
           {nextLabel}
         </Link>
       ) : (
-        <span className="inline-flex items-center justify-center min-w-[36px] h-9 px-3 text-sm text-text-muted rounded-lg cursor-not-allowed">
+        <span className="inline-flex h-9 min-w-[36px] cursor-not-allowed items-center justify-center rounded-[8px] px-3 text-sm text-text-muted" aria-disabled="true">
           {nextLabel}
         </span>
       )}

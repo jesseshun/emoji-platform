@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
-import { CategoryCard } from '@/components/CategoryCard';
+import { BrowsePageHeader } from '@/components/BrowsePageHeader';
+import { CategoryTree } from '@/components/CategoryTree';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { getCategories, getErrorMessage } from '@/lib/api';
@@ -27,9 +28,10 @@ export default async function EnCategoriesPage() {
 
     if (!data.data || data.data.length === 0) {
       return (
-        <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="mx-auto max-w-content px-4 py-8 sm:px-6 sm:py-12">
+          <BrowsePageHeader locale="en" kind="categories" total={0} />
           <EmptyState
-            icon="📂"
+            icon="📁"
             title="No categories available"
             description="Category data is being prepared. Please check back later."
           />
@@ -38,25 +40,21 @@ export default async function EnCategoriesPage() {
     }
 
     return (
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Emoji Categories</h1>
-          <p className="text-sm text-gray-500">
-            Browse emoji characters by category. Click a category to see its emojis.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {data.data.map((cat: typeof data.data[number]) => (
-            <CategoryCard key={cat.id} category={cat} locale="en" />
-          ))}
-        </div>
+      <div className="mx-auto max-w-content px-4 py-8 sm:px-6 sm:py-12">
+        <BrowsePageHeader
+          locale="en"
+          kind="categories"
+          total={data.data.length}
+          secondaryCount={data.data.filter((category) => category.parentId !== null).length}
+        />
+        <CategoryTree categories={data.data} locale="en" />
       </div>
     );
   } catch (error) {
     return (
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <ErrorState message={getErrorMessage(error)} />
+      <div className="mx-auto max-w-content px-4 py-8 sm:px-6 sm:py-12">
+        <BrowsePageHeader locale="en" kind="categories" />
+        <ErrorState message={getErrorMessage(error, 'en')} locale="en" />
       </div>
     );
   }

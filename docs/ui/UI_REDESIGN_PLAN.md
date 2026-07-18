@@ -164,9 +164,15 @@ feat: redesign global shell homepage and search
 - 已增加搜索、列表、详情的路由级 loading / error，以及详情 not-found 状态。
 - 保留原 API、DTO、Prisma schema、数据库结构、路由、slug、query 参数和 SEO 生成逻辑。
 
-### Batch 3B：分类与专题页面（待开始）
+### Batch 3B：分类与专题页面 ✅ 已完成（2026-07-18）
 
-- 本轮未修改分类或专题页面结构，不视为已开始 Batch 3B。
+- 已改版中英文分类列表：使用分类 API 的真实名称、说明、图标、Emoji 数量、`parentId` 与既有顺序构建可展开分类树；循环、孤立或异常父子关系安全降级为根节点。
+- 已改版中英文分类详情：保留原 slug、分页和 metadata；补充真实父分类/子分类导航，复用 Batch 3A `EmojiGrid` / `EmojiCard`，推荐分类、专题与文章继续使用真实关联数据并独立降级。
+- 已改版中英文专题列表：保留 API 既有 `page` 参数和排序，`TopicCard` 展示真实标题、摘要、类型、发布日期与封面；空封面或加载失败使用项目内的中性占位，不请求伪造图片。
+- 已改版中英文专题详情：保留真实摘要、正文、类型、发布日期、FAQ、Emoji 绑定顺序、相关专题和推荐文章；关联分类只从专题 Emoji 的真实分类关系去重派生。
+- 已增加分类/专题列表与详情的路由级 loading / error，以及详情 not-found；分页越界、空关联和次要关联失败均有独立状态。
+- 已验证分类树按钮 `aria-expanded` / `aria-controls`、键盘可达与 reduced-motion；375/430/768/1024/1440px 的中英文列表/详情均无横向溢出。
+- 保留原 API、DTO、Prisma schema、数据库结构、路由、slug、query 参数、published 规则、canonical、hreflang、JSON-LD、sitemap、robots 与 Preview Docker 架构。
 
 ### 修改范围
 

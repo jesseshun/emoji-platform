@@ -343,6 +343,21 @@ font-family:
 
 搜索与 Emoji 页面统一使用 `max-w-content`、`border-border-subtle`、`bg-surface`、8px 紧凑圆角和 `duration-fast`。搜索排序继续使用真实 provider 的既有相关度/数据库顺序；未增加新的 sort query 或后端功能。
 
+### 10.6 分类与专题浏览组件（Batch 3B）
+
+| 组件 | 规范 |
+|------|------|
+| `BrowsePageHeader` | 分类/专题列表共用标题、说明、真实总数与页码状态；不创建后端不存在的筛选或统计 |
+| `CategoryCard` | 保持原 props，并提供 `card` / `row` / `compact` 视觉变体；始终使用真实名称、说明、图标、Emoji 数量和原 slug 链接 |
+| `CategoryTree` | 仅树交互为 Client；默认展开主分类，独立图标按钮使用 `aria-expanded` / `aria-controls`；保持 API 顺序，循环与孤立节点安全降级 |
+| `CategoryDetailView` | Breadcrumb + 分类头部 + 真实父子导航 + Emoji 网格/分页 + 真实推荐；次要接口失败不替换主体内容 |
+| `TopicCard` | 两列内容型卡片；真实封面、标题、摘要、类型与发布日期；无封面或图片失败时使用中性 `#` 占位 |
+| `TopicCover` | 小范围 Client 图片边界，仅负责真实封面加载失败降级，不请求外部占位图 |
+| `TopicDetailView` | Breadcrumb + 真实元数据/正文 + 由绑定 Emoji 去重得到的分类 + Emoji 编排顺序 + FAQ/专题/文章关联 |
+| Browse route states | 分类/专题列表与详情使用稳定 Skeleton、可感知 Error/Empty、详情 Not Found；不输出 `undefined` / `null` |
+
+分类树是列表页的主要层级结构，不把父分类卡片再嵌入装饰卡片。专题列表采用内容型两列布局，与分类的层级索引保持视觉区分。两类页面统一使用设计 token、8px 圆角、快速轻量动效与清晰 `focus-visible`。
+
 ---
 
 ## 11. Z-Index 层级

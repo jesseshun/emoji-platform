@@ -70,3 +70,73 @@ export function EmojiDetailSkeleton({ locale }: { locale: Locale }) {
     </div>
   );
 }
+
+export function CategoryListSkeleton({ locale }: { locale: Locale }) {
+  return (
+    <div className="mx-auto max-w-content px-4 py-8 sm:px-6 sm:py-12" role="status" aria-live="polite" aria-busy="true">
+      <LoadingLabel locale={locale} />
+      <div className="mb-10 animate-pulse border-b border-border-subtle pb-8">
+        <div className="mb-4 h-3 w-24 rounded bg-bg-muted" />
+        <div className="h-9 w-64 max-w-full rounded bg-bg-muted" />
+        <div className="mt-4 h-4 w-[34rem] max-w-full rounded bg-bg-subtle" />
+      </div>
+      <div className="overflow-hidden rounded-[8px] border border-border-subtle bg-surface">
+        {Array.from({ length: 5 }, (_, index) => (
+          <div key={index} className="flex animate-pulse items-center gap-4 border-b border-border-subtle p-4 last:border-b-0">
+            <div className="h-12 w-12 shrink-0 rounded-[8px] bg-bg-muted" />
+            <div className="min-w-0 flex-1 space-y-2">
+              <div className="h-4 w-48 max-w-full rounded bg-bg-muted" />
+              <div className="h-3 w-3/4 rounded bg-bg-subtle" />
+            </div>
+            <div className="h-9 w-9 shrink-0 rounded-[8px] bg-bg-subtle" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function TopicListSkeleton({ locale }: { locale: Locale }) {
+  return (
+    <div className="mx-auto max-w-content px-4 py-8 sm:px-6 sm:py-12" role="status" aria-live="polite" aria-busy="true">
+      <LoadingLabel locale={locale} />
+      <div className="mb-10 animate-pulse border-b border-border-subtle pb-8">
+        <div className="mb-4 h-3 w-24 rounded bg-bg-muted" />
+        <div className="h-9 w-56 max-w-full rounded bg-bg-muted" />
+        <div className="mt-4 h-4 w-[30rem] max-w-full rounded bg-bg-subtle" />
+      </div>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {Array.from({ length: 4 }, (_, index) => (
+          <div key={index} className="grid min-h-[230px] animate-pulse overflow-hidden rounded-[8px] border border-border-subtle bg-surface sm:grid-cols-[10rem_minmax(0,1fr)]">
+            <div className="h-28 bg-bg-muted sm:h-full" />
+            <div className="space-y-3 p-5">
+              <div className="h-5 w-2/3 rounded bg-bg-muted" />
+              <div className="h-3 w-full rounded bg-bg-subtle" />
+              <div className="h-3 w-4/5 rounded bg-bg-subtle" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function BrowseDetailSkeleton({ locale }: { locale: Locale }) {
+  return (
+    <div className="mx-auto max-w-content px-4 py-8 sm:px-6 sm:py-12" role="status" aria-live="polite" aria-busy="true">
+      <LoadingLabel locale={locale} />
+      <div className="mb-6 h-4 w-64 max-w-full animate-pulse rounded bg-bg-muted" />
+      <div className="flex animate-pulse items-start gap-5 border-b border-border-subtle pb-10">
+        <div className="h-20 w-20 shrink-0 rounded-[8px] bg-bg-muted" />
+        <div className="min-w-0 flex-1 space-y-4 py-1">
+          <div className="h-3 w-20 rounded bg-bg-muted" />
+          <div className="h-9 w-2/3 rounded bg-bg-muted" />
+          <div className="h-4 w-full rounded bg-bg-subtle" />
+        </div>
+      </div>
+      <div className="mt-10">
+        <EmojiGridSkeleton locale={locale} count={10} />
+      </div>
+    </div>
+  );
+}

@@ -1,5 +1,16 @@
 # Changelog
 
+## UI Redesign — Batch 3B: Category & Topic Experience
+
+- **Category lists** (`/zh/categories`, `/en/categories`): Replaced the flat equal-card grid with a real hierarchy browser built from the existing category payload (`parentId`, API order, translations, icon, and `emojiCount`). Parent rows expand/collapse through dedicated `aria-expanded` / `aria-controls` buttons; orphaned, self-referential, or cyclic structures degrade to safe roots instead of crashing.
+- **Category detail** (`/zh/categories/[slug]`, `/en/categories/[slug]`): Added the shared `CategoryDetailView` with Breadcrumb JSON-LD, real parent/child navigation, existing category pagination, the Batch 3A Emoji grid/copy actions, related topics, recommendation-backed categories, and recommendation-backed articles. Category list/recommendation failures are secondary and do not replace a successfully loaded category.
+- **Topic lists** (`/zh/topics`, `/en/topics`): Added the shared browse header with real totals/page state and redesigned `TopicCard` into a two-column content card using the existing title, summary, topic type, publish date, cover URL, slug, and API order. `TopicCover` keeps real images and provides a local neutral fallback for missing/broken covers.
+- **Topic detail** (`/zh/topics/[slug]`, `/en/topics/[slug]`): Added the shared `TopicDetailView` with Breadcrumb JSON-LD, real type/date/summary/content/FAQ, the saved Emoji binding order, categories derived only from bound Emoji category relations, related topics, and recommendation-backed articles. Empty associations are explicit without invented counts or content.
+- **Route states and shared navigation**: Added localized list/detail loading and error boundaries, category/topic detail not-found states, pagination overflow hardening, long Breadcrumb wrapping, and token-aligned related-category/topic sections.
+- **Responsive and accessibility**: Validated zh/en list/detail routes at 375, 430, 768, 1024, and 1440px with no horizontal overflow. Category tree keyboard/ARIA state, semantic headings/nav/regions, loading busy states, focus-visible, reduced-motion behavior, and mobile touch targets are retained.
+- **Copy verification**: Reused the Batch 3A `EmojiCard` copy path without adding a second handler. One local topic-detail copy click produced one success toast and increased `copy_events` by exactly one.
+- **Boundaries preserved**: No API endpoint/DTO/business-logic changes, no Prisma schema/database changes, no public route/slug/query changes, no SEO-generation changes, no Preview Docker architecture changes, no Admin changes, no Tencent Cloud deployment, and no Batch 4 work.
+
 ## UI Redesign — Batch 3A: Search & Emoji Experience
 
 - **Search pages** (`/zh/search`, `/en/search`): Rebuilt the operational search layout around the existing `q`, `type`, and `page` parameters. Added desktop segmented filters, a mobile result-type popover, real clear-filter actions, compact pagination, URL history entries, popstate handling, request-race protection, and localized loading/empty/error/retry states.

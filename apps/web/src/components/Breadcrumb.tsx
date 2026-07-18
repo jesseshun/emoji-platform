@@ -31,7 +31,7 @@ export function Breadcrumb({ locale, items }: BreadcrumbProps) {
           {allItems.map((item, index) => {
             const isLast = index === allItems.length - 1;
             return (
-              <li key={index} className="flex items-center gap-1">
+              <li key={index} className="flex min-w-0 items-center gap-1">
                 {index > 0 && (
                   <span className="text-border mx-0.5 select-none" aria-hidden="true">
                     /
@@ -40,12 +40,12 @@ export function Breadcrumb({ locale, items }: BreadcrumbProps) {
                 {!isLast && item.href ? (
                   <Link
                     href={item.href}
-                    className="hover:text-text-link transition-colors duration-fast"
+                    className="break-words transition-colors duration-fast hover:text-text-link"
                   >
                     {item.label}
                   </Link>
                 ) : (
-                  <span className={`font-medium ${isLast ? 'text-text-primary' : ''}`}>
+                  <span className={`min-w-0 break-words font-medium ${isLast ? 'text-text-primary' : ''}`} aria-current={isLast ? 'page' : undefined}>
                     {item.label}
                   </span>
                 )}
