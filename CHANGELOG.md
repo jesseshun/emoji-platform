@@ -1,5 +1,14 @@
 # Changelog
 
+## UI Redesign v1 — Final Acceptance and Main Merge
+
+- Completed the bilingual public-frontend redesign and final acceptance against the existing local Preview Docker stack: 27 public pages, 375 / 430 / 768 / 1024 / 1440px responsive checks, loading/empty/error/not-found states, navigation and command palette, and representative desktop/mobile visual review all passed without persistent console or hydration errors.
+- Verified search and copy each record exactly one event, database search fallback remains operational, published details return 200, missing/draft details return true HTTP 404 with localized UI, and canonical/hreflang/JSON-LD/sitemap/robots boundaries remain intact.
+- Completed Admin compatibility smoke for login, Dashboard, primary management lists, and create entry, including 401/403/noindex checks. Admin was not comprehensively redesigned in this frontend v1 milestone.
+- `pnpm install --frozen-lockfile`, `pnpm db:generate`, `pnpm lint`, `pnpm typecheck`, and `pnpm build` passed before and after the merge. No API/DTO, Prisma schema, database-structure, or Preview Docker architecture changes were made for final acceptance.
+- Tagged the accepted UI commit as `ui-redesign-v1-complete`, tagged the pre-merge `main` as `pre-ui-redesign-merge-20260718`, and merged `feature/macos-ui-redesign` into `main` with merge commit `de5668c9164246f3efe0e36008893f5f618c2ebc`.
+- Tencent Cloud was not accessed or deployed and remains on the old version. The next authorized operation is cloud backup followed by deployment of the updated `main` and cloud smoke testing.
+
 ## UI Redesign — Batch 4B: Tools & Public Information
 
 - **Tools directory** (`/zh/tools`, `/en/tools`): Replaced the equal-card placeholder grid with a compact development queue. The same four hardcoded planned concepts remain, but the page now states plainly that no standalone tools are runnable and exposes no dead buttons, fake results, fake errors, or invented detail routes.

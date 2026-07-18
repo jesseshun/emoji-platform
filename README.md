@@ -17,11 +17,13 @@
 
 ## 当前阶段
 
-**Phase 7B** - Preview Environment, Secrets, and Config Hardening 已完成（CORS/Cookie/JWT 环境变量驱动、弱密钥 fail-fast、`.gitignore` 强化忽略所有真实 `.env*`、noindex/robots 策略文档化；未真实部署、未连接真实服务器、未写真实密钥/IP）。
+**Frontend UI Redesign v1 已完成并合并到 `main`**（2026-07-18）。中英文 27 个公开页面、375 / 430 / 768 / 1024 / 1440px 响应式、加载/空/错误/404 状态、复制与搜索单次事件、SEO、sitemap/robots、数据库搜索兜底及 Admin 功能兼容性冒烟均已在既有本地 Preview Docker 环境通过。完成标签为 `ui-redesign-v1-complete`，合并前回滚标签为 `pre-ui-redesign-merge-20260718`。
 
-**Phase 7C-1** - Preview Docker Deployment 仓库产物与本地校验 已完成（将 docker-compose.preview.yml、web/admin/api Dockerfile、.dockerignore、Nginx 模板、scripts/preview/* 运维脚本从模板变为可执行产物，并完成本地 Docker 校验：compose config / 三镜像构建 / up / health / migrate / seed / Web+Admin+API 冒烟 / X-Robots-Tag noindex / Postgres 与 Meilisearch 不暴露公网 / 可选 Meilisearch profile / Meili 停用数据库兜底 / 密钥不泄露扫描，全部通过）。**Phase 7C-2（真实腾讯云部署）待单独授权，本轮未连接真实服务器、未写真实 IP/密码/密钥**。
+本次完成范围是公开前台 UI v1；**Admin 未做全面 UI 改版**，仅确认登录、Dashboard、管理列表与创建入口保持可用。未修改 API、DTO、Prisma schema 或数据库结构。
 
-下一阶段：**Phase 7C-2 - Preview Deployment on Tencent Cloud**（真实小服务器：安全组、访问方式、`.env.preview` 强随机密钥、`git push`、上线与冒烟；完成后打 `phase-7c-complete` 标签并标记 HANDOFF 为 Phase 7C 完成）。
+**Phase 7C-1** 的 Preview Docker 仓库产物与本地校验仍为已完成状态。**Phase 7C-2（真实腾讯云部署）尚未执行**：腾讯云当前仍是旧版本，本轮未连接服务器、未写入真实 IP/密码/密钥，也未做云端备份或更新。
+
+下一阶段：先以 `pre-ui-redesign-merge-20260718` 作为本地回滚基线完成腾讯云备份，再部署 `main` 的新版本并执行云端冒烟；该阶段需要单独授权。
 
 ## 技术栈
 

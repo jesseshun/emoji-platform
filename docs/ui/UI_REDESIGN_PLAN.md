@@ -4,6 +4,16 @@
 > 创建日期：2026-07-17
 > 基线分支：`feature/macos-ui-redesign`
 
+## v1 最终状态（2026-07-18）
+
+- 公开前台 UI v1 已完成并合并到 `main`，合并 commit 为 `de5668c9164246f3efe0e36008893f5f618c2ebc`。
+- 中英文 27 个公开页面、五档响应式宽度、加载/空/错误/404、导航与 Command Palette、复制/搜索单次事件、SEO、sitemap/robots、数据库搜索兜底均在既有本地 Preview Docker 环境通过。
+- 缺失及草稿详情页保持本地化 Not Found 界面，同时恢复真实 HTTP 404；公开详情页继续返回 200。
+- 完成标签：`ui-redesign-v1-complete`；合并前 `main` 回滚标签：`pre-ui-redesign-merge-20260718`。
+- v1 不包含 Admin 全面 UI 改版。Admin 仅做登录、Dashboard、主要列表、创建入口、权限与 noindex 功能兼容性冒烟，结果通过。
+- 未修改 API/DTO、Prisma schema、数据库结构或 Preview Docker 架构；未部署腾讯云，云端仍为旧版本。
+- 原计划 Batch 5 的 Admin 全面改版与未实际交付的深色模式手动切换不计入本次 v1 完成范围，后续需另行立项。
+
 ---
 
 ## 设计总方向

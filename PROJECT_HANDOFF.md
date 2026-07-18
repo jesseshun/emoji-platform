@@ -2,13 +2,16 @@
 
 ## Current Phase
 
-Phase 7B completed.
+Frontend UI Redesign v1 completed locally and merged into `main` on 2026-07-18.
 
-> Note (Phase 7C-1): Repository deployment artifacts prepared and local Docker validation passed —
-> executable `docker-compose.preview.yml`, `web`/`admin`/`api` Dockerfiles, `.dockerignore`, Nginx
-> envsubst template, `scripts/preview/*` ops scripts, and `docs/deployment/phase-7c-*.md`. Remote
-> Tencent Cloud deployment (Phase 7C-2) is **pending** and requires separate authorization. No real
-> server connected; no real IP / password / token / JWT / Meili key / GitHub PAT written.
+> Final acceptance passed in the existing local Preview Docker environment for 27 bilingual public
+> pages, five responsive widths, route states, single search/copy events, SEO, sitemap/robots, and
+> database search fallback. Admin login, Dashboard, primary lists, create entry, 401/403, and noindex
+> behavior passed compatibility smoke; Admin was not comprehensively redesigned. Completion tag:
+> `ui-redesign-v1-complete`. Pre-merge rollback tag: `pre-ui-redesign-merge-20260718`.
+>
+> Phase 7C-1 repository artifacts and local Docker validation remain complete. Tencent Cloud has not
+> been accessed or updated and still runs the old version. No real server credential was written.
 
 ## Project Goal
 
@@ -70,7 +73,8 @@ Build a long-term maintainable global Emoji dictionary, copy, meaning, search, t
 - Phase 6F: Phase 6 final acceptance (regressed Phase 6A–6E all modules; HTTP-verified public search/discovery/recommendations/admin APIs; Meilisearch fallback verified; sitemap/robots boundaries verified; security audit clean; pnpm install/db:generate/db:migrate/db:seed/lint/typecheck/build all green; no AI content, no personalized recommendations, no user profiling, no pure static site conversion)
 - Phase 7A: Preview deployment architecture and production path (added `docs/deployment/` plan set: phase-7a-preview-architecture.md, preview-environment-strategy.md, preview-docker-plan.md, preview-security-and-seo.md, production-path-options.md; added `.env.preview.example` template; added `docker-compose.preview.yml` and `nginx/preview.conf.example` templates — all placeholders, no real secrets/IP; defined preview = Preview/Staging/Internal-Test only, NOT production; documented Tencent Cloud domestic small-server preview plan, unfiled-domain ICP risk, three access modes (IP+port / preview subdomain / SSH tunnel), web/admin/api routing comparison (subdomain recommended), resource sizing (1C2G close Meilisearch via DB fallback, 2C4G full stack), preview env vars, DB/backup plan, security & SEO boundaries (noindex, no CDN, no SEO submission); documented two production routes (A: overseas/no-ICP, B: domestic/ICP+CDN); confirmed current API CORS is hardcoded localhost and must be env-driven in Phase 7B; did NOT deploy, did NOT connect real servers, did NOT write real IP/password/token/JWT/Meili-key/PAT, did NOT submit .env, did NOT modify business code/Prisma schema, did NOT convert to pure static site)
 - Phase 7B: Preview environment, secrets, and config hardening (replaced `main.ts` hardcoded localhost CORS with env-driven `buildAllowedCorsOrigins()` reading `CORS_ORIGIN`/`ADMIN_ALLOWED_ORIGINS`/`WEB_BASE_URL`/`ADMIN_BASE_URL`, multi-origin comma-split/trim/ignore-empty, localhost fallback when empty, no `*`+credentials; moved cookie `secure`/`domain` to `resolveCookieSecure()`/`resolveCookieDomain()` from `COOKIE_SECURE`/`COOKIE_DOMAIN` env; removed weak JWT_SECRET `'change_me'` default — fail-fast in production/preview when missing, dev-only warned placeholder otherwise; added `apps/api/src/common/security-config.ts` helper; updated `.env.example` with Phase 7B vars; updated `.env.preview.example` (marked implemented); added `.env.production.example` (placeholders only); hardened `.gitignore` to ignore all real `.env*` variants while keeping the three `.example` templates committable; documented noindex/robots via `PREVIEW_NOINDEX` + Nginx `X-Robots-Tag` + `robots.txt`; added `docs/deployment/phase-7b-preview-config-hardening.md`; updated README/CHANGELOG/HANDOFF; did NOT deploy, did NOT connect real servers, did NOT write real IP/password/token/JWT/Meili-key/PAT, did NOT submit `.env`/`.env.preview`/`.env.production`, did NOT modify business functionality, did NOT modify Prisma schema, did NOT convert to pure static site)
+- Frontend UI Redesign v1: public web redesign through Batch 4B plus final acceptance (27 bilingual public pages; responsive 375/430/768/1024/1440; loading/empty/error/true-404 states; single search/copy events; SEO/sitemap/robots; database fallback; Admin compatibility smoke; `install`/`db:generate`/`lint`/`typecheck`/`build` green). Feature commit `58c32b6ba8e082998d39a34701f418ff728cae11` was tagged `ui-redesign-v1-complete`; pre-merge `main` `f7bbb617e9931257927d1f083e72e66ff75df709` was tagged `pre-ui-redesign-merge-20260718`; merge commit is `de5668c9164246f3efe0e36008893f5f618c2ebc`. No API/DTO, Prisma schema, database-structure, full Admin redesign, or Tencent Cloud deployment changes were made.
 
 ## Next Phase
 
-Phase 7C - Preview Docker Deployment and Server Setup
+Phase 7C-2 - after separate authorization, back up the existing Tencent Cloud deployment, deploy the updated `main`, then run cloud health, Web/Admin/API, noindex, search-fallback, and rollback checks. Use `pre-ui-redesign-merge-20260718` as the pre-merge code rollback reference. Tencent Cloud currently remains on the old version.
