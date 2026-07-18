@@ -68,6 +68,8 @@ services:
       NODE_ENV: production
       # 服务端 SSR 拉取 API 用内部地址。
       API_URL: http://api:4000
+      NEXT_PUBLIC_SITE_URL: '${NEXT_PUBLIC_SITE_URL:-http://localhost}'
+      NEXT_PUBLIC_ADMIN_URL: '${NEXT_PUBLIC_ADMIN_URL:-http://localhost:8081}'
     depends_on:
       - api
     networks:
@@ -95,6 +97,8 @@ services:
     environment:
       NODE_ENV: production
       API_URL: http://api:4000
+      NEXT_PUBLIC_SITE_URL: '${NEXT_PUBLIC_SITE_URL:-http://localhost}'
+      NEXT_PUBLIC_ADMIN_URL: '${NEXT_PUBLIC_ADMIN_URL:-http://localhost:8081}'
     depends_on:
       - api
     networks:

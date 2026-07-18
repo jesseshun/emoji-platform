@@ -32,7 +32,11 @@ COPY packages/ui ./packages/ui
 # Default "/" => the browser calls the API through the SAME origin (nginx proxies
 # /api -> api:4000), avoiding cross-origin CORS and keeping the API internal.
 ARG NEXT_PUBLIC_API_URL=/
+ARG NEXT_PUBLIC_SITE_URL=http://localhost:3000
+ARG NEXT_PUBLIC_ADMIN_URL=http://localhost:8081
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
+ENV NEXT_PUBLIC_ADMIN_URL=${NEXT_PUBLIC_ADMIN_URL}
 ENV NEXT_TELEMETRY_DISABLED=1
 # Build the workspace deps whose RUNTIME dist the admin app consumes. `ui` is
 # imported from source (main -> ./src/index.ts) and transpiled by Next, so it
@@ -43,8 +47,12 @@ RUN pnpm --filter @emoji-platform/types build \
 
 FROM base AS runner
 WORKDIR /app
+ARG NEXT_PUBLIC_SITE_URL=http://localhost:3000
+ARG NEXT_PUBLIC_ADMIN_URL=http://localhost:8081
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
+ENV NEXT_PUBLIC_ADMIN_URL=${NEXT_PUBLIC_ADMIN_URL}
 
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 
