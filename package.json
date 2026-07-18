@@ -30,19 +30,6 @@
     "node": ">=18.0.0",
     "pnpm": ">=8.0.0"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@nestjs/core",
-      "@prisma/engines",
-      "prisma",
-      "bcrypt",
-      "esbuild",
-      "@prisma/client"
-    ],
-    "ignoredBuiltDependencies": [
-      "unrs-resolver"
-    ]
-  },
   "dependencies": {
     "tsx": "^4.23.0"
   }

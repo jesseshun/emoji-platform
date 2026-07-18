@@ -89,6 +89,7 @@ export function Header({ locale }: HeaderProps) {
                   <Link
                     key={item.key}
                     href={`${prefix}${item.href}`}
+                    aria-current={active ? 'page' : undefined}
                     className={`
                       relative px-3 py-1.5 text-sm font-medium rounded-lg
                       transition-all duration-fast
@@ -175,7 +176,11 @@ export function Header({ locale }: HeaderProps) {
                   md:hidden p-2 -mr-2 text-text-secondary hover:text-text-primary
                   rounded-lg transition-colors duration-fast
                 "
-                aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+                aria-label={
+                  mobileOpen
+                    ? locale === 'zh' ? '关闭菜单' : 'Close menu'
+                    : locale === 'zh' ? '打开菜单' : 'Open menu'
+                }
                 aria-expanded={mobileOpen}
               >
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -262,14 +267,16 @@ function MobileMenu({
         className="absolute top-0 right-0 bottom-0 w-72 bg-surface-elevated
                    shadow-lg border-l border-border animate-slide-down
                    flex flex-col overflow-y-auto"
-        aria-label="Mobile navigation"
+        aria-label={locale === 'zh' ? '移动导航' : 'Mobile navigation'}
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-border-subtle">
-          <span className="text-sm font-semibold text-text-primary">导航</span>
+          <span className="text-sm font-semibold text-text-primary">
+            {locale === 'zh' ? '导航' : 'Navigation'}
+          </span>
           <button
             onClick={onClose}
             className="p-1.5 -mr-1 text-text-muted hover:text-text-primary rounded-md transition-colors"
-            aria-label="Close menu"
+            aria-label={locale === 'zh' ? '关闭菜单' : 'Close menu'}
           >
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
               <path d="M4 4l10 10M14 4L4 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -284,6 +291,7 @@ function MobileMenu({
                 <Link
                   href={`${prefix}${item.href}`}
                   onClick={onClose}
+                  aria-current={active ? 'page' : undefined}
                   className={`
                     flex items-center px-3 py-2.5 rounded-lg text-[15px] font-medium
                     transition-colors duration-fast mb-0.5

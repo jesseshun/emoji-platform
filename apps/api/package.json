@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "rm -rf dist tsconfig.tsbuildinfo && tsc --project tsconfig.json",
+    "build": "node -e \"const fs=require('node:fs'); for (const path of ['dist','tsconfig.tsbuildinfo']) fs.rmSync(path, { recursive: true, force: true })\" && tsc --project tsconfig.json",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:prod": "node dist/main",

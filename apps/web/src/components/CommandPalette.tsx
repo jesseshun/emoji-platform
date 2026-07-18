@@ -182,7 +182,10 @@ function CommandPaletteOverlay({ locale, onClose, router }: OverlayProps) {
       if (item.type !== 'emoji') return;
       const ok = await copyText(item.emojiChar);
       if (!ok) {
-        showToast(locale === 'zh' ? '复制失败，请重试' : 'Copy failed, please try again');
+        showToast(
+          locale === 'zh' ? '复制失败，请重试' : 'Copy failed, please try again',
+          'error',
+        );
         return;
       }
       showToast(

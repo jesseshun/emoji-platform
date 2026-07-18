@@ -156,7 +156,7 @@ export function HomeHero({ locale }: HomeHeroProps) {
               <button
                 key={chip.href}
                 type="button"
-                onClick={() => router.push(chip.href)}
+                onClick={() => router.push(`${prefix}${chip.href}`)}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-pill text-sm
                            bg-surface border border-border-subtle text-text-secondary
                            hover:text-text-primary hover:border-border transition-all duration-fast"
