@@ -293,14 +293,33 @@ feat: redesign article reading experience
 
 ---
 
-## Batch 4B：工具和其他内容页面（未开始）
+## Batch 4B：工具和其他内容页面（已完成）
 
-- `/zh/tools`、`/en/tools`
-- `/zh/about`、`/en/about`
-- `/zh/license`、`/en/license`
-- 其他本轮未包含的内容页面
+### 修改范围
 
-Batch 4B 必须在 Batch 4A 验收后单独开始，不包含在本次提交中。
+- `/zh/tools`、`/en/tools`：将 4 个硬编码占位工具重排为清晰的开发队列，明确全部尚未开放，不增加无效按钮、结果态或详情路由。
+- `/zh/about`、`/en/about`：以产品定位、真实浏览能力和内容边界组织中英文介绍。
+- `/zh/license`、`/en/license`：区分 Unicode 字符、Unicode 材料、厂商图像、开源资源和本站原创内容，增加官方许可入口与一般性说明。
+- 新增共享 `PublicPageHeader` 与 `LicensePageView`；更新 `ToolCard` 为紧凑的语义列表行。
+
+### 实际路由边界
+
+- 当前前台不存在 Settings、工具详情、工具执行结果或工具错误路由，因此本批次不创建这些页面或状态。
+- 没有其他尚未改版的公开内容页面；首页、搜索、Emoji、分类、专题和文章已在前序批次完成且本批次不修改。
+- metadata、公开 URL、slug/query、SEO route handlers、API、Prisma、数据库、Admin 与 Preview Docker 架构不变。
+
+### 验收标准
+
+- 6 个真实页面中英文内容对齐，375 / 430 / 768 / 1024 / 1440px 无横向溢出。
+- 页面保持单一 `h1`、语义 section/nav/list、可见 focus、44px 级别链接/控件可用性与 reduced-motion 全局规则。
+- Tools 不把 planned 项伪装成可用；License 外链使用新标签页和 `noreferrer`。
+- `pnpm install --frozen-lockfile`、`pnpm db:generate`、`pnpm lint`、`pnpm typecheck`、`pnpm build` 通过。
+
+### commit
+
+```
+feat: redesign tools and public information pages
+```
 
 ---
 

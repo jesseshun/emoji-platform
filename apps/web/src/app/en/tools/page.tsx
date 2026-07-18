@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
+import { PublicPageHeader } from '@/components/PublicPageHeader';
 import { ToolCard } from '@/components/ToolCard';
+import { PageContainer } from '@/components/ui';
 
 export const metadata: Metadata = {
   title: 'Tools',
@@ -31,25 +33,31 @@ const tools = [
 
 export default function EnToolsPage() {
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Tools</h1>
-        <p className="text-sm text-gray-500">
-          Emoji-related tools collection. The following tools are under development.
-        </p>
+    <PageContainer className="py-8 sm:py-12 lg:py-16">
+      <PublicPageHeader
+        eyebrow="Tool directory"
+        title="Find, understand, and use emoji faster"
+        description="This directory presents the emoji utilities currently being considered. There are no runnable standalone tools yet; clear launch links will appear here when they are ready."
+        note="Current status: 4 items planned. Unfinished features are never presented as working tools."
+      />
+      <div className="grid gap-8 py-8 sm:py-10 lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-12">
+        <aside aria-label="Tool status note">
+          <p className="text-sm font-semibold text-text-primary">Development queue</p>
+          <p className="mt-2 text-sm leading-6 text-text-secondary">
+            Tools will prioritize accuracy, speed, and local-first interactions. Until launch, this page describes intent without dead controls.
+          </p>
+        </aside>
+        <ol className="rounded-[8px] border border-border-subtle bg-surface p-4 sm:p-6">
+          {tools.map((tool, index) => (
+            <ToolCard
+              key={tool.title}
+              {...tool}
+              index={String(index + 1).padStart(2, '0')}
+              badge="Planned"
+            />
+          ))}
+        </ol>
       </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {tools.map((tool) => (
-          <ToolCard
-            key={tool.title}
-            icon={tool.icon}
-            title={tool.title}
-            description={tool.description}
-            badge="Coming soon"
-          />
-        ))}
-      </div>
-    </div>
+    </PageContainer>
   );
 }

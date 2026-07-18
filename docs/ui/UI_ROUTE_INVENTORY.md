@@ -83,12 +83,14 @@
 
 | 路径 | 文件 | 用途 | 当前功能 | 数据来源 | 必须保留的交互 | 后续 UI 修改范围 | 回归测试项 | SEO / noindex |
 |------|------|------|----------|----------|----------------|------------------|------------|---------------|
-| `/zh/tools` | `app/zh/tools/page.tsx` | 中文工具页 | 4 个占位工具卡片（即将上线） | 硬编码 | 无 | 工具卡片视觉、空态提示 | 页面可访问 | canonical/hreflang |
-| `/en/tools` | `app/en/tools/page.tsx` | 英文工具页 | 同上 | 硬编码 | 无 | 同上 | 同上 | 同上 |
-| `/zh/about` | `app/zh/about/page.tsx` | 关于我们 | 项目介绍、使命、数据授权原则 | 硬编码 | 无 | 内容排版、字体层级 | 页面可访问 | title/description |
-| `/en/about` | `app/en/about/page.tsx` | About | 同上 | 硬编码 | 无 | 同上 | 同上 | 同上 |
-| `/zh/license` | `app/zh/license/page.tsx` | 授权说明 | Unicode、平台图片、开源字体、本站内容授权 | 硬编码 | 无 | 内容排版、引用样式 | 页面可访问 | title/description |
-| `/en/license` | `app/en/license/page.tsx` | License | 同上 | 硬编码 | 无 | 同上 | 同上 | 同上 |
+| `/zh/tools` | `app/zh/tools/page.tsx` | 中文工具页 | 4 个真实规划项的开发队列；明确无可执行工具 | 硬编码 | 无 | Batch 4B 已完成 | 页面可访问、无无效控件 | title/description |
+| `/en/tools` | `app/en/tools/page.tsx` | 英文工具页 | 同上 | 硬编码 | 无 | Batch 4B 已完成 | 同上 | 同上 |
+| `/zh/about` | `app/zh/about/page.tsx` | 关于我们 | 产品定位、真实浏览能力、内容与授权边界 | 硬编码 | 授权说明链接 | Batch 4B 已完成 | 页面可访问、链接可用 | title/description |
+| `/en/about` | `app/en/about/page.tsx` | About | 同上 | 硬编码 | 授权说明链接 | Batch 4B 已完成 | 同上 | 同上 |
+| `/zh/license` | `app/zh/license/page.tsx` | 授权说明 | Unicode 字符/材料、平台图像、开源资源、本站内容 | 硬编码 | 锚点目录、官方外链 | Batch 4B 已完成 | 页面/锚点/外链可用 | title/description |
+| `/en/license` | `app/en/license/page.tsx` | License | 同上 | 硬编码 | 锚点目录、官方外链 | Batch 4B 已完成 | 同上 | 同上 |
+
+> Batch 4B 扫描确认：前台不存在 Settings、工具详情、工具执行结果或工具错误路由；未创建计划外页面、数据或交互。
 
 ### 2.9 Route Handlers（SEO 相关）
 

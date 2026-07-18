@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
+import { PublicPageHeader } from '@/components/PublicPageHeader';
 import { ToolCard } from '@/components/ToolCard';
+import { PageContainer } from '@/components/ui';
 
 export const metadata: Metadata = {
   title: '实用工具',
@@ -31,25 +33,31 @@ const tools = [
 
 export default function ZhToolsPage() {
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">实用工具</h1>
-        <p className="text-sm text-gray-500">
-          Emoji 相关实用工具集合。以下工具正在开发中，敬请期待。
-        </p>
+    <PageContainer className="py-8 sm:py-12 lg:py-16">
+      <PublicPageHeader
+        eyebrow="工具目录"
+        title="更快找到、理解和使用 Emoji"
+        description="这里集中展示正在规划中的 Emoji 辅助工具。当前没有可执行的独立工具，开放后会在本页提供明确入口。"
+        note="当前状态：4 项规划中。页面不会把未完成的功能伪装成可用工具。"
+      />
+      <div className="grid gap-8 py-8 sm:py-10 lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-12">
+        <aside aria-label="工具状态说明">
+          <p className="text-sm font-semibold text-text-primary">开发队列</p>
+          <p className="mt-2 text-sm leading-6 text-text-secondary">
+            工具将以准确、快速和本地优先的交互为目标。上线前仅展示用途，不提供无效按钮。
+          </p>
+        </aside>
+        <ol className="rounded-[8px] border border-border-subtle bg-surface p-4 sm:p-6">
+          {tools.map((tool, index) => (
+            <ToolCard
+              key={tool.title}
+              {...tool}
+              index={String(index + 1).padStart(2, '0')}
+              badge="规划中"
+            />
+          ))}
+        </ol>
       </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {tools.map((tool) => (
-          <ToolCard
-            key={tool.title}
-            icon={tool.icon}
-            title={tool.title}
-            description={tool.description}
-            badge="即将上线"
-          />
-        ))}
-      </div>
-    </div>
+    </PageContainer>
   );
 }

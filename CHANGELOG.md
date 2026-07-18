@@ -1,5 +1,14 @@
 # Changelog
 
+## UI Redesign — Batch 4B: Tools & Public Information
+
+- **Tools directory** (`/zh/tools`, `/en/tools`): Replaced the equal-card placeholder grid with a compact development queue. The same four hardcoded planned concepts remain, but the page now states plainly that no standalone tools are runnable and exposes no dead buttons, fake results, fake errors, or invented detail routes.
+- **About pages** (`/zh/about`, `/en/about`): Reframed the bilingual product story around the platform’s real search, browse, detail, copy, and reading paths, with an editorial numbered layout and an explicit content/licensing boundary.
+- **License pages** (`/zh/license`, `/en/license`): Added a shared readable license view separating Unicode-encoded characters, Unicode-published materials, vendor artwork, open-source emoji sets, and original site content. Official license/project links and a non-legal-advice note make the attribution guidance more precise.
+- **Responsive and accessibility**: Added semantic headers, sections, asides, ordered lists, anchor navigation, one `h1` per page, token-based contrast, visible focus behavior, 8px framed surfaces, responsive sidebars, and existing reduced-motion support across all six routes.
+- **Real route audit**: No public Settings route, tool detail route, executable tool, result route, or tool error route exists. None was fabricated, and there were no additional unredesigned public content pages in the current web route tree.
+- **Boundaries preserved**: Metadata and all public URLs remain intact. No API endpoint/DTO/business logic, Prisma schema/database structure, route/slug/query, SEO generation, Preview Docker architecture, Admin, main branch, or Tencent Cloud deployment changes were made.
+
 ## UI Redesign — Batch 4A: Article Reading Experience
 
 - **Article lists** (`/zh/articles`, `/en/articles`): Rebuilt the bilingual published-article browser around the existing API order, pagination metadata, translations, cover URLs, titles, summaries, dates, slugs, and local fallback. The first item receives a restrained featured layout and remaining items use a responsive two-column grid; no popularity, recommendation, author, category, or topic data is fabricated.
