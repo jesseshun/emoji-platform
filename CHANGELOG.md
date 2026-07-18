@@ -1,5 +1,15 @@
 # Changelog
 
+## UI Redesign — Batch 4A: Article Reading Experience
+
+- **Article lists** (`/zh/articles`, `/en/articles`): Rebuilt the bilingual published-article browser around the existing API order, pagination metadata, translations, cover URLs, titles, summaries, dates, slugs, and local fallback. The first item receives a restrained featured layout and remaining items use a responsive two-column grid; no popularity, recommendation, author, category, or topic data is fabricated.
+- **Article detail** (`/zh/articles/[slug]`, `/en/articles/[slug]`): Added the shared `ArticleDetailView` with Breadcrumb JSON-LD, real title/summary/author/published/updated/keywords, responsive cover, bounded reading width, related Emoji/topic/article sections, and a back path. Empty associations do not render empty cards; the API exposes no article-category relation, so no category module is invented.
+- **Safe article body**: Added `ArticleBody`, a React-node Markdown renderer for headings, paragraphs, emphasis, links, images, lists, quotes, fenced code, and mobile-scrollable tables. Article text no longer uses body `dangerouslySetInnerHTML`; unsafe URL protocols are rejected and external links retain `noopener noreferrer`.
+- **Route states**: Added localized list/detail loading and error boundaries plus article not-found states. Missing body content shows a clear accessible empty state instead of a blank page. Draft and nonexistent slugs remain API 404 and resolve to the scoped article Not Found UI.
+- **Responsive and accessibility**: Article lists and details use the existing 8px/token system, stable media geometry, semantic article/time/list/table markup, one page-level `h1`, visible focus states, accessible loading/error/empty states, responsive images, wrapping Breadcrumbs, and reduced-motion behavior.
+- **SEO preserved**: Existing title, description, canonical, hreflang, html lang, Open Graph, BlogPosting JSON-LD, datePublished/dateModified/author/publisher behavior, and published-only article sitemap remain unchanged.
+- **Boundaries preserved**: No API endpoint/DTO/business-logic changes, no Prisma schema/database-structure changes, no public route/slug/query changes, no SEO-generation changes, no Preview Docker architecture changes, no Admin changes, no Tencent Cloud deployment, and no Batch 4B work.
+
 ## UI Redesign — Batch 3B: Category & Topic Experience
 
 - **Category lists** (`/zh/categories`, `/en/categories`): Replaced the flat equal-card grid with a real hierarchy browser built from the existing category payload (`parentId`, API order, translations, icon, and `emojiCount`). Parent rows expand/collapse through dedicated `aria-expanded` / `aria-controls` buttons; orphaned, self-referential, or cyclic structures degrade to safe roots instead of crashing.

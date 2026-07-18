@@ -1,7 +1,5 @@
 import type { Metadata } from 'next';
-import { ArticleCard } from '@/components/ArticleCard';
-import { Pagination } from '@/components/Pagination';
-import { EmptyState } from '@/components/EmptyState';
+import { ArticleListView } from '@/components/ArticleListView';
 import { ErrorState } from '@/components/ErrorState';
 import { getArticles, getErrorMessage } from '@/lib/api';
 
@@ -30,46 +28,11 @@ export default async function ZhArticlesPage({ searchParams }: Props) {
 
   try {
     const data = await getArticles('zh', page, 30);
-
-    if (!data.data || data.data.length === 0) {
-      return (
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          <EmptyState
-            icon="📄"
-            title="暂无文章"
-            description="文章正在准备中，请稍后再来。"
-          />
-        </div>
-      );
-    }
-
-    return (
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">文章</h1>
-          <p className="text-sm text-gray-500">
-            浏览 Emoji 相关文章与内容，深入了解 Emoji 的含义、历史与文化。
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {data.data.map((article: typeof data.data[number]) => (
-            <ArticleCard key={article.id} article={article} locale="zh" />
-          ))}
-        </div>
-
-        <Pagination
-          locale="zh"
-          page={page}
-          totalPages={data.meta.totalPages}
-          basePath="/zh/articles"
-        />
-      </div>
-    );
+    return <ArticleListView articles={data.data || []} meta={data.meta} locale="zh" />;
   } catch (error) {
     return (
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <ErrorState message={getErrorMessage(error)} />
+      <div className="mx-auto max-w-content px-4 py-12 sm:px-6">
+        <ErrorState locale="zh" message={getErrorMessage(error, 'zh')} />
       </div>
     );
   }

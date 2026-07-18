@@ -241,55 +241,66 @@ feat(ui): redesign search, emoji, category and topic pages
 
 ---
 
-## Batch 4：文章、工具和其他内容页面
+## Batch 4A：文章列表与文章详情（已完成）
 
 ### 修改范围
 
-- 重构文章列表/详情：`ArticleCard`、文章封面、标题、日期、作者、正文排版、关键词、相关文章/专题/表情。
-- 重构 `/zh/tools`、`/en/tools`：工具卡片、占位提示。
-- 重构 `/zh/about`、`/en/about`、`/zh/license`、`/en/license`：内容排版、字体层级。
-- 统一 `EmptyState`、`ErrorState`、`LoadingState` 视觉。
-- 检查并优化 `Pagination` 组件。
+- 重构中英文文章列表：真实 published 数据、首篇重点卡片、其余文章网格、真实总数、既有分页与 API 排序。
+- 重构中英文文章详情：Breadcrumb、标题、摘要、真实作者/发布日期/更新日期/关键词、正文、相关 Emoji/专题/文章。
+- 新增安全 `ArticleBody` Markdown 渲染，不使用正文 `dangerouslySetInnerHTML`，支持标题、段落、列表、引用、代码、链接、图片和移动端可滚动表格。
+- 增加文章列表/详情 Loading、Error、Not Found；正文缺失时显示明确 Empty 状态。
+- 保留 canonical、hreflang、Open Graph、BlogPosting JSON-LD、published 可见性、slug、URL 和 API 返回结构。
+- 仅使用现有真实字段；列表 API 没有作者/分类关联字段时不伪造展示，详情 API 没有分类关联时不创建空分类模块。
 
-### 预计文件
+### 主要文件
 
-| 修改 | 路径 |
+| 修改/新增 | 路径 |
 |------|------|
 | 修改 | `apps/web/src/components/ArticleCard.tsx` |
-| 修改 | `apps/web/src/components/EmptyState.tsx` |
-| 修改 | `apps/web/src/components/ErrorState.tsx` |
-| 修改 | `apps/web/src/components/LoadingState.tsx` |
-| 修改 | `apps/web/src/components/Pagination.tsx` |
-| 修改 | `apps/web/src/components/ToolCard.tsx` |
-| 修改 | `apps/web/src/components/Breadcrumb.tsx` |
+| 新增 | `apps/web/src/components/ArticleListView.tsx` |
+| 新增 | `apps/web/src/components/ArticleDetailView.tsx` |
+| 新增 | `apps/web/src/components/ArticleBody.tsx` |
+| 修改 | `apps/web/src/components/BrowseSkeletons.tsx` / `BrowseNotFound.tsx` |
 | 修改 | `apps/web/src/app/zh/articles/page.tsx` / `en/articles/page.tsx` |
 | 修改 | `apps/web/src/app/zh/articles/[slug]/page.tsx` / `en/articles/[slug]/page.tsx` |
-| 修改 | `apps/web/src/app/zh/tools/page.tsx` / `en/tools/page.tsx` |
-| 修改 | `apps/web/src/app/zh/about/page.tsx` / `en/about/page.tsx` |
-| 修改 | `apps/web/src/app/zh/license/page.tsx` / `en/license/page.tsx` |
+| 新增 | `apps/web/src/app/{zh,en}/articles/**/{loading,error,not-found}.tsx` |
 
 ### 保留的业务逻辑
 
 - 文章 published 状态过滤、404、BlogPosting JSON-LD。
-- 工具页硬编码数据不变。
+- 列表/详情 endpoint、DTO、排序、分页、slug、查询参数、SEO 与 sitemap 逻辑不变。
+- API、Prisma schema、数据库结构、Admin、Preview Docker 架构均未修改。
 
-### 风险点
+### 实现说明
 
-- 文章详情 `dangerouslySetInnerHTML` 内容样式需与全局 prose 一致。
-- 封面图片加载失败需降级。
+- 文章列表 API 不返回作者、分类或专题关联，`ArticleCard` 只展示真实标题、摘要、发布日期与封面/本地中性占位。
+- 文章详情 API 返回真实作者、关键词、相关文章、相关专题与相关 Emoji；当前没有文章分类关联字段，因此不伪造分类区块。
+- 列表继续使用 API 的 `publishedAt desc, id asc` 顺序；未新增筛选、排序 query 或“热门/推荐”假逻辑。
+- 封面为空时沿用本地文章占位，不抓取外部图片。
 
 ### 验收标准
 
-- 文章列表/详情正常展示，404 正确。
-- About/License 内容排版可读。
-- 空态/错误态/加载态统一。
-- `pnpm lint/typecheck/build` 通过。
+- 中英文文章列表/详情、分页、published 可见性、draft/不存在 slug Not Found 正常。
+- 375 / 430 / 768 / 1024 / 1440px 无横向溢出，正文、Breadcrumb、长标题与关联模块可读。
+- canonical、hreflang、Open Graph、BlogPosting JSON-LD 与 article sitemap 保持正常。
+- `pnpm install --frozen-lockfile`、`pnpm db:generate`、`pnpm lint`、`pnpm typecheck`、`pnpm build` 通过。
 
-### 建议 commit
+### commit
 
 ```
-feat(ui): redesign articles, tools, about and license pages
+feat: redesign article reading experience
 ```
+
+---
+
+## Batch 4B：工具和其他内容页面（未开始）
+
+- `/zh/tools`、`/en/tools`
+- `/zh/about`、`/en/about`
+- `/zh/license`、`/en/license`
+- 其他本轮未包含的内容页面
+
+Batch 4B 必须在 Batch 4A 验收后单独开始，不包含在本次提交中。
 
 ---
 

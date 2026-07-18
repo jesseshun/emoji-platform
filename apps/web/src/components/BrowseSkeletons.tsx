@@ -140,3 +140,58 @@ export function BrowseDetailSkeleton({ locale }: { locale: Locale }) {
     </div>
   );
 }
+
+export function ArticleListSkeleton({ locale }: { locale: Locale }) {
+  return (
+    <div className="mx-auto max-w-content px-4 py-8 sm:px-6 sm:py-12" role="status" aria-live="polite" aria-busy="true">
+      <LoadingLabel locale={locale} />
+      <div className="mb-12 animate-pulse border-b border-border-subtle pb-8">
+        <div className="h-10 w-48 max-w-full rounded bg-bg-muted" />
+        <div className="mt-4 h-4 w-[34rem] max-w-full rounded bg-bg-subtle" />
+      </div>
+      <div className="grid min-h-[22rem] animate-pulse overflow-hidden rounded-[8px] border border-border-subtle bg-surface sm:grid-cols-2">
+        <div className="min-h-48 bg-bg-muted" />
+        <div className="space-y-4 p-6 sm:p-8">
+          <div className="h-3 w-24 rounded bg-bg-muted" />
+          <div className="h-8 w-4/5 rounded bg-bg-muted" />
+          <div className="h-4 w-full rounded bg-bg-subtle" />
+          <div className="h-4 w-3/4 rounded bg-bg-subtle" />
+        </div>
+      </div>
+      <div className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 3 }, (_, index) => (
+          <div key={index} className="animate-pulse overflow-hidden rounded-[8px] border border-border-subtle bg-surface">
+            <div className="aspect-[16/9] bg-bg-muted" />
+            <div className="space-y-3 p-5">
+              <div className="h-3 w-20 rounded bg-bg-muted" />
+              <div className="h-5 w-4/5 rounded bg-bg-muted" />
+              <div className="h-3 w-full rounded bg-bg-subtle" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function ArticleDetailSkeleton({ locale }: { locale: Locale }) {
+  return (
+    <div className="mx-auto max-w-content px-4 py-8 sm:px-6 sm:py-12" role="status" aria-live="polite" aria-busy="true">
+      <LoadingLabel locale={locale} />
+      <div className="mb-6 h-4 w-64 max-w-full animate-pulse rounded bg-bg-muted" />
+      <div className="mx-auto max-w-[50rem] animate-pulse py-8 text-center">
+        <div className="mx-auto h-3 w-20 rounded bg-bg-muted" />
+        <div className="mx-auto mt-5 h-10 w-4/5 rounded bg-bg-muted" />
+        <div className="mx-auto mt-5 h-4 w-2/3 rounded bg-bg-subtle" />
+        <div className="mx-auto mt-7 h-4 w-72 max-w-full rounded bg-bg-subtle" />
+      </div>
+      <div className="mx-auto mt-8 max-w-[46rem] animate-pulse space-y-5 border-t border-border-subtle pt-10">
+        <div className="h-4 w-full rounded bg-bg-subtle" />
+        <div className="h-4 w-11/12 rounded bg-bg-subtle" />
+        <div className="h-7 w-1/2 rounded bg-bg-muted" />
+        <div className="h-4 w-full rounded bg-bg-subtle" />
+        <div className="h-4 w-4/5 rounded bg-bg-subtle" />
+      </div>
+    </div>
+  );
+}

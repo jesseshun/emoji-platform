@@ -305,7 +305,7 @@ font-family:
 | `EmojiCard` | token 化：`bg-surface`/`border-border-subtle`/`hover:border-border`/`focus-visible` 光环 |
 | `CategoryCard` | token 化 + `group-hover:text-accent` |
 | `TopicCard` | token 化 + `Badge` 类型标签 |
-| `ArticleCard` | token 化 + `from-accent-subtle to-bg-muted` 封面占位 |
+| `ArticleCard` | `default` / `featured` 内容卡；真实封面或本地中性文章占位；真实标题、摘要与发布日期 |
 | `CopyButton` | token 化 + 复制成功 `showToast(..., 'success')` |
 
 ### 10.4 首页与搜索组件（Batch 2 新增）
@@ -357,6 +357,18 @@ font-family:
 | Browse route states | 分类/专题列表与详情使用稳定 Skeleton、可感知 Error/Empty、详情 Not Found；不输出 `undefined` / `null` |
 
 分类树是列表页的主要层级结构，不把父分类卡片再嵌入装饰卡片。专题列表采用内容型两列布局，与分类的层级索引保持视觉区分。两类页面统一使用设计 token、8px 圆角、快速轻量动效与清晰 `focus-visible`。
+
+### 10.7 文章列表与阅读体验（Batch 4A）
+
+| 组件 | 规范 |
+|------|------|
+| `ArticleListView` | 页面头使用真实已发布总数和 API 既有发布时间顺序；第一页首篇使用 featured 编排，其余进入两列网格；不创建后端不存在的筛选、作者或关联字段 |
+| `ArticleCard` | 8px 圆角、稳定 16:9 媒体区、真实封面或本地中性占位；标题与摘要限制行数，日期使用语义化 `time`；整卡保留原 slug 链接与清晰 focus-visible |
+| `ArticleDetailView` | 阅读头部不放入装饰卡片；正文宽度限制为 46rem；真实作者/发布/更新/关键词缺失时整项不渲染；相关 Emoji/专题/文章只在真实数组非空时出现 |
+| `ArticleBody` | 安全 React 节点渲染 Markdown，不注入正文 HTML；支持标题、段落、粗体/斜体、链接、图片、列表、引用、代码块和表格；外链使用 `noopener noreferrer`，危险协议不生成链接 |
+| Article route states | 列表和详情 Skeleton 保持最终几何；Error 支持 retry；draft、archived 和不存在 slug 进入本地化 Not Found；正文缺失显示可感知 Empty 状态 |
+
+文章详情只保留一个页面级 `h1`，正文 Markdown 的首个同名 `#` 标题去重，其余标题从 `h2` 开始。正文使用约 65 字符的阅读宽度、舒展行高和明确段间距；代码块和表格独立横向滚动，长 URL 使用任意断行，避免移动端撑宽。图片使用真实 URL、响应式宽度和原始 alt；没有真实关联时不绘制空卡片。全页继续使用现有 token、轻量 transform/opacity 动效和 `prefers-reduced-motion` 规则。
 
 ---
 
