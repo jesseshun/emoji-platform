@@ -28,7 +28,10 @@ COPY apps/admin ./apps/admin
 COPY packages/shared ./packages/shared
 COPY packages/types ./packages/types
 COPY packages/ui ./packages/ui
-ARG NEXT_PUBLIC_API_URL=http://localhost:4000
+# Public API origin baked into the client bundle at build time.
+# Default "/" => the browser calls the API through the SAME origin (nginx proxies
+# /api -> api:4000), avoiding cross-origin CORS and keeping the API internal.
+ARG NEXT_PUBLIC_API_URL=/
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 ENV NEXT_TELEMETRY_DISABLED=1
 # Build the workspace deps whose RUNTIME dist the admin app consumes. `ui` is

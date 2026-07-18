@@ -4,7 +4,7 @@
 // fetched from the public read-only sitemap API exposed by apps/api, keeping
 // the planned monorepo architecture intact.
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const API_BASE = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
 export type SitemapLocale = 'zh' | 'en' | 'x-default';

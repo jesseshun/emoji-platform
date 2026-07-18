@@ -32,7 +32,9 @@ COPY packages/shared ./packages/shared
 COPY packages/types ./packages/types
 COPY packages/ui ./packages/ui
 # Public API origin baked into the client bundle at build time.
-ARG NEXT_PUBLIC_API_URL=http://localhost:4000
+# Default "/" => the browser calls the API through the SAME origin (nginx proxies
+# /api -> api:4000), avoiding cross-origin CORS and keeping the API internal.
+ARG NEXT_PUBLIC_API_URL=/
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 ENV NEXT_TELEMETRY_DISABLED=1
 # Build the workspace deps whose RUNTIME dist the web app consumes. `ui` is
@@ -54,6 +56,13 @@ COPY --from=builder /app/apps/web/.next/standalone ./
 # App assets referenced by the standalone server.
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
+
+# Next.js standalone server runs as the unprivileged `nextjs` user, but at
+# runtime it writes the incremental/prerender cache to
+# /app/apps/web/.next/cache. Create that directory and grant ownership to
+# nextjs so SSR cache writes don't fail with EACCES (which surfaced as a
+# 502 Bad Gateway from nginx on the first external request in prod).
+RUN mkdir -p /app/apps/web/.next/cache && chown -R nextjs:nodejs /app/apps/web/.next
 
 USER nextjs
 
