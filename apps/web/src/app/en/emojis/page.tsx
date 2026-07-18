@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import { SearchBox } from '@/components/SearchBox';
 import { EmojiGrid } from '@/components/EmojiGrid';
+import { EmojiBrowseHeader } from '@/components/EmojiBrowseHeader';
 import { Pagination } from '@/components/Pagination';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
@@ -34,7 +34,8 @@ export default async function EnEmojisPage({ searchParams }: Props) {
 
     if (!data.data || data.data.length === 0) {
       return (
-        <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="mx-auto max-w-content px-4 py-8 sm:px-6 sm:py-12">
+          <EmojiBrowseHeader locale="en" total={0} />
           <EmptyState
             icon="😊"
             title="No emojis available"
@@ -45,16 +46,17 @@ export default async function EnEmojisPage({ searchParams }: Props) {
     }
 
     return (
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Emoji List</h1>
-          <p className="text-sm text-gray-500 mb-4">
-            Browse all emoji characters. Click to view details and copy.
-          </p>
-          <SearchBox locale="en" />
-        </div>
+      <div className="mx-auto max-w-content px-4 py-8 sm:px-6 sm:py-12">
+        <EmojiBrowseHeader
+          locale="en"
+          total={data.meta.total}
+          page={page}
+          totalPages={data.meta.totalPages}
+        />
 
-        <EmojiGrid emojis={data.data} locale="en" />
+        <section aria-label="Emoji list">
+          <EmojiGrid emojis={data.data} locale="en" />
+        </section>
 
         <Pagination
           locale="en"
@@ -66,8 +68,9 @@ export default async function EnEmojisPage({ searchParams }: Props) {
     );
   } catch (error) {
     return (
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <ErrorState message={getErrorMessage(error)} />
+      <div className="mx-auto max-w-content px-4 py-8 sm:px-6 sm:py-12">
+        <EmojiBrowseHeader locale="en" />
+        <ErrorState message={getErrorMessage(error, 'en')} locale="en" />
       </div>
     );
   }

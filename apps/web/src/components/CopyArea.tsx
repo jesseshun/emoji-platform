@@ -1,9 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { showToast } from './Toast';
-import { recordCopyEvent } from '@/lib/api';
-import { copyText } from '@/lib/clipboard';
+import { useCopyAction } from '@/lib/useCopyAction';
 import type { Locale } from '@/lib/types';
 
 interface CopyItem {
@@ -20,51 +18,45 @@ interface CopyAreaProps {
 
 export function CopyArea({ items, locale, emojiId }: CopyAreaProps) {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const copy = useCopyAction({ locale, emojiId });
 
   const handleCopy = useCallback(
     async (item: CopyItem, index: number) => {
-      const ok = await copyText(item.value);
-      if (!ok) {
-        showToast(locale === 'zh' ? '复制失败，请重试' : 'Copy failed, please try again');
-        return;
-      }
-
       const msg = locale === 'zh' ? '已复制' : 'Copied';
-      showToast(`${msg}: ${item.label}`);
-
-      if (emojiId) {
-        recordCopyEvent(emojiId, locale, typeof window !== 'undefined' ? window.location.pathname : undefined).catch(
-          () => {
-            // intentionally ignored
-          },
-        );
-      }
+      const ok = await copy({ value: item.value, successMessage: `${msg}: ${item.label}` });
+      if (!ok) return;
 
       setCopiedIndex(index);
       setTimeout(() => setCopiedIndex((cur) => (cur === index ? null : cur)), 1500);
     },
-    [locale, emojiId],
+    [copy, locale],
   );
 
+  if (!items.length) return null;
+
   return (
-    <section className="mt-6 bg-white rounded-xl border border-gray-200 p-5">
-      <h2 className="text-sm font-semibold text-gray-700 mb-3">
-        {locale === 'zh' ? '复制' : 'Copy'}
+    <section className="rounded-[8px] border border-border-subtle bg-surface p-4 shadow-xs" aria-labelledby="copy-values-title">
+      <h2 id="copy-values-title" className="mb-3 text-sm font-semibold text-text-primary">
+        {locale === 'zh' ? '复制字段' : 'Copy values'}
       </h2>
-      <div className="flex flex-wrap gap-2">
+      <div className="grid gap-2">
         {items.map((item, index) => (
           <button
-            key={index}
+            key={`${item.label}-${item.value}`}
             type="button"
             onClick={() => handleCopy(item, index)}
-            className={`inline-flex items-center gap-1 min-h-[36px] text-xs px-3 py-1.5 rounded-md border transition ${
+            aria-label={`${locale === 'zh' ? '复制' : 'Copy'} ${item.label}: ${item.value}`}
+            className={`group flex min-h-12 min-w-0 items-center justify-between gap-3 rounded-[8px] border px-3 text-left transition-all duration-fast ${
               copiedIndex === index
-                ? 'bg-green-50 border-green-300 text-green-700'
-                : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                ? 'border-success bg-success-subtle text-success'
+                : 'border-border-subtle bg-bg-subtle text-text-secondary hover:border-border-strong hover:bg-bg-muted'
             }`}
           >
-            {copiedIndex === index ? '✓' : '📋'}{' '}
-            {item.label.length > 18 ? `${item.label.slice(0, 18)}…` : item.label}
+            <span className="min-w-0">
+              <span className="block text-[11px] font-medium text-text-muted">{item.label}</span>
+              <span className={`block truncate text-sm text-text-primary ${item.mono ? 'font-mono' : ''}`}>{item.value}</span>
+            </span>
+            <span className="shrink-0 text-base" aria-hidden="true">{copiedIndex === index ? '✓' : '⧉'}</span>
           </button>
         ))}
       </div>

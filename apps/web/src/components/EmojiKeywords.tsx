@@ -22,8 +22,8 @@ export function EmojiKeywords({ keywords, locale }: EmojiKeywordsProps) {
   if (!Array.isArray(parsed) || parsed.length === 0) return null;
 
   return (
-    <section className="mt-8">
-      <h2 className="text-xl font-bold text-gray-900 mb-4">
+    <section className="rounded-[8px] border border-border-subtle bg-surface p-4 shadow-xs">
+      <h2 className="mb-3 text-sm font-semibold text-text-primary">
         {locale === 'zh' ? '关键词' : 'Keywords'}
       </h2>
       <div className="flex flex-wrap gap-2">
@@ -31,7 +31,7 @@ export function EmojiKeywords({ keywords, locale }: EmojiKeywordsProps) {
           <Link
             key={index}
             href={`/${locale}/search?q=${encodeURIComponent(kw)}`}
-            className="inline-block text-xs px-3 py-1.5 rounded-full bg-gray-100 text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+            className="inline-block min-h-8 rounded-[8px] bg-bg-subtle px-2.5 py-1.5 text-xs text-text-secondary transition-colors duration-fast hover:bg-accent-subtle hover:text-text-link"
           >
             {kw}
           </Link>

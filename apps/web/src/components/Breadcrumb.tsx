@@ -27,25 +27,25 @@ export function Breadcrumb({ locale, items }: BreadcrumbProps) {
     <>
       <JsonLd data={ldJson} />
       <nav aria-label="Breadcrumb" className="mb-4">
-        <ol className="flex flex-wrap items-center gap-1 text-sm text-gray-500">
+        <ol className="flex flex-wrap items-center gap-1 text-xs text-text-muted">
           {allItems.map((item, index) => {
             const isLast = index === allItems.length - 1;
             return (
-              <li key={index} className="flex items-center gap-1">
+              <li key={index} className="flex min-w-0 items-center gap-1">
                 {index > 0 && (
-                  <span className="text-gray-300 mx-0.5" aria-hidden="true">
+                  <span className="text-border mx-0.5 select-none" aria-hidden="true">
                     /
                   </span>
                 )}
                 {!isLast && item.href ? (
                   <Link
                     href={item.href}
-                    className="text-gray-500 hover:text-blue-600 transition-colors"
+                    className="break-words transition-colors duration-fast hover:text-text-link"
                   >
                     {item.label}
                   </Link>
                 ) : (
-                  <span className={isLast ? 'text-gray-900 font-medium' : 'text-gray-500'}>
+                  <span className={`min-w-0 break-words font-medium ${isLast ? 'text-text-primary' : ''}`} aria-current={isLast ? 'page' : undefined}>
                     {item.label}
                   </span>
                 )}

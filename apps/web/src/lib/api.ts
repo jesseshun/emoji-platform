@@ -206,13 +206,14 @@ export async function recordCopyEvent(
 
 // ─── Helpers ───────────────────────────────────────────
 
-export function getErrorMessage(error: unknown): string {
+export function getErrorMessage(error: unknown, locale: Locale = 'zh'): string {
+  const isZh = locale === 'zh';
   if (error instanceof ApiError) {
-    if (error.status === 0) return '无法连接到服务器，请稍后重试';
-    if (error.status === 404) return '请求的资源不存在';
-    if (error.status >= 500) return '服务器错误，请稍后重试';
+    if (error.status === 0) return isZh ? '无法连接到服务器，请稍后重试' : 'Unable to connect to the server. Please try again later.';
+    if (error.status === 404) return isZh ? '请求的资源不存在' : 'The requested resource was not found.';
+    if (error.status >= 500) return isZh ? '服务器错误，请稍后重试' : 'The server could not complete the request. Please try again later.';
     return error.message;
   }
   if (error instanceof Error) return error.message;
-  return '未知错误';
+  return isZh ? '未知错误' : 'Unknown error';
 }

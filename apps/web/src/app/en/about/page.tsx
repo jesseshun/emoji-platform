@@ -1,4 +1,7 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
+import { PublicPageHeader } from '@/components/PublicPageHeader';
+import { PageContainer } from '@/components/ui';
 
 export const metadata: Metadata = {
   title: 'About Us',
@@ -7,64 +10,50 @@ export const metadata: Metadata = {
 
 export default function EnAboutPage() {
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">About Emoji Platform</h1>
+    <PageContainer className="py-8 sm:py-12 lg:py-16">
+      <PublicPageHeader
+        eyebrow="About the platform"
+        title="Making every emoji easier to understand"
+        description="Emoji Platform is a free bilingual emoji dictionary for finding characters, understanding context, and copying the right expression anywhere."
+        note="We focus on clear information architecture, dependable character references, and a reading experience that stays out of the way."
+      />
 
-      <div className="prose prose-sm max-w-none space-y-6">
-        <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">What is this?</h2>
-          <p className="text-sm text-gray-600 leading-relaxed">
-            Emoji Platform is a free online emoji dictionary and search tool. We are dedicated
-            to helping users quickly find, understand, and use emoji characters. Whether you
-            want to know the meaning of a specific emoji or need to find the right expression
-            for your message, you will find it here.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">What can you do here?</h2>
-          <ul className="text-sm text-gray-600 list-disc pl-5 space-y-1">
-            <li>Search and browse thousands of emoji characters</li>
-            <li>View each emoji&apos;s name, meaning, and Unicode codepoint</li>
-            <li>Browse by category to quickly find specific types of emojis</li>
-            <li>Copy emojis with one click and paste them anywhere</li>
-            <li>Read emoji-related articles and explore the culture behind the symbols</li>
-          </ul>
-        </section>
-
-        <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">Who is this for?</h2>
-          <p className="text-sm text-gray-600 leading-relaxed">
-            Our platform is for everyone interested in emojis. Whether you are a social media user,
-            content creator, designer, developer, or simply curious about emoji culture, you will
-            find valuable information here. We offer bilingual support in Chinese and English to
-            serve users worldwide.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">Data and Licensing Principles</h2>
-          <p className="text-sm text-gray-600 leading-relaxed">
-            Emoji character data is derived from the Unicode Standard published by the Unicode
-            Consortium and is in the public domain. The original written content on this site
-            (meanings, descriptions, articles, etc.) is original work. We do not copy any
-            competitor&apos;s content, UI design, or data. For information about image resource
-            licensing, please see our
-            {' '}
-            <a href="/en/license" className="text-blue-600 hover:text-blue-700">License</a> page.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">Continuous Updates</h2>
-          <p className="text-sm text-gray-600 leading-relaxed">
-            The emoji world is constantly evolving. The Unicode Consortium approves new emojis
-            every year, and our platform will keep up with these updates. We plan to add more
-            practical tools, richer topic content, and an improved search experience in the future.
-            If you have suggestions or feedback, feel free to reach out via GitHub.
-          </p>
-        </section>
+      <div className="grid gap-8 py-10 lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-16">
+        <aside className="text-sm text-text-secondary" aria-label="Page contents">
+          <p className="font-semibold text-text-primary">What we do</p>
+          <ol className="mt-3 space-y-2">
+            <li>01 · Find and browse</li>
+            <li>02 · Understand and use</li>
+            <li>03 · Content and rights</li>
+          </ol>
+        </aside>
+        <div className="max-w-3xl space-y-12">
+          <section aria-labelledby="about-find">
+            <p className="text-xs font-medium text-text-muted">01 / FIND</p>
+            <h2 id="about-find" className="mt-2 text-2xl font-semibold text-text-primary">Explore from a single character</h2>
+            <p className="mt-4 text-base leading-7 text-text-secondary">
+              Search and browse emoji, narrow the field by category or topic, and inspect names, meanings, Unicode codepoints, and related material. Chinese and English pages share the same core paths.
+            </p>
+          </section>
+          <section aria-labelledby="about-use">
+            <p className="text-xs font-medium text-text-muted">02 / USE</p>
+            <h2 id="about-use" className="mt-2 text-2xl font-semibold text-text-primary">Turn information into expression</h2>
+            <p className="mt-4 text-base leading-7 text-text-secondary">
+              Detail pages place meaning, examples, and technical information in one reading flow, with copy actions close at hand. This helps with everyday messages, publishing, and development checks.
+            </p>
+          </section>
+          <section aria-labelledby="about-principles" className="border-t border-border-subtle pt-8">
+            <p className="text-xs font-medium text-text-muted">03 / PRINCIPLES</p>
+            <h2 id="about-principles" className="mt-2 text-2xl font-semibold text-text-primary">Clear content boundaries and attribution</h2>
+            <p className="mt-4 text-base leading-7 text-text-secondary">
+              Character and standard references are based on the Unicode Standard; meanings, descriptions, and articles are platform content. Vendor-drawn emoji artwork has separate copyright and licensing terms and is not the same as the underlying character.
+            </p>
+            <Link href="/en/license" className="mt-5 inline-flex text-sm font-medium text-text-link hover:text-text-link-hover">
+              Read the full license notes →
+            </Link>
+          </section>
+        </div>
       </div>
-    </div>
+    </PageContainer>
   );
 }

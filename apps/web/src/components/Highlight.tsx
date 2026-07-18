@@ -26,7 +26,7 @@ export function Highlight({ text, query, className }: HighlightProps) {
     <>
       {segments.map((segment, i) =>
         segment.toLowerCase() === q.toLowerCase() ? (
-          <mark key={i} className="bg-yellow-200 text-gray-900 rounded px-0.5">
+          <mark key={i} className="rounded-sm bg-warning-subtle px-0.5 text-text-primary">
             {segment}
           </mark>
         ) : (

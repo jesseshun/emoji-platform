@@ -59,8 +59,8 @@ export default async function ZhEmojiDetailPage({ params }: Props) {
 
     // Build copy items
     const copyItems: { label: string; value: string; mono?: boolean }[] = [];
-    if (emoji.emojiChar) copyItems.push({ label: emoji.emojiChar, value: emoji.emojiChar });
-    if (emoji.unicodeCodepoint) copyItems.push({ label: emoji.unicodeCodepoint, value: emoji.unicodeCodepoint, mono: true });
+    if (emoji.emojiChar) copyItems.push({ label: 'Emoji', value: emoji.emojiChar });
+    if (emoji.unicodeCodepoint) copyItems.push({ label: 'Unicode', value: emoji.unicodeCodepoint, mono: true });
     if (emoji.htmlDecimal) copyItems.push({ label: 'HTML Decimal', value: emoji.htmlDecimal, mono: true });
     if (emoji.htmlHex) copyItems.push({ label: 'HTML Hex', value: emoji.htmlHex, mono: true });
     if (emoji.shortcode) copyItems.push({ label: emoji.shortcode, value: emoji.shortcode, mono: true });
@@ -78,7 +78,7 @@ export default async function ZhEmojiDetailPage({ params }: Props) {
     }
 
     return (
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="mx-auto max-w-content px-4 py-8 sm:px-6 sm:py-12">
         {/* Breadcrumb */}
         <Breadcrumb
           locale="zh"
@@ -95,6 +95,7 @@ export default async function ZhEmojiDetailPage({ params }: Props) {
         <DetailHero
           emojiChar={emoji.emojiChar}
           emojiId={emoji.id}
+          slug={emoji.slug}
           name={name}
           shortName={emoji.translation?.shortName || null}
           oneLineMeaning={emoji.translation?.oneLineMeaning || null}
@@ -102,46 +103,40 @@ export default async function ZhEmojiDetailPage({ params }: Props) {
           category={emoji.category}
         />
 
-        {/* Copy Area */}
-        <CopyArea items={copyItems} locale="zh" emojiId={emoji.id} />
+        <div className="mt-10 grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+          <aside className="min-w-0 space-y-5 lg:col-start-2 lg:row-start-1 lg:sticky lg:top-24" aria-label="复制与技术信息">
+            <CopyArea items={copyItems} locale="zh" emojiId={emoji.id} />
+            <EmojiTechInfo
+              emojiChar={emoji.emojiChar}
+              unicodeCodepoint={emoji.unicodeCodepoint}
+              htmlDecimal={emoji.htmlDecimal}
+              htmlHex={emoji.htmlHex}
+              shortcode={emoji.shortcode}
+              emojiVersion={emoji.emojiVersion}
+              unicodeVersion={emoji.unicodeVersion}
+              categoryName={categoryName}
+              subcategoryName={subcategoryName}
+              locale="zh"
+              emojiId={emoji.id}
+            />
+            <EmojiKeywords keywords={emoji.translation?.keywords ?? null} locale="zh" />
+          </aside>
 
-        {/* Meaning */}
-        <EmojiMeaningSection
-          oneLineMeaning={emoji.translation?.oneLineMeaning || null}
-          meaning={emoji.translation?.meaning || null}
-          usageNotes={emoji.translation?.usageNotes || null}
-          formalUsageNotes={emoji.translation?.formalUsageNotes || null}
-          informalUsageNotes={emoji.translation?.informalUsageNotes || null}
-          socialUsageNotes={emoji.translation?.socialUsageNotes || null}
-          locale="zh"
-        />
-
-        {/* Examples */}
-        <EmojiExamples examples={emoji.translation?.examples ?? null} locale="zh" />
-
-        {/* Tech Info */}
-        <EmojiTechInfo
-          emojiChar={emoji.emojiChar}
-          unicodeCodepoint={emoji.unicodeCodepoint}
-          htmlDecimal={emoji.htmlDecimal}
-          htmlHex={emoji.htmlHex}
-          shortcode={emoji.shortcode}
-          emojiVersion={emoji.emojiVersion}
-          unicodeVersion={emoji.unicodeVersion}
-          categoryName={categoryName}
-          subcategoryName={subcategoryName}
-          locale="zh"
-          emojiId={emoji.id}
-        />
-
-        {/* Keywords */}
-        <EmojiKeywords keywords={emoji.translation?.keywords ?? null} locale="zh" />
-
-        {/* FAQ */}
-        <FaqBlock faqs={faqs} />
-
-        {/* Assets */}
-        <EmojiAssets assets={emoji.assets} locale="zh" />
+          <div className="min-w-0 lg:col-start-1 lg:row-start-1">
+            <EmojiMeaningSection
+              oneLineMeaning={emoji.translation?.oneLineMeaning || null}
+              meaning={emoji.translation?.meaning || null}
+              usageNotes={emoji.translation?.usageNotes || null}
+              formalUsageNotes={emoji.translation?.formalUsageNotes || null}
+              informalUsageNotes={emoji.translation?.informalUsageNotes || null}
+              socialUsageNotes={emoji.translation?.socialUsageNotes || null}
+              locale="zh"
+            />
+            <EmojiExamples examples={emoji.translation?.examples ?? null} locale="zh" />
+            <FaqBlock faqs={faqs} />
+            <EmojiAssets assets={emoji.assets} locale="zh" />
+          </div>
+        </div>
 
         {/* Related Emojis */}
         <RelatedEmojis emojis={emoji.relatedEmojis} locale="zh" />
@@ -155,8 +150,8 @@ export default async function ZhEmojiDetailPage({ params }: Props) {
       notFound();
     }
     return (
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <ErrorState message={getErrorMessage(error)} />
+      <div className="mx-auto max-w-content px-4 py-8 sm:px-6 sm:py-12">
+        <ErrorState message={getErrorMessage(error, 'zh')} locale="zh" />
       </div>
     );
   }

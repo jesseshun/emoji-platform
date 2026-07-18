@@ -1,12 +1,10 @@
 import type { Metadata } from 'next';
-import { SearchBox } from '@/components/SearchBox';
 import { EmojiGrid } from '@/components/EmojiGrid';
+import { EmojiBrowseHeader } from '@/components/EmojiBrowseHeader';
 import { Pagination } from '@/components/Pagination';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { getEmojis, getErrorMessage } from '@/lib/api';
-
-import { getSiteUrl } from '@/lib/seo';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
@@ -36,7 +34,8 @@ export default async function ZhEmojisPage({ searchParams }: Props) {
 
     if (!data.data || data.data.length === 0) {
       return (
-        <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="mx-auto max-w-content px-4 py-8 sm:px-6 sm:py-12">
+          <EmojiBrowseHeader locale="zh" total={0} />
           <EmptyState
             icon="😊"
             title="暂无表情数据"
@@ -47,16 +46,17 @@ export default async function ZhEmojisPage({ searchParams }: Props) {
     }
 
     return (
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">表情列表</h1>
-          <p className="text-sm text-gray-500 mb-4">
-            浏览全部 Emoji 表情符号，点击即可查看详情和复制。
-          </p>
-          <SearchBox locale="zh" />
-        </div>
+      <div className="mx-auto max-w-content px-4 py-8 sm:px-6 sm:py-12">
+        <EmojiBrowseHeader
+          locale="zh"
+          total={data.meta.total}
+          page={page}
+          totalPages={data.meta.totalPages}
+        />
 
-        <EmojiGrid emojis={data.data} locale="zh" />
+        <section aria-label="Emoji 列表">
+          <EmojiGrid emojis={data.data} locale="zh" />
+        </section>
 
         <Pagination
           locale="zh"
@@ -68,8 +68,9 @@ export default async function ZhEmojisPage({ searchParams }: Props) {
     );
   } catch (error) {
     return (
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <ErrorState message={getErrorMessage(error)} />
+      <div className="mx-auto max-w-content px-4 py-8 sm:px-6 sm:py-12">
+        <EmojiBrowseHeader locale="zh" />
+        <ErrorState message={getErrorMessage(error, 'zh')} locale="zh" />
       </div>
     );
   }

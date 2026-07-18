@@ -14,27 +14,43 @@ export function EmojiCard({ emoji, locale }: EmojiCardProps) {
   const shortcode = emoji.shortcode;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow group">
-      <Link href={`/${locale}/emoji/${emoji.slug}`} className="block">
-        <div className="flex items-center justify-center h-16 mb-3">
-          <span className="text-4xl leading-none">{emoji.emojiChar}</span>
+    <article className="group flex h-[220px] min-w-0 flex-col rounded-[8px] border border-border-subtle bg-surface p-4 transition-all duration-fast hover:border-border-strong hover:shadow-sm">
+      <Link
+        href={`/${locale}/emoji/${emoji.slug}`}
+        className="block min-w-0 rounded-[6px] focus-visible:outline-none"
+      >
+        <div className="mb-3 flex h-[76px] items-center justify-center rounded-[8px] bg-bg-subtle transition-colors duration-fast group-hover:bg-bg-muted">
+          <span className="text-5xl leading-none" role="img" aria-label={name}>{emoji.emojiChar}</span>
         </div>
-        <h3 className="text-sm font-medium text-gray-900 truncate mb-1">{name}</h3>
+        <h3 className="mb-1 truncate text-sm font-semibold text-text-primary transition-colors duration-fast group-hover:text-text-link">
+          {name}
+        </h3>
       </Link>
       {meaning && (
-        <p className="text-xs text-gray-500 truncate mb-2">{meaning}</p>
+        <p className="line-clamp-2 min-h-[2.25rem] text-xs leading-[1.125rem] text-text-secondary">{meaning}</p>
       )}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5 min-w-0">
+      <div className="mt-auto flex min-w-0 items-center justify-between gap-2 border-t border-border-subtle pt-3">
+        <div className="flex min-w-0 items-center gap-1.5">
           {categoryName && (
-            <span className="text-xs text-gray-400 truncate">{categoryName}</span>
+            <span className="text-xs text-text-muted truncate">{categoryName}</span>
           )}
           {shortcode && (
-            <span className="text-xs text-gray-300 font-mono truncate">{shortcode}</span>
+            <span className="text-xs text-text-muted font-mono truncate opacity-70">
+              {shortcode}
+            </span>
           )}
         </div>
-        <CopyButton emojiChar={emoji.emojiChar} emojiId={emoji.id} locale={locale} />
+        <div className="flex shrink-0 items-center gap-1">
+          <Link
+            href={`/${locale}/emoji/${emoji.slug}`}
+            className="inline-flex min-h-9 items-center rounded-[8px] px-2 text-xs font-medium text-text-link hover:bg-accent-subtle"
+            aria-label={`${locale === 'zh' ? '查看详情' : 'View details'}: ${name}`}
+          >
+            <span aria-hidden="true">→</span>
+          </Link>
+          <CopyButton emojiChar={emoji.emojiChar} emojiId={emoji.id} locale={locale} />
+        </div>
       </div>
-    </div>
+    </article>
   );
 }

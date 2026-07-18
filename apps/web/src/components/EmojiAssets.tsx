@@ -10,25 +10,25 @@ export function EmojiAssets({ assets, locale }: EmojiAssetsProps) {
 
   return (
     <section className="mt-8">
-      <h2 className="text-xl font-bold text-gray-900 mb-4">
+      <h2 className="mb-4 text-xl font-semibold text-text-primary">
         {locale === 'zh' ? '图片资源' : 'Image Assets'}
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {assets.map((asset) => (
           <div
             key={asset.id}
-            className="bg-white rounded-lg border border-gray-200 p-4"
+            className="rounded-[8px] border border-border-subtle bg-surface p-4"
           >
             <div className="flex items-center gap-3 mb-3">
-              <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 font-medium">
+              <span className="rounded-[6px] bg-bg-subtle px-2 py-0.5 text-xs font-medium text-text-secondary">
                 {asset.provider}
               </span>
-              <span className="text-xs text-gray-400 uppercase">{asset.fileType}</span>
+              <span className="text-xs uppercase text-text-muted">{asset.fileType}</span>
             </div>
-            <div className="text-xs text-gray-500 space-y-1">
+            <div className="space-y-1 text-xs text-text-secondary">
               {asset.licenseName && (
                 <p>
-                  <span className="font-medium text-gray-600">
+                  <span className="font-medium text-text-primary">
                     {locale === 'zh' ? '许可：' : 'License: '}
                   </span>
                   {asset.licenseUrl ? (
@@ -36,7 +36,7 @@ export function EmojiAssets({ assets, locale }: EmojiAssetsProps) {
                       href={asset.licenseUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-500 hover:underline"
+                      className="text-text-link hover:underline"
                     >
                       {asset.licenseName}
                     </a>
@@ -47,7 +47,7 @@ export function EmojiAssets({ assets, locale }: EmojiAssetsProps) {
               )}
               {asset.attribution && (
                 <p>
-                  <span className="font-medium text-gray-600">
+                  <span className="font-medium text-text-primary">
                     {locale === 'zh' ? '归属：' : 'Attribution: '}
                   </span>
                   {asset.attribution}
@@ -55,7 +55,7 @@ export function EmojiAssets({ assets, locale }: EmojiAssetsProps) {
               )}
               {asset.width && asset.height && (
                 <p>
-                  <span className="font-medium text-gray-600">
+                  <span className="font-medium text-text-primary">
                     {locale === 'zh' ? '尺寸：' : 'Size: '}
                   </span>
                   {asset.width} × {asset.height}

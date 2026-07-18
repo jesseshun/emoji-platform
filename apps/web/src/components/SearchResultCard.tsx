@@ -29,17 +29,28 @@ function formatDate(value: string | null, locale: Locale): string | null {
 
 function TypeBadge({ item, locale }: { item: SearchItem; locale: Locale }) {
   const label = typeLabels[item.type]?.[locale] ?? item.type;
-  const color =
-    item.type === 'emoji'
-      ? 'bg-blue-50 text-blue-600'
-      : item.type === 'category'
-        ? 'bg-green-50 text-green-600'
-        : item.type === 'topic'
-          ? 'bg-purple-50 text-purple-600'
-          : 'bg-amber-50 text-amber-600';
   return (
-    <span className={`text-[11px] px-2 py-0.5 rounded-full ${color} whitespace-nowrap`}>{label}</span>
+    <span className="whitespace-nowrap rounded-[6px] border border-border-subtle bg-bg-subtle px-2 py-0.5 text-[11px] font-medium text-text-secondary">
+      {label}
+    </span>
   );
+}
+
+function firstKeywords(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0).slice(0, 2);
+  }
+  if (typeof value === 'string') {
+    try {
+      const parsed: unknown = JSON.parse(value);
+      if (Array.isArray(parsed)) {
+        return parsed.filter((item): item is string => typeof item === 'string' && item.trim().length > 0).slice(0, 2);
+      }
+    } catch {
+      return [];
+    }
+  }
+  return [];
 }
 
 export function SearchResultCard({ item, locale, query }: SearchResultCardProps) {
@@ -48,34 +59,43 @@ export function SearchResultCard({ item, locale, query }: SearchResultCardProps)
     const meaning = item.translation?.oneLineMeaning;
     const categoryName = item.category?.name;
     const shortcode = item.shortcode;
+    const keywords = firstKeywords(item.translation?.keywords);
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow group">
-        <div className="flex items-start justify-between gap-2 mb-2">
+      <article className="group flex min-h-[190px] flex-col rounded-[8px] border border-border-subtle bg-surface p-5 transition-all duration-fast hover:border-border-strong hover:shadow-sm">
+        <div className="mb-3 flex items-start justify-between gap-3">
           <TypeBadge item={item} locale={locale} />
+          {shortcode && <span className="max-w-[55%] truncate font-mono text-xs text-text-muted">{shortcode}</span>}
         </div>
-        <Link href={`/${locale}/emoji/${item.slug}`} className="block">
-          <div className="flex items-center justify-center h-16 mb-3">
-            <span className="text-4xl leading-none">{item.emojiChar}</span>
+        <Link href={`/${locale}/emoji/${item.slug}`} className="flex min-w-0 flex-1 items-start gap-4 rounded-[6px] focus-visible:outline-none">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[8px] bg-bg-subtle">
+            <span className="text-4xl leading-none" role="img" aria-label={name}>{item.emojiChar}</span>
           </div>
-          <h3 className="text-sm font-medium text-gray-900 truncate mb-1">
-            <Highlight text={name} query={query} />
-          </h3>
-        </Link>
-        {meaning && (
-          <p className="text-xs text-gray-500 truncate mb-2">
-            <Highlight text={meaning} query={query} />
-          </p>
-        )}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5 min-w-0">
-            {categoryName && <span className="text-xs text-gray-400 truncate">{categoryName}</span>}
-            {shortcode && (
-              <span className="text-xs text-gray-300 font-mono truncate">{shortcode}</span>
+          <div className="min-w-0 pt-0.5">
+            <h3 className="mb-1 truncate text-base font-semibold text-text-primary transition-colors duration-fast group-hover:text-text-link">
+              <Highlight text={name} query={query} />
+            </h3>
+            {meaning && (
+              <p className="line-clamp-2 text-sm leading-relaxed text-text-secondary">
+                <Highlight text={meaning} query={query} />
+              </p>
+            )}
+            {keywords.length > 0 && (
+              <p className="mt-2 truncate text-xs text-text-muted">{keywords.join(' · ')}</p>
             )}
           </div>
-          <CopyButton emojiChar={item.emojiChar} emojiId={item.id} locale={locale} />
+        </Link>
+        <div className="mt-4 flex items-center justify-between gap-3 border-t border-border-subtle pt-3">
+          <div className="min-w-0 truncate text-xs text-text-muted">
+            {categoryName || (locale === 'zh' ? 'Emoji 详情' : 'Emoji details')}
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <Link href={`/${locale}/emoji/${item.slug}`} className="inline-flex min-h-9 items-center rounded-[8px] px-2 text-xs font-medium text-text-link hover:bg-accent-subtle">
+              {locale === 'zh' ? '详情' : 'Details'} <span aria-hidden="true" className="ml-1">→</span>
+            </Link>
+            <CopyButton emojiChar={item.emojiChar} emojiId={item.id} locale={locale} />
+          </div>
         </div>
-      </div>
+      </article>
     );
   }
 
@@ -85,26 +105,26 @@ export function SearchResultCard({ item, locale, query }: SearchResultCardProps)
     return (
       <Link
         href={href}
-        className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow group block"
+        className="group block min-h-[190px] rounded-[8px] border border-border-subtle bg-surface p-5 transition-all duration-fast hover:border-border-strong hover:shadow-sm"
       >
         <div className="flex items-center gap-3 mb-3">
           <span className="text-3xl">{item.iconEmoji || '📁'}</span>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-semibold text-gray-900 group-hover:text-green-600 transition-colors truncate">
+              <h3 className="truncate text-base font-semibold text-text-primary transition-colors group-hover:text-text-link">
                 <Highlight text={name} query={query} />
               </h3>
               <TypeBadge item={item} locale={locale} />
             </div>
             {item.emojiCount > 0 && (
-              <span className="text-xs text-gray-400">
+              <span className="text-xs text-text-muted">
                 {item.emojiCount} {locale === 'zh' ? '个表情' : 'emojis'}
               </span>
             )}
           </div>
         </div>
         {item.description && (
-          <p className="text-sm text-gray-500 line-clamp-2">
+          <p className="line-clamp-3 text-sm leading-relaxed text-text-secondary">
             <Highlight text={item.description} query={query} />
           </p>
         )}
@@ -117,16 +137,16 @@ export function SearchResultCard({ item, locale, query }: SearchResultCardProps)
     return (
       <Link
         href={`/${locale}/topics/${item.slug}`}
-        className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow group block"
+        className="group block min-h-[190px] rounded-[8px] border border-border-subtle bg-surface p-5 transition-all duration-fast hover:border-border-strong hover:shadow-sm"
       >
         <div className="flex items-start justify-between gap-2 mb-2">
-          <h3 className="text-base font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
+          <h3 className="text-base font-semibold text-text-primary transition-colors group-hover:text-text-link">
             <Highlight text={title} query={query} />
           </h3>
           <TypeBadge item={item} locale={locale} />
         </div>
         {item.summary && (
-          <p className="text-sm text-gray-500 line-clamp-2">
+          <p className="line-clamp-3 text-sm leading-relaxed text-text-secondary">
             <Highlight text={item.summary} query={query} />
           </p>
         )}
@@ -140,25 +160,25 @@ export function SearchResultCard({ item, locale, query }: SearchResultCardProps)
   return (
     <Link
       href={`/${locale}/articles/${item.slug}`}
-      className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition-shadow group block"
+      className="group block min-h-[190px] overflow-hidden rounded-[8px] border border-border-subtle bg-surface transition-all duration-fast hover:border-border-strong hover:shadow-sm sm:flex"
     >
       {item.coverImage ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={item.coverImage} alt={title} className="w-full h-40 object-cover" loading="lazy" />
+        <img src={item.coverImage} alt={title} className="h-36 w-full object-cover sm:h-auto sm:w-40" loading="lazy" />
       ) : (
-        <div className="w-full h-40 bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center text-3xl">
-          📄
+        <div className="flex h-28 w-full items-center justify-center border-b border-border-subtle bg-bg-subtle text-sm font-medium text-text-muted sm:h-auto sm:w-40 sm:border-b-0 sm:border-r">
+          {locale === 'zh' ? '文章' : 'Article'}
         </div>
       )}
-      <div className="p-5">
+      <div className="min-w-0 flex-1 p-5">
         <div className="flex items-start justify-between gap-2 mb-2">
-          <h3 className="text-base font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
+          <h3 className="text-base font-semibold text-text-primary transition-colors group-hover:text-text-link">
             <Highlight text={title} query={query} />
           </h3>
           <TypeBadge item={item} locale={locale} />
         </div>
-        {item.summary && <p className="text-sm text-gray-500 line-clamp-2">{item.summary}</p>}
-        {date && <p className="text-xs text-gray-400 mt-3">{date}</p>}
+        {item.summary && <p className="line-clamp-3 text-sm leading-relaxed text-text-secondary">{item.summary}</p>}
+        {date && <p className="mt-3 text-xs text-text-muted">{date}</p>}
       </div>
     </Link>
   );

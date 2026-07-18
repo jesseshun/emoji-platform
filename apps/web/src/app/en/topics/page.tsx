@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
+import { BrowsePageHeader } from '@/components/BrowsePageHeader';
 import { TopicCard } from '@/components/TopicCard';
 import { Pagination } from '@/components/Pagination';
 import { EmptyState } from '@/components/EmptyState';
@@ -33,26 +35,22 @@ export default async function EnTopicsPage({ searchParams }: Props) {
 
     if (!data.data || data.data.length === 0) {
       return (
-        <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="mx-auto max-w-content px-4 py-8 sm:px-6 sm:py-12">
+          <BrowsePageHeader locale="en" kind="topics" total={data.meta.total} page={page} totalPages={data.meta.totalPages} />
           <EmptyState
-            icon="📝"
-            title="No topics available"
-            description="Topic content is being prepared. Please check back later."
+            icon="#"
+            title={data.meta.total > 0 ? 'No topics on this page' : 'No topics available'}
+            description={data.meta.total > 0 ? 'This page is beyond the available topic range.' : 'Topic content is being prepared. Please check back later.'}
+            action={data.meta.total > 0 ? <Link href="/en/topics" className="inline-flex min-h-11 items-center rounded-[8px] bg-text-primary px-4 text-sm font-medium text-text-inverse">Return to page one</Link> : undefined}
           />
         </div>
       );
     }
 
     return (
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Topics</h1>
-          <p className="text-sm text-gray-500">
-            Browse emoji-related articles and content. Explore the stories and culture behind emojis.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="mx-auto max-w-content px-4 py-8 sm:px-6 sm:py-12">
+        <BrowsePageHeader locale="en" kind="topics" total={data.meta.total} page={page} totalPages={data.meta.totalPages} />
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {data.data.map((topic: typeof data.data[number]) => (
             <TopicCard key={topic.id} topic={topic} locale="en" />
           ))}
@@ -68,8 +66,9 @@ export default async function EnTopicsPage({ searchParams }: Props) {
     );
   } catch (error) {
     return (
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <ErrorState message={getErrorMessage(error)} />
+      <div className="mx-auto max-w-content px-4 py-8 sm:px-6 sm:py-12">
+        <BrowsePageHeader locale="en" kind="topics" />
+        <ErrorState message={getErrorMessage(error, 'en')} locale="en" />
       </div>
     );
   }
