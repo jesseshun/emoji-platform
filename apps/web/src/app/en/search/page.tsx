@@ -55,14 +55,17 @@ export default async function EnSearchPage({ searchParams }: Props) {
   const type = normalizeType(params.type);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Search</h1>
-        <p className="text-sm text-gray-500 mb-4">
+    <div className="mx-auto max-w-content px-4 py-8 sm:px-6 sm:py-12">
+      <header className="mb-8 border-b border-border-subtle pb-8 sm:mb-10">
+        <p className="mb-3 text-xs font-semibold text-text-muted">SITE SEARCH</p>
+        <h1 className="text-3xl font-semibold text-text-primary sm:text-4xl">Search emojis and content</h1>
+        <p className="mb-6 mt-3 max-w-2xl text-sm leading-relaxed text-text-secondary sm:text-base">
           Search across emojis, categories, topics, and articles, with type filters and one-click copy.
         </p>
-        <SearchBox locale="en" defaultValue={query} />
-      </div>
+        <div className="max-w-3xl">
+          <SearchBox locale="en" defaultValue={query} autoFocus={!query} />
+        </div>
+      </header>
 
       {!query ? <SearchLanding /> : <SearchResults query={query} page={page} type={type} />}
     </div>
@@ -73,7 +76,7 @@ function SearchLanding() {
   return (
     <>
       <EmptyState
-        icon="🔍"
+        icon="⌕"
         title="Enter a keyword to search"
         description="Type an emoji name, keyword, or Unicode codepoint in the search box above to find emojis, categories, topics, and articles."
       />
@@ -106,7 +109,7 @@ async function SearchResults({
   } catch (error) {
     return (
       <>
-        <ErrorState message={getErrorMessage(error)} />
+        <ErrorState message={getErrorMessage(error, 'en')} locale="en" />
         <RecommendedEmojis locale="en" title="Popular Emojis" viewAllHref="/en/emojis" />
       </>
     );

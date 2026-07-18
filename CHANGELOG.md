@@ -1,5 +1,15 @@
 # Changelog
 
+## UI Redesign — Batch 3A: Search & Emoji Experience
+
+- **Search pages** (`/zh/search`, `/en/search`): Rebuilt the operational search layout around the existing `q`, `type`, and `page` parameters. Added desktop segmented filters, a mobile result-type popover, real clear-filter actions, compact pagination, URL history entries, popstate handling, request-race protection, and localized loading/empty/error/retry states.
+- **Typed search results**: Restyled `SearchResultCard` for the existing emoji/category/topic/article union. Emoji results expose real character/name/meaning/keywords/shortcode/category fields plus isolated copy and detail actions; all other types retain their real fields and original links without emoji-only actions.
+- **Emoji browser** (`/zh/emojis`, `/en/emojis`): Added a focused library header using the real list total/page metadata, a stable responsive grid, and a 220px unified Emoji card with accessible emoji names, independent details/copy controls, and graceful missing-field behavior.
+- **Emoji detail** (`/zh/emoji/[slug]`, `/en/emoji/[slug]`): Reorganized the existing detail payload into a prominent emoji hero, primary copy action, locale counterpart link, copyable-value panel, definition-list technical data, meanings/usage, examples, keywords, FAQ, licensed assets, related emojis, and related topics. Missing fields remain hidden.
+- **Copy behavior**: Added one shared `useCopyAction` path for `CopyButton`, `CopyArea`, and `CopyValueButton`. Each action calls the clipboard helper once, records one fire-and-forget copy event only after success, and sends a success/error variant to the single globally mounted accessible Toast container.
+- **Route states**: Added scoped loading and error boundaries for search, emoji lists, and emoji details, plus localized emoji not-found states. Skeletons use stable result/grid/detail geometry and announce busy state to assistive technology.
+- **Boundaries preserved**: No API endpoint/DTO/business-logic changes, no Prisma schema/database changes, no route/slug/query changes, no SEO generation changes, no Preview Docker changes, no Admin changes, no Batch 3B category/topic page work, and no deployment.
+
 ## UI Redesign — Batch 2: Homepage, Navigation & Global Search
 
 - **Command Palette** (`apps/web/src/components/CommandPalette.tsx`): New Raycast-style global search overlay. `CommandPaletteProvider` mounts a global ⌘K/Ctrl+K listener and restores focus to the trigger element on close via `triggerRef`. `useCommandPalette()` exposes a safe no-op `open()` for non-provider contexts. The overlay performs debounced (220ms) `search(locale, q, {type:'all', limit:12})`, supports ↑/↓/Enter/Esc keyboard navigation, quick-link shortcuts when empty, and Skeleton/Empty/Error states. Emoji selection fires `recordCopyEvent` + `showToast(..., 'success')`. zh/en label maps: `PALETTE_LABELS`, `TYPE_LABELS`, `QUICK_LINKS`.

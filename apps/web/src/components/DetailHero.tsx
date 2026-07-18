@@ -5,6 +5,7 @@ import type { Locale } from '@/lib/types';
 interface DetailHeroProps {
   emojiChar: string;
   emojiId: string;
+  slug: string;
   name: string | null;
   shortName: string | null;
   oneLineMeaning: string | null;
@@ -18,41 +19,51 @@ interface DetailHeroProps {
 export function DetailHero({
   emojiChar,
   emojiId,
+  slug,
   name,
   shortName,
   oneLineMeaning,
   locale,
   category,
 }: DetailHeroProps) {
+  const displayName = name || shortName || slug;
+  const otherLocale = locale === 'zh' ? 'en' : 'zh';
+
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8 mb-8">
-      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-        {/* Large Emoji */}
-        <div className="flex-shrink-0 w-24 h-24 flex items-center justify-center bg-gray-50 rounded-2xl border border-gray-100">
-          <span className="text-5xl sm:text-6xl leading-none select-none">{emojiChar}</span>
+    <section className="overflow-hidden rounded-[8px] border border-border-subtle bg-surface shadow-sm">
+      <div className="grid gap-6 p-6 sm:grid-cols-[9rem_minmax(0,1fr)] sm:items-center sm:p-8">
+        <div className="mx-auto flex h-36 w-36 shrink-0 items-center justify-center rounded-[8px] border border-border-subtle bg-bg-subtle sm:mx-0">
+          <span className="select-none text-7xl leading-none" role="img" aria-label={displayName}>{emojiChar}</span>
         </div>
 
-        {/* Info */}
-        <div className="flex-1 text-center sm:text-left">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
-            {emojiChar} {name || ''}
+        <div className="min-w-0 text-center sm:text-left">
+          <div className="mb-3 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+            <span className="rounded-[6px] border border-border-subtle bg-bg-subtle px-2 py-1 text-[11px] font-semibold text-text-secondary">
+              {locale === 'zh' ? '中文释义' : 'ENGLISH DEFINITION'}
+            </span>
+            <Link href={`/${otherLocale}/emoji/${slug}`} hrefLang={otherLocale} className="text-xs font-medium text-text-link hover:text-text-link-hover">
+              {locale === 'zh' ? '查看英文' : 'View in Chinese'}
+            </Link>
+          </div>
+          <h1 className="break-words text-3xl font-semibold text-text-primary sm:text-4xl">
+            {displayName}
           </h1>
 
           {shortName && (
-            <p className="text-sm text-gray-500 font-mono mb-2">{shortName}</p>
+            <p className="mt-2 break-all font-mono text-sm text-text-muted">{shortName}</p>
           )}
 
           {oneLineMeaning && (
-            <p className="text-base text-gray-700 mb-4">{oneLineMeaning}</p>
+            <p className="mt-3 max-w-2xl text-base leading-relaxed text-text-secondary">{oneLineMeaning}</p>
           )}
 
-          <div className="flex flex-wrap items-center gap-3 justify-center sm:justify-start">
-            <CopyButton emojiChar={emojiChar} emojiId={emojiId} locale={locale} />
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-3 sm:justify-start">
+            <CopyButton emojiChar={emojiChar} emojiId={emojiId} locale={locale} variant="primary" />
 
             {category && (
               <Link
                 href={`/${locale}/categories/${category.slug}`}
-                className="text-xs px-2.5 py-1 rounded-md border border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 transition"
+                className="inline-flex min-h-11 items-center rounded-[8px] border border-border bg-bg-subtle px-3 text-sm font-medium text-text-secondary transition-colors duration-fast hover:border-border-strong hover:text-text-primary"
               >
                 {category.name || category.slug}
               </Link>
@@ -60,6 +71,6 @@ export function DetailHero({
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

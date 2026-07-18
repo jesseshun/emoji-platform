@@ -19,7 +19,7 @@ const labels: Record<string, Record<string, string>> = {
 };
 
 export function EmojiMeaningSection({
-  oneLineMeaning,
+  oneLineMeaning: _oneLineMeaning,
   meaning,
   usageNotes,
   formalUsageNotes,
@@ -40,19 +40,19 @@ export function EmojiMeaningSection({
   if (!hasContent) return null;
 
   return (
-    <section className="mt-8">
-      <h2 className="text-xl font-bold text-gray-900 mb-4">
+    <section>
+      <h2 className="mb-4 text-xl font-semibold text-text-primary">
         {locale === 'zh' ? '含义与用法' : 'Meaning & Usage'}
       </h2>
-      <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+      <div className="space-y-0 overflow-hidden rounded-[8px] border border-border-subtle bg-surface">
         {sections.map(
           (s) =>
             s.content && (
-              <div key={s.key}>
-                <h3 className="text-sm font-semibold text-gray-700 mb-1">
+              <div key={s.key} className="border-b border-border-subtle p-5 last:border-b-0 sm:p-6">
+                <h3 className="mb-2 text-sm font-semibold text-text-primary">
                   {labels[s.key]?.[locale] || s.key}
                 </h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{s.content}</p>
+                <p className="break-words text-sm leading-7 text-text-secondary">{s.content}</p>
               </div>
             ),
         )}

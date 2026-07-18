@@ -13,7 +13,7 @@ export function RelatedTopics({ topics, locale }: RelatedTopicsProps) {
 
   return (
     <section className="mt-8">
-      <h2 className="text-xl font-bold text-gray-900 mb-4">
+      <h2 className="mb-4 text-xl font-semibold text-text-primary">
         {locale === 'zh' ? '相关专题' : 'Related Topics'}
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -21,13 +21,13 @@ export function RelatedTopics({ topics, locale }: RelatedTopicsProps) {
           <Link
             key={topic.id}
             href={`/${locale}/topics/${topic.slug}`}
-            className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow group"
+            className="group rounded-[8px] border border-border-subtle bg-surface p-4 transition-all duration-fast hover:border-border-strong hover:shadow-sm"
           >
-            <h3 className="text-sm font-semibold text-gray-900 group-hover:text-purple-600 transition-colors mb-1">
+            <h3 className="mb-1 text-sm font-semibold text-text-primary transition-colors duration-fast group-hover:text-text-link">
               {topic.translation?.title || topic.slug}
             </h3>
             {topic.translation?.summary && (
-              <p className="text-xs text-gray-500 line-clamp-2">
+              <p className="line-clamp-2 text-xs leading-relaxed text-text-secondary">
                 {topic.translation.summary}
               </p>
             )}

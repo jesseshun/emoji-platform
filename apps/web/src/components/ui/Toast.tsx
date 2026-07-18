@@ -38,8 +38,9 @@ export function ToastContainer() {
   return (
     <div
       className="fixed bottom-4 left-1/2 -translate-x-1/2 z-toast
-                 flex flex-col gap-2 items-center pointer-events-none"
+                 flex w-[calc(100%-2rem)] max-w-sm flex-col gap-2 items-center pointer-events-none"
       aria-live="polite"
+      aria-atomic="true"
       aria-label="Notifications"
     >
       {toasts.map((toast) => (
@@ -88,9 +89,9 @@ function ToastItem({
 
   return (
     <div
+      role={level === 'error' ? 'alert' : 'status'}
       className={`
-        pointer-events-auto px-4 py-2.5 rounded-xl shadow-lg text-white text-sm font-medium
-        flex items-center gap-2 min-w-[220px] max-w-sm
+        pointer-events-auto flex w-full items-center gap-2 rounded-[8px] px-4 py-2.5 shadow-lg text-white text-sm font-medium
         ${variantBgMap[toast.variant || 'default']}
         ${exiting ? 'animate-toast-out' : 'animate-toast-in'}
       `}

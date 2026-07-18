@@ -7,10 +7,11 @@ import type { Locale } from '@/lib/types';
 interface ErrorStateProps {
   message?: string;
   onRetryUrl?: string;
+  onRetry?: () => void;
   locale?: Locale;
 }
 
-export function ErrorState({ message, onRetryUrl, locale }: ErrorStateProps) {
+export function ErrorState({ message, onRetryUrl, onRetry, locale }: ErrorStateProps) {
   const pathname = usePathname();
   const resolved: Locale = locale ?? (pathname?.startsWith('/zh') ? 'zh' : 'en');
 
@@ -22,7 +23,7 @@ export function ErrorState({ message, onRetryUrl, locale }: ErrorStateProps) {
   const retryLabel = resolved === 'zh' ? '重试' : 'Try again';
 
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+    <div className="flex flex-col items-center justify-center py-16 px-4 text-center" role="alert">
       <span className="text-4xl mb-5" role="img" aria-hidden="true">⚠️</span>
       <h2 className="text-lg font-semibold text-text-primary mb-2">{title}</h2>
       <p className="text-sm text-text-secondary max-w-md mb-5 leading-relaxed">
@@ -42,7 +43,7 @@ export function ErrorState({ message, onRetryUrl, locale }: ErrorStateProps) {
       ) : (
         <button
           type="button"
-          onClick={() => window.location.reload()}
+          onClick={onRetry ?? (() => window.location.reload())}
           className="
             inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg
             bg-accent text-white hover:bg-accent-hover transition-colors duration-fast

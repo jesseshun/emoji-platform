@@ -328,6 +328,21 @@ font-family:
 | `admin-badge-*` | 状态徽章（success/warning/danger/info/neutral） |
 | `admin-table*` | 表格容器 + 表头 + 单元格样式 |
 
+### 10.5 搜索与 Emoji 浏览组件（Batch 3A）
+
+| 组件 | 规范 |
+|------|------|
+| `SearchBox` | 56px 主搜索输入区；左侧搜索图标、右侧清空与提交；键盘 Enter 提交；不自动伪造或保留未知参数 |
+| `SearchResultsView` | 桌面端类型 Segmented Filter，移动端 Popover；URL 使用原 `q/type/page`；筛选与分页写入浏览器历史并响应前进/后退 |
+| `SearchResultCard` | Emoji 显示字符、真实名称/含义/关键词、复制和详情；其他类型只显示真实内容字段与原链接 |
+| `EmojiCard` | 固定 220px 高度；Emoji 是主要色彩；名称、含义、分类/shortcode 缺失时不输出空值；复制与详情为独立操作 |
+| `CopyButton` | 详情主操作使用 primary variant；卡片使用紧凑 variant；成功/失败均进入全局可感知 Toast |
+| `CopyArea` | 按字段显示 label + 完整真实 value；可复制区域至少 48px；长 Unicode/HTML/shortcode 可截断但不破版 |
+| `EmojiTechInfo` | 使用 Definition List；空字段不创建 row；可复制字段使用独立 icon button |
+| Browse Skeletons | 搜索结果、Emoji 网格、Emoji 详情分别保持最终布局尺寸；`role=status` + `aria-busy` |
+
+搜索与 Emoji 页面统一使用 `max-w-content`、`border-border-subtle`、`bg-surface`、8px 紧凑圆角和 `duration-fast`。搜索排序继续使用真实 provider 的既有相关度/数据库顺序；未增加新的 sort query 或后端功能。
+
 ---
 
 ## 11. Z-Index 层级

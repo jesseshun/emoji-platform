@@ -33,12 +33,12 @@ export async function RecommendedEmojis({
   if (!emojis || emojis.length === 0) return null;
 
   return (
-    <section className="mt-8">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+    <section className="mt-10 border-t border-border-subtle pt-8">
+      <div className="mb-5 flex items-center justify-between gap-4">
+        <h2 className="text-lg font-semibold text-text-primary">{title}</h2>
         <Link
           href={viewAllHref}
-          className="text-sm text-blue-600 hover:text-blue-700 transition"
+          className="shrink-0 text-sm font-medium text-text-link transition-colors duration-fast hover:text-text-link-hover"
         >
           {locale === 'zh' ? '查看全部 →' : 'View all →'}
         </Link>

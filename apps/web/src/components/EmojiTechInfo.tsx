@@ -53,30 +53,31 @@ export function EmojiTechInfo({
   ];
 
   return (
-    <section className="mt-8">
-      <h2 className="text-xl font-bold text-gray-900 mb-4">
+    <section className="rounded-[8px] border border-border-subtle bg-surface p-4 shadow-xs">
+      <h2 className="mb-3 text-sm font-semibold text-text-primary">
         {locale === 'zh' ? '技术信息' : 'Technical Information'}
       </h2>
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="divide-y divide-gray-100">
+      <dl className="divide-y divide-border-subtle">
           {rows.map((row) => (
             <div
               key={row.key}
-              className="flex flex-col sm:flex-row sm:items-center gap-2 px-4 py-3"
+              className="grid min-w-0 grid-cols-[minmax(0,1fr)_2.5rem] items-center gap-2 py-3 first:pt-0 last:pb-0"
             >
-              <span className="text-xs font-medium text-gray-500 w-32 flex-shrink-0">
+              <div className="min-w-0">
+              <dt className="mb-1 text-[11px] font-medium text-text-muted">
                 {fieldLabels[row.key]?.[locale] || row.key}
-              </span>
-              <span className="text-sm text-gray-900 font-mono break-all flex-1">
+              </dt>
+              <dd className="break-all font-mono text-sm text-text-primary">
                 {row.value}
-              </span>
+              </dd>
+              </div>
               {row.copyable && (
-                <CopyValueButton value={row.value} locale={locale} emojiId={emojiId} />
+                <CopyValueButton value={row.value} label={fieldLabels[row.key]?.[locale]} locale={locale} emojiId={emojiId} />
               )}
+              {!row.copyable && <span aria-hidden="true" />}
             </div>
           ))}
-        </div>
-      </div>
+      </dl>
     </section>
   );
 }

@@ -29,18 +29,18 @@ export function EmojiExamples({ examples, locale }: EmojiExamplesProps) {
 
   return (
     <section className="mt-8">
-      <h2 className="text-xl font-bold text-gray-900 mb-4">
+      <h2 className="mb-4 text-xl font-semibold text-text-primary">
         {locale === 'zh' ? '使用示例' : 'Usage Examples'}
       </h2>
       <div className="space-y-3">
         {parsed.map((item, index) => (
           <div
             key={index}
-            className="bg-white rounded-lg border border-gray-200 p-4"
+            className="rounded-[8px] border border-border-subtle bg-surface p-5"
           >
-            <p className="text-sm text-gray-800 leading-relaxed">{item.text}</p>
+            <p className="break-words text-sm leading-7 text-text-primary">{item.text}</p>
             {item.context && (
-              <span className="inline-block mt-2 text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded">
+              <span className="mt-2 inline-block rounded-[6px] bg-bg-subtle px-2 py-0.5 text-xs text-text-muted">
                 {item.context}
               </span>
             )}

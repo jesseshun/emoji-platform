@@ -152,6 +152,22 @@ feat: redesign global shell homepage and search
 
 ## Batch 3：搜索、Emoji、分类、专题页面
 
+> Batch 3 已拆分为 3A 与 3B，避免一次改动跨越过多内容边界。
+
+### Batch 3A：搜索页与 Emoji 浏览体验 ✅ 已完成（2026-07-18）
+
+- 已改版中英文搜索页、真实类型筛选、分页、移动筛选 Popover、Skeleton / Empty / Error 状态。
+- 已改版 `SearchResultCard`，Emoji 结果保留复制与详情入口，分类、专题、文章继续使用各自真实字段和原链接。
+- 已改版中英文 Emoji 列表、统一 `EmojiCard` / `EmojiGrid`、真实总数与分页状态。
+- 已重组中英文 Emoji 详情层级：主展示、主要复制、可复制字段、专业信息、含义与用法、示例、关键词、资源与关联内容。
+- 已统一 `CopyButton`、`CopyArea`、`CopyValueButton` 的成功/失败 Toast、单次 clipboard 调用与单次 copy event 记录路径。
+- 已增加搜索、列表、详情的路由级 loading / error，以及详情 not-found 状态。
+- 保留原 API、DTO、Prisma schema、数据库结构、路由、slug、query 参数和 SEO 生成逻辑。
+
+### Batch 3B：分类与专题页面（待开始）
+
+- 本轮未修改分类或专题页面结构，不视为已开始 Batch 3B。
+
 ### 修改范围
 
 - 重构 `SearchResultsView`、`SearchResultCard`：类型筛选、结果卡片、高亮、分页、空态/错误态。

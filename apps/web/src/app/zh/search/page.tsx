@@ -55,14 +55,17 @@ export default async function ZhSearchPage({ searchParams }: Props) {
   const type = normalizeType(params.type);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">搜索</h1>
-        <p className="text-sm text-gray-500 mb-4">
+    <div className="mx-auto max-w-content px-4 py-8 sm:px-6 sm:py-12">
+      <header className="mb-8 border-b border-border-subtle pb-8 sm:mb-10">
+        <p className="mb-3 text-xs font-semibold text-text-muted">全站搜索</p>
+        <h1 className="text-3xl font-semibold text-text-primary sm:text-4xl">搜索 Emoji 与内容</h1>
+        <p className="mb-6 mt-3 max-w-2xl text-sm leading-relaxed text-text-secondary sm:text-base">
           跨 Emoji、分类、专题与文章搜索，支持类型筛选与一键复制。
         </p>
-        <SearchBox locale="zh" defaultValue={query} />
-      </div>
+        <div className="max-w-3xl">
+          <SearchBox locale="zh" defaultValue={query} autoFocus={!query} />
+        </div>
+      </header>
 
       {!query ? <SearchLanding /> : <SearchResults query={query} page={page} type={type} />}
     </div>
@@ -73,7 +76,7 @@ function SearchLanding() {
   return (
     <>
       <EmptyState
-        icon="🔍"
+        icon="⌕"
         title="输入关键词开始搜索"
         description="在上方搜索框中输入 Emoji 名称、关键词或 Unicode 编码，即可查找表情符号、分类、专题与文章。"
       />
@@ -106,7 +109,7 @@ async function SearchResults({
   } catch (error) {
     return (
       <>
-        <ErrorState message={getErrorMessage(error)} />
+        <ErrorState message={getErrorMessage(error, 'zh')} locale="zh" />
         <RecommendedEmojis locale="zh" title="热门表情" viewAllHref="/zh/emojis" />
       </>
     );

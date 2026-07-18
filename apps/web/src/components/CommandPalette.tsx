@@ -189,7 +189,7 @@ function CommandPaletteOverlay({ locale, onClose, router }: OverlayProps) {
         return;
       }
       showToast(
-        locale === 'zh' ? `已复制 ${item.emojiChar}` : `Copied! ${item.emojiChar}`,
+        locale === 'zh' ? `已复制 ${item.emojiChar}` : `Copied ${item.emojiChar}`,
         'success',
       );
       // Fire-and-forget copy event; never block UX on failure.
