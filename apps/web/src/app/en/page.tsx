@@ -6,9 +6,19 @@ import { getDiscovery, getErrorMessage } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
 export const metadata: Metadata = {
   title: 'Emoji Platform - Discover Every Emoji',
   description: 'Search, copy, and understand every emoji. Find emoji meanings, Unicode codes, usage examples, and more.',
+  alternates: {
+    canonical: `${siteUrl}/en`,
+    languages: {
+      zh: `${siteUrl}/zh`,
+      en: `${siteUrl}/en`,
+      'x-default': `${siteUrl}/en`,
+    },
+  },
 };
 
 export default async function EnHomePage() {

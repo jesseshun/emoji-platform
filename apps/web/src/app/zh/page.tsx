@@ -6,9 +6,19 @@ import { getDiscovery, getErrorMessage } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
 export const metadata: Metadata = {
   title: 'Emoji 平台 - 发现每一个表情符号',
   description: '搜索、复制、理解每一个 Emoji。输入 Emoji、关键词、Unicode 编码或英文名称，快速找到你想要的表情符号。',
+  alternates: {
+    canonical: `${siteUrl}/zh`,
+    languages: {
+      zh: `${siteUrl}/zh`,
+      en: `${siteUrl}/en`,
+      'x-default': `${siteUrl}/en`,
+    },
+  },
 };
 
 export default async function ZhHomePage() {
